@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=development
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+
+# Instalar dependencias en el contenedor de desarrollo
+RUN npm install --legacy-peer-deps
+
+# Copiar código fuente
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora — El cuaderno de a bordo de tu flota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --asphalt:#1E2227;
+    --asphalt-2:#282D33;
+    --chalk:#EDEAE0;
+    --paper:#F6F4EE;
+    --hivis:#F2B705;
+    --rust:#C1440E;
+    --steel:#5C6B74;
+    --steel-light:#8B98A0;
+    --ink:#23262B;
+    --line:rgba(30,34,39,0.14);
+    --line-dark:rgba(237,234,224,0.16);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.stencil{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    color:var(--asphalt);
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;text-decoration:none;}
+  img,svg{display:block;max-width:100%;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--steel);
+  }
+  .eyebrow.on-dark{color:var(--steel-light);}
+
+  /* ---------- road-line divider (signature motif) ---------- */
+  .roadline{
+    height:2px;
+    background-image:repeating-linear-gradient(90deg, var(--hivis) 0 28px, transparent 28px 46px);
+    opacity:0.9;
+  }
+  .roadline.dark{
+    background-image:repeating-linear-gradient(90deg, var(--line-dark) 0 20px, transparent 20px 36px);
+    height:1px;
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(246,244,238,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px; max-width:1120px; margin:0 auto;
+  }
+  .logo{
+    font-family:'Oswald',sans-serif;
+    font-size:20px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.03em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{width:8px;height:8px;background:var(--hivis);border-radius:50%;display:inline-block;}
+  .navlinks{display:flex; gap:32px; align-items:center;}
+  .navlinks a{font-size:14px; color:var(--steel); font-weight:500;}
+  .navlinks a:hover{color:var(--asphalt);}
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-weight:600; font-size:14px;
+    padding:11px 22px; border-radius:3px;
+    border:1px solid var(--asphalt);
+    display:inline-block; cursor:pointer;
+    transition:transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .btn-primary{background:var(--asphalt); color:var(--chalk);}
+  .btn-primary:hover{background:var(--ink); transform:translateY(-1px);}
+  .btn-hivis{background:var(--hivis); color:var(--asphalt); border-color:var(--hivis);}
+  .btn-hivis:hover{transform:translateY(-1px); filter:brightness(1.04);}
+  .btn-ghost{background:transparent; color:var(--asphalt); border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--asphalt);}
+  .navcta{display:flex; gap:12px; align-items:center;}
+  .navcta .btn{padding:9px 18px; font-size:13px;}
+  .menu-toggle{display:none; background:none; border:none; cursor:pointer;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    background:var(--asphalt);
+    color:var(--chalk);
+    padding:88px 0 0;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.1fr 0.9fr;
+    gap:56px; align-items:center;
+    padding-bottom:64px;
+  }
+  .hero h1{
+    font-size:clamp(38px,5vw,58px);
+    line-height:1.03;
+    color:var(--chalk);
+    margin:18px 0 22px;
+  }
+  .hero h1 .accent{color:var(--hivis);}
+  .hero p.lead{
+    font-size:17px; color:var(--steel-light);
+    max-width:480px; margin-bottom:32px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px;}
+  .hero-note{font-size:12px; color:var(--steel-light); font-family:'IBM Plex Mono',monospace;}
+
+  /* odometer signature element */
+  .odo-card{
+    background:var(--asphalt-2);
+    border:1px solid var(--line-dark);
+    border-radius:6px;
+    padding:28px 26px;
+  }
+  .odo-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--steel-light); margin-bottom:14px;
+  }
+  .odo{
+    display:flex; gap:4px; margin-bottom:14px;
+  }
+  .odo-digit{
+    width:42px; height:56px;
+    background:var(--asphalt);
+    border:1px solid var(--line-dark);
+    border-radius:3px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:28px; font-weight:600; color:var(--hivis);
+    overflow:hidden; position:relative;
+  }
+  .odo-digit span{display:block;}
+  .odo-sep{width:8px; align-self:flex-end; margin-bottom:8px; text-align:center; color:var(--steel-light);}
+  .odo-caption{font-size:13px; color:var(--steel-light); border-top:1px solid var(--line-dark); padding-top:14px;}
+  .odo-caption b{color:var(--chalk); font-weight:600;}
+  .odo-status{display:flex; gap:18px; margin-top:16px;}
+  .odo-status div{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--steel-light);}
+  .odo-status b{display:block; font-size:16px; color:var(--chalk); font-weight:600; margin-bottom:2px;}
+  .pulse{width:7px;height:7px;border-radius:50%;background:#6FCF6F;display:inline-block;margin-right:6px;
+    animation:pulseAnim 1.8s ease-in-out infinite;}
+  @keyframes pulseAnim{0%,100%{opacity:1} 50%{opacity:.35}}
+  @media (prefers-reduced-motion: reduce){ .pulse{animation:none;} }
+
+  /* ---------- problem band ---------- */
+  .problem{background:var(--asphalt); color:var(--chalk); padding:56px 0 76px;}
+  .problem-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line-dark); border:1px solid var(--line-dark); border-radius:6px; overflow:hidden;
+  }
+  .problem-cell{background:var(--asphalt); padding:28px 26px;}
+  .problem-cell h3{color:var(--chalk); font-size:16px; margin-bottom:8px; font-weight:600; text-transform:none; font-family:'Inter',sans-serif;}
+  .problem-cell p{font-size:14px; color:var(--steel-light);}
+  .problem-cell .tag{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--hivis); margin-bottom:10px; display:block;}
+
+  /* ---------- section shell ---------- */
+  section{padding:80px 0;}
+  .section-head{max-width:600px; margin-bottom:48px;}
+  .section-head h2{font-size:clamp(28px,3.4vw,38px); margin-top:10px; line-height:1.08;}
+  .section-head p{color:var(--steel); font-size:15px; margin-top:14px; max-width:480px;}
+
+  /* ---------- how it works: ledger steps ---------- */
+  .steps{border-top:1px solid var(--line);}
+  .step{
+    display:grid; grid-template-columns:80px 1fr 1.3fr;
+    gap:24px; padding:26px 0; border-bottom:1px solid var(--line);
+    align-items:start;
+  }
+  .step-num{font-family:'IBM Plex Mono',monospace; font-size:14px; color:var(--hivis); background:var(--asphalt);
+    width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600;}
+  .step h3{font-size:17px; text-transform:none; font-family:'Inter',sans-serif; font-weight:600; margin-bottom:4px; color:var(--ink);}
+  .step p{color:var(--steel); font-size:14px; max-width:480px;}
+
+  /* ---------- features: gauge cards ---------- */
+  .features{background:var(--asphalt-2); background:var(--chalk);}
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:18px;
+  }
+  .feature-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:6px;
+    padding:26px 22px;
+  }
+  .gauge{width:40px; height:40px; margin-bottom:16px;}
+  .feature-card h3{font-size:15px; text-transform:none; font-family:'Inter',sans-serif; font-weight:600; margin-bottom:8px; color:var(--ink);}
+  .feature-card p{font-size:13.5px; color:var(--steel); line-height:1.55;}
+
+  /* ---------- pricing: manifest table ---------- */
+  .pricing-note{font-size:12px; color:var(--steel); font-family:'IBM Plex Mono',monospace; margin-top:18px;}
+  .manifest{
+    border:1px solid var(--asphalt); border-radius:6px; overflow:hidden;
+  }
+  .manifest-row{
+    display:grid; grid-template-columns:1.4fr 1fr 1fr 1.2fr;
+    border-bottom:1px solid var(--line);
+    align-items:center;
+  }
+  .manifest-row:last-child{border-bottom:none;}
+  .manifest-row.head{background:var(--asphalt); color:var(--chalk);}
+  .manifest-row.head div{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--steel-light);}
+  .manifest-row.featured{background:#FBF3D9;}
+  .manifest-row div{padding:20px 22px; font-size:14px;}
+  .manifest-row .plan-name{font-family:'Oswald',sans-serif; text-transform:uppercase; font-weight:600; font-size:16px; color:var(--asphalt);}
+  .manifest-row .price{font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:600; color:var(--ink);}
+  .manifest-row .price small{font-size:12px; color:var(--steel); font-weight:400;}
+  .manifest-row .badge{font-family:'IBM Plex Mono',monospace; font-size:10px; background:var(--hivis); color:var(--asphalt); padding:3px 8px; border-radius:2px; margin-left:8px; vertical-align:middle;}
+  .manifest-row .cta-cell{text-align:right;}
+  .manifest-row .cta-cell .btn{padding:8px 16px; font-size:13px;}
+
+  /* ---------- faq ---------- */
+  .faq-list{border-top:1px solid var(--line); max-width:760px;}
+  .faq-item{border-bottom:1px solid var(--line); padding:22px 0;}
+  .faq-item summary{
+    cursor:pointer; list-style:none; font-weight:600; font-size:15.5px;
+    display:flex; justify-content:space-between; align-items:center; color:var(--ink);
+  }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:'+'; font-family:'IBM Plex Mono',monospace; font-size:18px; color:var(--steel);}
+  .faq-item[open] summary::after{content:'–';}
+  .faq-item p{color:var(--steel); font-size:14px; margin-top:12px; max-width:620px;}
+
+  /* ---------- final cta ---------- */
+  .final-cta{
+    background:var(--hivis); color:var(--asphalt);
+    padding:72px 0; text-align:center;
+  }
+  .final-cta h2{font-size:clamp(28px,4vw,42px); color:var(--asphalt); margin-bottom:16px;}
+  .final-cta p{font-size:15px; margin-bottom:30px; color:#5B4B08; max-width:480px; margin-left:auto; margin-right:auto;}
+  .final-cta .btn-primary{background:var(--asphalt); border-color:var(--asphalt); color:var(--chalk);}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--asphalt); color:var(--steel-light); padding:44px 0 28px;}
+  .footer-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:24px; padding-bottom:24px;}
+  .footer-cols{display:flex; gap:56px; flex-wrap:wrap;}
+  .footer-cols h4{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--steel-light); margin-bottom:12px;}
+  .footer-cols a{display:block; font-size:13.5px; color:var(--chalk); opacity:0.8; margin-bottom:8px;}
+  .footer-cols a:hover{opacity:1;}
+  .footer-bottom{font-size:12px; color:var(--steel); font-family:'IBM Plex Mono',monospace; padding-top:20px;}
+
+  /* ---------- focus ---------- */
+  a:focus-visible, button:focus-visible, summary:focus-visible{outline:2px solid var(--hivis); outline-offset:2px;}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr; padding-bottom:44px;}
+    .problem-grid{grid-template-columns:1fr;}
+    .feature-grid{grid-template-columns:1fr 1fr;}
+    .manifest-row{grid-template-columns:1.4fr 1fr; row-gap:6px;}
+    .manifest-row .cta-cell{grid-column:1 / -1; text-align:left; padding-top:0;}
+    .navlinks{display:none;}
+    .menu-toggle{display:block;}
+  }
+  @media (max-width:560px){
+    .feature-grid{grid-template-columns:1fr;}
+    .step{grid-template-columns:44px 1fr; }
+    .step > div:nth-child(2){grid-column:2;}
+    .step > p{grid-column:1 / -1; padding-left:0;}
+    .manifest-row{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="logo"><span class="dot"></span>Bitácora</div>
+    <div class="navlinks">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#precios">Precios</a>
+      <a href="#faq">Preguntas</a>
+    </div>
+    <div class="navcta">
+      <a href="#" class="btn btn-ghost">Ingresar</a>
+      <a href="#precios" class="btn btn-primary">Empezar gratis</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow on-dark">Gestión de mantenimiento para flotas</span>
+      <h1>El service nunca<br>más te agarra <span class="accent">de sorpresa.</span></h1>
+      <p class="lead">Bitácora avisa por mail y WhatsApp cuándo cada camión, bus o utilitario de tu flota necesita mantenimiento — por kilómetro o por fecha, con o sin GPS. Y guarda el historial completo de cada unidad.</p>
+      <div class="hero-ctas">
+        <a href="#precios" class="btn btn-hivis">Probar 14 días gratis</a>
+        <a href="#como-funciona" class="btn btn-ghost" style="border-color:var(--line-dark); color:var(--chalk);">Ver cómo funciona</a>
+      </div>
+      <p class="hero-note">Sin tarjeta de crédito. Cancelás cuando quieras.</p>
+    </div>
+
+    <div class="odo-card">
+      <div class="odo-label">Panel — Transportes del Sur SA</div>
+      <div class="odo" id="odometer" aria-hidden="true">
+        <div class="odo-digit"><span data-final="1">0</span></div>
+        <div class="odo-digit"><span data-final="2">0</span></div>
+        <div class="odo-digit"><span data-final="8">0</span></div>
+        <div class="odo-sep">.</div>
+        <div class="odo-digit"><span data-final="4">0</span></div>
+        <div class="odo-digit"><span data-final="0">0</span></div>
+        <div class="odo-digit"><span data-final="0">0</span></div>
+      </div>
+      <div class="odo-caption">Km recorridos este mes bajo <b>seguimiento activo</b> de mantenimiento.</div>
+      <div class="odo-status">
+        <div><span class="pulse" aria-hidden="true"></span><b>3</b>alertas hoy</div>
+        <div><b>8</b>vehículos</div>
+        <div><b>2</b>canales de aviso</div>
+      </div>
+    </div>
+  </div>
+  <div class="roadline"></div>
+</section>
+
+<section class="problem">
+  <div class="wrap">
+    <div class="problem-grid">
+      <div class="problem-cell">
+        <span class="tag">01 — EL COSTO OCULTO</span>
+        <h3>La rotura en ruta siempre sale más cara</h3>
+        <p>Un service que se pasó de fecha termina en una grúa, un flete perdido y un cliente esperando.</p>
+      </div>
+      <div class="problem-cell">
+        <span class="tag">02 — EL PAPEL SE PIERDE</span>
+        <h3>La planilla de Excel nadie la actualiza</h3>
+        <p>El historial de cada unidad queda repartido entre facturas sueltas, mensajes de WhatsApp y memoria del mecánico.</p>
+      </div>
+      <div class="problem-cell">
+        <span class="tag">03 — LAS ALERTAS GENÉRICAS FALLAN</span>
+        <h3>Un mail que nadie lee no sirve</h3>
+        <p>Los administradores de flota viven en el celular, no en la bandeja de entrada — por eso el aviso también va por WhatsApp.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="como-funciona">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Cómo funciona</span>
+      <h2>Tres pasos y tu flota queda bajo control</h2>
+      <p>No hace falta instalar hardware para arrancar. Cargás lo que tenés hoy y sumás GPS cuando quieras.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Cargá tu flota</h3>
+        <p>Patente, marca, modelo y kilometraje inicial de cada vehículo. Cinco minutos por unidad.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Definí los planes de mantenimiento</h3>
+        <p>Elegís cada cuánto necesita service cada vehículo — por kilómetro, por tiempo, o ambos a la vez.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Recibí el aviso a tiempo</h3>
+        <p>Por mail y WhatsApp, antes de que el vencimiento se convierta en una rotura. Cargás el service hecho y el ciclo vuelve a arrancar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><div class="roadline dark"></div></div>
+
+<section id="funciones" class="features">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Funciones</span>
+      <h2>Todo lo que necesita una flota chica o mediana</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <svg class="gauge" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="17" stroke="#C1440E" stroke-width="2.5"/><path d="M20 20 L28 12" stroke="#C1440E" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <h3>Alertas por km y por fecha</h3>
+        <p>Lo que venza primero dispara el aviso. Vos definís el intervalo por tipo de service y por vehículo.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="gauge" viewBox="0 0 40 40" fill="none"><rect x="6" y="8" width="28" height="24" rx="2" stroke="#5C6B74" stroke-width="2"/><line x1="10" y1="16" x2="30" y2="16" stroke="#5C6B74" stroke-width="2"/><line x1="10" y1="22" x2="24" y2="22" stroke="#5C6B74" stroke-width="2"/></svg>
+        <h3>Historial completo por vehículo</h3>
+        <p>Fecha, kilometraje, costo y taller de cada service. Un timeline que sirve para auditorías o para vender la unidad.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="gauge" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="4" fill="#F2B705"/><circle cx="20" cy="20" r="14" stroke="#F2B705" stroke-width="2" stroke-dasharray="3 4"/></svg>
+        <h3>Conexión con GPS</h3>
+        <p>Sumá el kilometraje automático de tu proveedor de rastreo, o cargalo a mano si todavía no tenés GPS instalado.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="gauge" viewBox="0 0 40 40" fill="none"><path d="M8 30 L8 12 Q8 8 12 8 L28 8 Q32 8 32 12 L32 24 Q32 28 28 28 L14 28 L8 33 Z" stroke="#3B6D11" stroke-width="2"/></svg>
+        <h3>Aviso por WhatsApp y mail</h3>
+        <p>El canal que realmente miran los responsables de flota, todos los días, sin depender de revisar el correo.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="gauge" viewBox="0 0 40 40" fill="none"><circle cx="14" cy="14" r="5" stroke="#5C6B74" stroke-width="2"/><circle cx="27" cy="22" r="5" stroke="#5C6B74" stroke-width="2"/><path d="M14 19 L14 24 M27 27 L27 30" stroke="#5C6B74" stroke-width="2"/></svg>
+        <h3>Multiusuario por empresa</h3>
+        <p>Sumá a los responsables de mantenimiento que necesites, todos viendo la misma flota en tiempo real.</p>
+      </div>
+      <div class="feature-card">
+        <svg class="gauge" viewBox="0 0 40 40" fill="none"><path d="M6 26 L14 18 L20 22 L34 10" stroke="#C1440E" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 10 L34 10 L34 18" stroke="#C1440E" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Precio por cantidad de vehículos</h3>
+        <p>Pagás en función de tu flota real, sin funciones de más que nunca vas a usar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="precios">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Precios</span>
+      <h2>Un plan por cantidad de vehículos</h2>
+      <p>Empezás con 14 días gratis en cualquier plan. Subís o bajás de plan cuando cambia el tamaño de tu flota.</p>
+    </div>
+    <div class="manifest">
+      <div class="manifest-row head">
+        <div>Plan</div>
+        <div>Vehículos</div>
+        <div>Precio</div>
+        <div></div>
+      </div>
+      <div class="manifest-row">
+        <div class="plan-name">Ruta corta</div>
+        <div>Hasta 5</div>
+        <div class="price">$12.900 <small>/mes</small></div>
+        <div class="cta-cell"><a href="#" class="btn btn-ghost">Empezar</a></div>
+      </div>
+      <div class="manifest-row featured">
+        <div class="plan-name">Ruta media <span class="badge">Más elegido</span></div>
+        <div>6 a 15</div>
+        <div class="price">$24.900 <small>/mes</small></div>
+        <div class="cta-cell"><a href="#" class="btn btn-primary">Empezar</a></div>
+      </div>
+      <div class="manifest-row">
+        <div class="plan-name">Ruta larga</div>
+        <div>16 a 30</div>
+        <div class="price">$42.900 <small>/mes</small></div>
+        <div class="cta-cell"><a href="#" class="btn btn-ghost">Empezar</a></div>
+      </div>
+      <div class="manifest-row">
+        <div class="plan-name">Flota completa</div>
+        <div>Más de 30</div>
+        <div class="price"><small>A medida</small></div>
+        <div class="cta-cell"><a href="#" class="btn btn-ghost">Hablar con ventas</a></div>
+      </div>
+    </div>
+    <p class="pricing-note">* Precios de referencia en pesos argentinos, a definir según estructura de costos final.</p>
+  </div>
+</section>
+
+<div class="wrap"><div class="roadline dark"></div></div>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Preguntas frecuentes</span>
+      <h2>Antes de que preguntes</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>¿Necesito tener GPS instalado para usar Bitácora?</summary>
+        <p>No. Podés cargar el kilometraje a mano cuando quieras. Si más adelante instalás GPS, lo conectamos y el dato pasa a actualizarse solo.</p>
+      </details>
+      <details class="faq-item">
+        <summary>¿Cómo llegan los avisos?</summary>
+        <p>Por mail y por WhatsApp, al responsable que vos definas por empresa. Podés elegir qué canal usar para cada tipo de alerta.</p>
+      </details>
+      <details class="faq-item">
+        <summary>¿Puedo cambiar de plan si mi flota crece o se achica?</summary>
+        <p>Sí, en cualquier momento desde tu panel. El cambio se refleja en el próximo período de facturación.</p>
+      </details>
+      <details class="faq-item">
+        <summary>¿Qué pasa con el historial si doy de baja un vehículo?</summary>
+        <p>Queda disponible para exportar. Es información tuya — te la llevás cuando quieras, la sigas usando o no.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="wrap">
+    <h2>Dejá de enterarte tarde.</h2>
+    <p>Probá Bitácora gratis durante 14 días con tu flota real. Sin tarjeta, sin compromiso.</p>
+    <a href="#precios" class="btn btn-primary">Empezar gratis</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="logo" style="color:var(--chalk);"><span class="dot"></span>Bitácora</div>
+      <div class="footer-cols">
+        <div>
+          <h4>Producto</h4>
+          <a href="#como-funciona">Cómo funciona</a>
+          <a href="#funciones">Funciones</a>
+          <a href="#precios">Precios</a>
+        </div>
+        <div>
+          <h4>Empresa</h4>
+          <a href="#">Contacto</a>
+          <a href="#">Términos</a>
+          <a href="#">Privacidad</a>
+        </div>
+      </div>
+    </div>
+    <div class="roadline dark"></div>
+    <p class="footer-bottom">Bitácora — hecho para flotas de transporte de carga y pasajeros en Argentina.</p>
+  </div>
+</footer>
+
+<script>
+  // Odometer roll-up animation on load (respects reduced motion)
+  (function(){
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var digits = document.querySelectorAll('#odometer .odo-digit span');
+    if(reduce){
+      digits.forEach(function(d){ d.textContent = d.getAttribute('data-final'); });
+      return;
+    }
+    digits.forEach(function(d, i){
+      var final = parseInt(d.getAttribute('data-final'), 10);
+      var duration = 700 + i * 130;
+      var start = null;
+      function step(ts){
+        if(!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+        if(progress < 1){
+          d.textContent = Math.floor(Math.random() * 10);
+          requestAnimationFrame(step);
+        } else {
+          d.textContent = final;
+        }
+      }
+      requestAnimationFrame(step);
+    });
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "umami_analytics_next": {
+      "source": "RaphaelNicaise/fernetloshorneros",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/umami_analytics_next/SKILL.md",
+      "computedHash": "939746e9dd529315df2e51d12e0ce56be24f2deaa9efbdf9c13873db75ee8941"
+    }
+  }
+}
