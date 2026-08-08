@@ -32,16 +32,6 @@ services:
     depends_on:
       - db
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: prada-portainer-dev
-    restart: always
-    ports:
-      - "${PORTAINER_PORT:-9000}:9000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_dev_data:/data
-
   minio:
     image: minio/minio:latest
     container_name: prada-minio-dev
@@ -96,5 +86,4 @@ services:
 volumes:
   postgres_dev_data:
   pgadmin_dev_data:
-  portainer_dev_data:
   minio_dev_data:

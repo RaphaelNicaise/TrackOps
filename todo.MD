@@ -1,1 +1,2 @@
-- Definir costo de VPS, mas dominio.
+- Definir diseños
+- Definir alcance y funcionalidades.

@@ -1,6 +1,24 @@
 {
   "version": 1,
   "skills": {
+    "saas-metrics": {
+      "source": "claude-office-skills/skills",
+      "sourceType": "github",
+      "skillPath": "saas-metrics/SKILL.md",
+      "computedHash": "fc259c9ef951df76f5b2f3177b3815c5ac0ff7f7d92ee6feb8bbc1c0ae839843"
+    },
+    "suggest-lucide-icons": {
+      "source": "nweii/agent-stuff",
+      "sourceType": "github",
+      "skillPath": "skills/suggest-lucide-icons/SKILL.md",
+      "computedHash": "52af409272e71e5e3c1a5a91f4307d7c50d30225a2f67e70ca8ac3d30d80e2a0"
+    },
+    "tanstack-table": {
+      "source": "tanstack-skills/tanstack-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/tanstack-table/skills/tanstack-table/SKILL.md",
+      "computedHash": "5527e42e541ac26fc1157e49d58c399b95e44eb276ef3caa7576ab138558d593"
+    },
     "umami_analytics_next": {
       "source": "RaphaelNicaise/fernetloshorneros",
       "sourceType": "github",
