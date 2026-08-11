@@ -1,7 +1,7 @@
 services:
   portainer:
     image: portainer/portainer-ce:latest
-    container_name: prada-portainer
+    container_name: trackops-portainer
     restart: always
     ports:
       - "${PORTAINER_PORT:-9000}:9000"
