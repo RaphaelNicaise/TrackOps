@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { gsap } from "gsap";
@@ -9,10 +10,15 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
-import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel } from "lucide-react";
+import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
 import LogoLoop from "@/components/LogoLoop";
+
+// Shadcn UI Components (Assuming they are generated in @/components/ui/)
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
@@ -20,7 +26,8 @@ const PRICING_TIERS = [
   { max: 5, priceNumber: 39990, label: "Hasta 5 vehículos", type: "Plan Inicial" },
   { max: 15, priceNumber: 64900, label: "6 a 15 vehículos", type: "Flota en Crecimiento" },
   { max: 30, priceNumber: 99900, label: "16 a 30 vehículos", type: "Flota Consolidada" },
-  { max: 50, priceNumber: 149900, label: "31 a 50 vehículos", type: "Operación Masiva" }
+  { max: 49, priceNumber: 149900, label: "31 a 49 vehículos", type: "Operación Masiva" },
+  { max: 50, priceNumber: 199900, label: "+50 vehículos", type: "Enterprise" }
 ];
 
 const LOGOS_CONFIANZA = [
@@ -33,19 +40,25 @@ const LOGOS_CONFIANZA = [
 
 export default function LandingPage() {
   const heroTextRef = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [scrollDirection, setScrollDirection] = useState("up");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
   // Slider state
   const [vehicles, setVehicles] = useState([10]);
   const [annualMode, setAnnualMode] = useState(false);
   const [prevPrice, setPrevPrice] = useState(0);
 
-  // FAQ state
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const currentTier = vehicles[0] <= 5 ? PRICING_TIERS[0] 
                     : vehicles[0] <= 15 ? PRICING_TIERS[1]
                     : vehicles[0] <= 30 ? PRICING_TIERS[2]
-                    : PRICING_TIERS[3];
+                    : vehicles[0] <= 49 ? PRICING_TIERS[3]
+                    : PRICING_TIERS[4];
 
   const calculatedPrice = annualMode ? Math.round(currentTier.priceNumber * 0.9) : currentTier.priceNumber;
   const [currentPrice, setCurrentPrice] = useState(calculatedPrice);
@@ -56,6 +69,30 @@ export default function LandingPage() {
       setCurrentPrice(calculatedPrice);
     }
   }, [calculatedPrice, currentPrice]);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+      if (window.scrollY > lastScrollY && window.scrollY > 150) {
+        setScrollDirection("down");
+      } else if (window.scrollY < lastScrollY) {
+        setScrollDirection("up");
+      }
+      lastScrollY = window.scrollY;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const target = document.querySelector(targetId);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+    setMobileMenuOpen(false);
+  };
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -81,15 +118,6 @@ export default function LandingPage() {
       { opacity: 1, y: 0, scale: 1, duration: 1.5, ease: "power3.out" },
       "-=0.8"
     );
-
-    gsap.to(".floating-element", {
-      y: -5,
-      duration: 2,
-      yoyo: true,
-      repeat: -1,
-      ease: "sine.inOut",
-      stagger: 0.2
-    });
 
     // Animate map vehicle INSIDE SVG perfectly mapped
     gsap.to(".map-vehicle", {
@@ -122,6 +150,33 @@ export default function LandingPage() {
       );
     });
 
+    // Scroll Truck Interactive Route
+    if (document.querySelector("#bg-route")) {
+      gsap.to(".scroll-truck", {
+        motionPath: {
+          path: "#bg-route",
+          align: "#bg-route",
+          alignOrigin: [0.5, 0.5],
+          autoRotate: true
+        },
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#funciones",
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1
+        }
+      });
+      
+      // Anima los guiones de la ruta constantemente
+      gsap.to("#bg-route", {
+        strokeDashoffset: -100,
+        duration: 4,
+        repeat: -1,
+        ease: "none"
+      });
+    }
+
     return () => {
       lenis.destroy();
       ScrollTrigger.getAll().forEach(t => t.kill());
@@ -129,94 +184,102 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FBFBFA] selection:bg-[#F2B705] selection:text-[#111]">
-      {/* Floating Pill Navbar */}
-      <div className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
-        <header className="bg-white/80 backdrop-blur-xl border border-[#EAEAEA] rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.04)] px-6 py-3 w-full max-w-5xl flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-8 h-8 flex items-center justify-center bg-white rounded shadow-sm border border-[#EAEAEA]">
-              <Image src="/trackopslogo.png" alt="TrackOps" fill className="object-contain p-1" />
-            </div>
-            <span className="font-semibold tracking-tight text-[#111]">TRACKOPS</span>
+    <div className="min-h-screen bg-[#F6F4EE] selection:bg-[#F2B705] selection:text-[#111]">
+      {/* Enterprise Full-Width Navbar (Dynamic Scroll) */}
+      <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md border-b border-[#EAEAEA] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]' : 'bg-transparent'} ${scrollDirection === "down" && !mobileMenuOpen ? '-translate-y-full md:translate-y-0' : 'translate-y-0'}`}>
+        <header className={`w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${scrolled || mobileMenuOpen ? 'h-20 md:h-20' : 'h-24 md:h-24'}`}>
+          <Link href="/" className="block relative w-40 h-10 md:w-48 md:h-12 group z-50">
+            <Image src="/trackopslogo.png" alt="TrackOps" fill className="object-contain object-left scale-[1.8] md:scale-[2.2] origin-left transition-transform group-hover:opacity-90" priority />
           </Link>
           
-          <nav className="hidden md:flex gap-8 items-center text-sm font-medium text-[#787774]">
-            <div className="relative group/nav">
-              <button className="flex items-center gap-1 hover:text-[#111] transition-colors py-2">
-                Soluciones <ChevronDown size={14} className="group-hover/nav:rotate-180 transition-transform" />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover/nav:opacity-100 group-hover/nav:translate-y-0 group-hover/nav:pointer-events-auto transition-all duration-200">
-                <div className="bg-white border border-[#EAEAEA] rounded-xl shadow-xl p-2 w-64 flex flex-col gap-1">
-                  <a href="#funciones" className="p-3 rounded-lg hover:bg-[#FBFBFA] transition-colors flex flex-col">
-                    <span className="text-[#111] font-medium">Tracking Satelital</span>
-                    <span className="text-xs text-[#787774]">Control de ubicación en vivo</span>
-                  </a>
-                  <a href="#funciones" className="p-3 rounded-lg hover:bg-[#FBFBFA] transition-colors flex flex-col">
-                    <span className="text-[#111] font-medium">Gestión de Logística</span>
-                    <span className="text-xs text-[#787774]">Rutas y geocercas automáticas</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-            
-            <a href="#como-funciona" className="hover:text-[#111] transition-colors py-2">Cómo funciona</a>
-            <a href="#precios" className="hover:text-[#111] transition-colors py-2">Precios</a>
+          <nav className="hidden md:flex items-center gap-8 bg-white/50 backdrop-blur-sm border border-transparent px-6 py-2 rounded-full transition-all">
+            <a href="#industrias" onClick={(e) => handleSmoothScroll(e, '#industrias')} className="text-sm font-medium text-[#787774] hover:text-[#1E2227] relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#F2B705] after:transition-all after:duration-300 py-1">Industrias</a>
+            <a href="#funciones" onClick={(e) => handleSmoothScroll(e, '#funciones')} className="text-sm font-medium text-[#787774] hover:text-[#1E2227] relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#F2B705] after:transition-all after:duration-300 py-1">Funcionalidades</a>
+            <a href="#comparativa" onClick={(e) => handleSmoothScroll(e, '#comparativa')} className="text-sm font-medium text-[#787774] hover:text-[#1E2227] relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#F2B705] after:transition-all after:duration-300 py-1">Sin vs Con TrackOps</a>
           </nav>
           
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden sm:block text-sm font-medium text-[#787774] hover:text-[#111] transition-colors">
-              Ingresar
+          <div className="flex items-center gap-2 md:gap-4 relative z-50">
+            <Link href="/login" className="hidden lg:flex items-center gap-2 text-sm font-semibold text-[#1E2227] hover:text-[#787774] transition-colors">
+              <Users size={16} /> Cliente
             </Link>
-            <a href="#precios" className="bg-[#F2B705] text-[#111] text-sm font-medium px-5 py-2.5 rounded-full hover:bg-[#e0aa00] transition-transform hover:scale-105 shadow-sm">
-              Cotizar ahora
+            <a href="#precios" onClick={(e) => handleSmoothScroll(e, '#precios')} className="hidden md:flex bg-transparent text-[#1E2227] text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-black/5 transition-all duration-200 border border-[#1E2227]/20">
+              Ver Precios
             </a>
+            <Link href="/demo" className="bg-[#F2B705] text-[#1E2227] text-xs md:text-sm font-bold px-4 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#e0aa04] hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap">
+              Probar Demo ¡Ya!
+            </Link>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-[#1E2227] p-1 ml-1">
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </header>
       </div>
 
-      {/* Hero Premium Section */}
-      <main className="pt-40 md:pt-48 pb-10 px-6 relative overflow-hidden flex flex-col items-center">
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl pt-24 px-6 flex flex-col gap-6 md:hidden border-b border-[#EAEAEA] shadow-2xl h-[400px]"
+          >
+            <a href="#industrias" onClick={(e) => handleSmoothScroll(e, '#industrias')} className="text-xl font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-4">Soluciones por Industria</a>
+            <a href="#funciones" onClick={(e) => handleSmoothScroll(e, '#funciones')} className="text-xl font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-4">Funcionalidades</a>
+            <a href="#comparativa" onClick={(e) => handleSmoothScroll(e, '#comparativa')} className="text-xl font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-4">TrackOps vs GPS</a>
+            <a href="/login" onClick={() => setMobileMenuOpen(false)} className="text-xl font-medium text-[#787774] pb-4">Iniciar Sesión</a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hero Enterprise CRO Section */}
+      <main className="pt-40 md:pt-48 pb-10 px-6 relative overflow-hidden flex flex-col items-center bg-white border-b border-[#EAEAEA]">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-[#F2B705]/10 to-transparent rounded-full blur-[120px] pointer-events-none -z-10" />
         
         <div ref={heroTextRef} className="max-w-5xl w-full text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white shadow-sm text-[#787774] text-xs font-mono uppercase tracking-widest rounded-full mb-8 border border-[#EAEAEA]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#346538] animate-pulse" />
-            Plataforma Integral de Gestión de Flotas
-          </div>
-          
-          <h1 className="font-[var(--font-playfair)] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.1] tracking-tight text-[#111] mb-6 max-w-4xl mx-auto">
-            Visibilidad logística total y control satelital en tiempo real.
+          <h1 className="font-[var(--font-playfair)] text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] tracking-tight text-[#1E2227] mb-6 max-w-4xl mx-auto">
+            Control total de tu flota,<br className="hidden md:block" /> en tiempo real.
           </h1>
           
           <p className="text-lg md:text-xl text-[#787774] max-w-2xl mx-auto mb-10 leading-relaxed">
-            Centralizá el monitoreo de tus vehículos, controlá desvíos y optimizá las rutas de tus choferes. Tu flota entera en una sola pantalla.
+            Rastreo satelital, alertas inteligentes, mantenimiento preventivo y control de combustible en una sola plataforma. Soporte humano y cobertura en todo el país.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#precios" className="bg-[#F2B705] text-[#111] px-8 py-4 rounded-full font-bold hover:bg-[#e0aa00] hover:scale-[0.98] transition-all w-full sm:w-auto shadow-[0_0_30px_rgba(242,183,5,0.4)] flex items-center justify-center gap-2">
-              Empezar 14 días gratis <ArrowRight size={18} />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <Link href="/demo" className="w-full sm:w-auto bg-[#F2B705] text-[#1E2227] px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#e0aa04] hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] transition-all duration-300">
+              Probar Demo ¡Ya! <ArrowRight size={18} />
+            </Link>
+            <a href="#precios" onClick={(e) => handleSmoothScroll(e, '#precios')} className="w-full sm:w-auto bg-transparent border-2 border-[#1E2227] text-[#1E2227] px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center hover:bg-[#1E2227]/5 hover:-translate-y-1 transition-all duration-300">
+              Ver Planes y Precios
             </a>
           </div>
-          <p className="mt-5 text-xs text-[#787774] font-mono">Sin tarjeta de crédito. Instalación GPS incluida.</p>
+          
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#1E2227] font-medium bg-[#F6F4EE] py-3 px-6 rounded-full inline-flex mx-auto border border-[#EAEAEA]">
+            <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-[#346538]" /> +15% Ahorro de combustible</span>
+            <span className="hidden md:block text-[#EAEAEA]">|</span>
+            <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-[#346538]" /> 100% Control de mantenimientos</span>
+            <span className="hidden md:block text-[#EAEAEA]">|</span>
+            <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-[#346538]" /> Cero multas por vencimientos</span>
+          </div>
         </div>
 
-        {/* Hero Dynamic Dashboard Mockup */}
-        <div className="hero-dashboard mt-16 w-full max-w-5xl relative z-10 h-[450px] perspective-1000">
+        {/* Hero Dynamic Dashboard Mockup (Uber style) */}
+        <div className="hero-dashboard mt-12 md:mt-16 w-full max-w-5xl relative z-10 h-auto md:h-[450px] perspective-1000">
           <div className="w-full h-full bg-white border border-[#EAEAEA] rounded-t-2xl shadow-2xl overflow-hidden relative flex flex-col">
             <div className="h-10 border-b border-[#EAEAEA] bg-[#FBFBFA] flex items-center px-4 gap-2 shrink-0">
               <div className="w-3 h-3 rounded-full bg-[#EAEAEA]" />
               <div className="w-3 h-3 rounded-full bg-[#EAEAEA]" />
               <div className="w-3 h-3 rounded-full bg-[#EAEAEA]" />
-              <div className="ml-auto w-32 h-4 bg-[#EAEAEA] rounded" />
+              <div className="ml-auto w-24 md:w-32 h-4 bg-[#EAEAEA] rounded" />
             </div>
             
             <div className="flex-1 flex flex-col md:flex-row bg-[#F6F4EE] relative overflow-hidden">
               {/* Left Sidebar (Metrics) */}
-              <div className="w-full md:w-1/3 bg-white/80 backdrop-blur border-r border-[#EAEAEA] p-6 flex flex-col gap-4 z-10 shrink-0 overflow-y-auto">
+              <div className="w-full md:w-1/3 bg-white/80 backdrop-blur border-b md:border-b-0 md:border-r border-[#EAEAEA] p-4 md:p-6 flex flex-col gap-4 z-10 shrink-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded bg-[#111] text-white flex items-center justify-center"><Truck size={16} /></div>
+                  <div className="w-8 h-8 rounded bg-[#1E2227] text-white flex items-center justify-center"><Truck size={16} /></div>
                   <div>
-                    <div className="text-[#111] font-semibold text-sm">Volvo FH 460</div>
+                    <div className="text-[#1E2227] font-semibold text-sm">Volvo FH 460</div>
                     <div className="text-[#787774] text-xs font-mono">Patente: AC 345 FG</div>
                   </div>
                 </div>
@@ -224,25 +287,25 @@ export default function LandingPage() {
                 <div className="space-y-3">
                   <div className="bg-[#FBFBFA] border border-[#EAEAEA] rounded-lg p-3 flex justify-between items-center">
                     <div className="flex items-center gap-2 text-[#787774]"><Map size={16} /> <span className="text-sm">Ruta</span></div>
-                    <div className="text-[#111] font-medium text-sm">CABA <ArrowRight size={12} className="inline mx-1"/> Rosario</div>
+                    <div className="text-[#1E2227] font-medium text-sm">CABA <ArrowRight size={12} className="inline mx-1"/> Rosario</div>
                   </div>
                   <div className="bg-[#FBFBFA] border border-[#EAEAEA] rounded-lg p-3 flex justify-between items-center">
                     <div className="flex items-center gap-2 text-[#787774]"><Package size={16} /> <span className="text-sm">Carga</span></div>
-                    <div className="text-[#111] font-medium text-sm">24.5 Toneladas</div>
+                    <div className="text-[#1E2227] font-medium text-sm">24.5 Toneladas</div>
                   </div>
                   <div className="bg-[#FBFBFA] border border-[#EAEAEA] rounded-lg p-3 flex justify-between items-center">
                     <div className="flex items-center gap-2 text-[#787774]"><Users size={16} /> <span className="text-sm">Chofer</span></div>
-                    <div className="text-[#111] font-medium text-sm">M. Rossi</div>
+                    <div className="text-[#1E2227] font-medium text-sm">M. Rossi</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <div className="bg-[#E1F3FE]/30 border border-[#E1F3FE] rounded-lg p-3 text-center">
                       <Gauge className="mx-auto mb-1 text-[#1F6C9F]" size={16} />
-                      <div className="text-[#111] font-semibold">82 km/h</div>
+                      <div className="text-[#1E2227] font-semibold">82 km/h</div>
                       <div className="text-xs text-[#787774]">Velocidad</div>
                     </div>
                     <div className="bg-[#FDEBEC]/30 border border-[#FDEBEC] rounded-lg p-3 text-center">
                       <Fuel className="mx-auto mb-1 text-[#9F2F2D]" size={16} />
-                      <div className="text-[#111] font-semibold">45 L</div>
+                      <div className="text-[#1E2227] font-semibold">45 L</div>
                       <div className="text-xs text-[#787774]">Consumo</div>
                     </div>
                   </div>
@@ -250,8 +313,8 @@ export default function LandingPage() {
               </div>
 
               {/* Right Map Area */}
-              <div className="flex-1 relative bg-[#E9E5DD]">
-                <svg className="w-full h-full" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+              <div className="w-full md:flex-1 h-[300px] md:h-auto relative bg-[#E9E5DD] overflow-hidden">
+                <svg className="absolute inset-0 w-full h-full scale-[1.35] md:scale-100 origin-center transition-transform" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
                   
                   {/* Manzanas (City Grid) */}
                   <g stroke="#FFFFFF" strokeWidth="6" opacity="0.7">
@@ -272,19 +335,19 @@ export default function LandingPage() {
                   <path d="M 100 650 L 100 420 Q 100 400 120 400 L 380 400 Q 400 400 400 380 L 400 270 Q 400 250 420 250 L 680 250 Q 700 250 700 230 L 700 100" fill="none" stroke="#F2B705" strokeWidth="8" strokeLinecap="round" strokeDasharray="15 15" />
 
                   {/* Marcadores Origen / Destino */}
-                  <circle cx="100" cy="550" r="8" fill="#111" stroke="#FFF" strokeWidth="3" />
+                  <circle cx="100" cy="550" r="8" fill="#1E2227" stroke="#FFF" strokeWidth="3" />
                   <circle cx="700" cy="100" r="10" fill="#F2B705" stroke="#FFF" strokeWidth="3" />
-                  <circle cx="700" cy="100" r="4" fill="#111" />
+                  <circle cx="700" cy="100" r="4" fill="#1E2227" />
 
                   {/* Moving Vehicle Dot - Inside SVG to guarantee GSAP motionPath alignment */}
                   <g className="map-vehicle text-white">
-                    <circle cx="0" cy="0" r="14" fill="#111" stroke="#FFF" strokeWidth="2" />
+                    <circle cx="0" cy="0" r="14" fill="#1E2227" stroke="#FFF" strokeWidth="2" />
                     <Truck size={12} color="white" x="-6" y="-6" />
                   </g>
                 </svg>
                 
                 {/* Map UI overlays */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur rounded shadow-sm border border-[#EAEAEA] p-2 text-xs font-mono text-[#111] flex items-center gap-2 z-20">
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur rounded shadow-sm border border-[#EAEAEA] p-2 text-xs font-mono text-[#1E2227] flex items-center gap-2 z-20">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> GPS Activo
                 </div>
               </div>
@@ -294,9 +357,9 @@ export default function LandingPage() {
       </main>
 
       {/* Confían en Nosotros (LogoLoop) */}
-      <section className="py-12 border-y border-[#EAEAEA] bg-white overflow-hidden">
+      <section className="py-12 border-b border-[#EAEAEA] bg-[#F6F4EE] overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
-          <p className="text-xs font-mono uppercase tracking-widest text-[#787774]">Empresas de logística y transporte que ya confían</p>
+          <p className="text-xs font-mono uppercase tracking-widest text-[#787774]">Empresas que redujeron sus costos operativos con TrackOps</p>
         </div>
         <LogoLoop
           logos={LOGOS_CONFIANZA}
@@ -305,261 +368,290 @@ export default function LandingPage() {
           logoHeight={30}
           gap={80}
           fadeOut
-          fadeOutColor="#ffffff"
+          fadeOutColor="#F6F4EE"
         />
       </section>
 
-      {/* Problema vs Solución (El Caos vs El Control) */}
-      <section className="py-24 md:py-32 px-6 bg-[#FBFBFA]">
-        <div className="max-w-6xl mx-auto">
+      {/* Casos de Uso por Industria (TABS) */}
+      <section id="industrias" className="py-24 md:py-32 px-6 bg-white border-b border-[#EAEAEA]">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#111] mb-6">Dejá de perder dinero por puntos ciegos.</h2>
-            <p className="text-[#787774] text-lg max-w-2xl mx-auto">Manejar una flota con herramientas improvisadas es el camino más corto hacia desvíos de ruta, robos de combustible y descontrol logístico.</p>
+            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#1E2227] mb-6">Diseñado para cada operación</h2>
+            <p className="text-[#787774] text-lg max-w-2xl mx-auto">No importa si cruzás el país o si entregás en la misma cuadra. La plataforma se adapta a las reglas de tu negocio.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* El Caos */}
-            <div className="reveal-up bg-white border border-[#EAEAEA] rounded-2xl p-8 md:p-12 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-[#9F2F2D]" />
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-[#FDEBEC] rounded-full flex items-center justify-center text-[#9F2F2D]"><XCircle size={20} /></div>
-                <h3 className="text-2xl font-medium text-[#111]">La forma vieja</h3>
-              </div>
-              <ul className="space-y-6">
-                <li className="flex gap-4 items-start text-[#787774]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#EAEAEA] mt-2 shrink-0" />
-                  <p>Llamadas constantes a los choferes para saber "por dónde andan" y demoras sin justificación.</p>
-                </li>
-                <li className="flex gap-4 items-start text-[#787774]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#EAEAEA] mt-2 shrink-0" />
-                  <p>Robos de combustible, desvíos no autorizados y paradas en zonas peligrosas.</p>
-                </li>
-                <li className="flex gap-4 items-start text-[#787774]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#EAEAEA] mt-2 shrink-0" />
-                  <p>Falta de evidencia visual ante clientes sobre el estado de sus entregas y demoras.</p>
-                </li>
-              </ul>
-            </div>
-
-            {/* El Control */}
-            <div className="reveal-up bg-[#111] border border-[#2F3437] rounded-2xl p-8 md:p-12 shadow-xl relative overflow-hidden text-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-[#346538]" />
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-[#EDF3EC]/10 rounded-full flex items-center justify-center text-[#EDF3EC]"><CheckCircle2 size={20} /></div>
-                <h3 className="text-2xl font-medium">La forma TrackOps</h3>
-              </div>
-              <ul className="space-y-6">
-                <li className="flex gap-4 items-start text-[#A1A1AA]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#333] mt-2 shrink-0" />
-                  <p><strong className="text-white font-medium">Monitoreo en vivo</strong> para ver exactamente la ubicación, ruta y velocidad de cada unidad en el mapa.</p>
-                </li>
-                <li className="flex gap-4 items-start text-[#A1A1AA]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#333] mt-2 shrink-0" />
-                  <p><strong className="text-white font-medium">Escudo de seguridad</strong>. Alertas directas al WhatsApp por excesos de velocidad o desvíos de la ruta planificada.</p>
-                </li>
-                <li className="flex gap-4 items-start text-[#A1A1AA]">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#333] mt-2 shrink-0" />
-                  <p><strong className="text-white font-medium">Historial de recorridos</strong>. Auditoría total e inmutable de tiempos de parada y velocidades.</p>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Cómo funciona */}
-      <section id="como-funciona" className="py-24 md:py-32 px-6 bg-white border-t border-[#EAEAEA]">
-        <div className="max-w-4xl mx-auto text-center mb-24">
-          <div className="text-xs font-mono uppercase tracking-widest text-[#F2B705] mb-6">Tres simples pasos</div>
-          <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl lg:text-6xl text-[#111] mb-10 leading-tight">
-            Tu flota queda bajo<br />control absoluto.
-          </h2>
-          <div className="bg-[#FBFBFA] border border-[#EAEAEA] rounded-2xl p-8 md:p-12 shadow-sm relative">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4">
-              <Zap className="text-[#F2B705]" size={24} />
-            </div>
-            <p className="text-[#111] text-xl md:text-2xl font-medium leading-relaxed">
-              "No hace falta instalar hardware para arrancar. Cargás lo que tenés hoy y sumás GPS cuando quieras. Todo centralizado. <span className="text-[#346538]">Instalación incluida en tu plan.</span>"
-            </p>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 relative">
-          {/* Línea amarilla simulando ruta */}
-          <div className="absolute top-[48px] left-[15%] w-[70%] h-4 hidden md:block z-0 pointer-events-none">
-            <svg width="100%" height="100%" viewBox="0 0 1000 20" preserveAspectRatio="none">
-              <path d="M0,10 Q250,20 500,10 T1000,10" fill="none" stroke="#F2B705" strokeWidth="4" strokeDasharray="15 15" className="opacity-50" />
-            </svg>
-          </div>
-          {[
-            { num: "01", title: "Cargá tu flota", desc: "Patente, marca y km inicial de cada vehículo. Cinco minutos por unidad, o subí un Excel masivo." },
-            { num: "02", title: "Definí las geocercas", desc: "Marcá zonas de interés (depósitos, clientes, zonas peligrosas) o reglas de velocidad máxima permitida." },
-            { num: "03", title: "Recibí los avisos", desc: "Por WhatsApp directo al despachante si hay un desvío, retraso o llegada a destino. Operativa sincronizada." }
-          ].map((step, i) => (
-            <div key={i} className="reveal-up bg-[#FBFBFA] border border-[#EAEAEA] rounded-xl p-8 hover:border-[#111] transition-colors group relative z-10">
-              <div className="w-12 h-12 bg-white border border-[#EAEAEA] group-hover:bg-[#111] group-hover:text-white transition-colors text-[#111] rounded-full flex items-center justify-center font-mono text-lg font-bold mb-6">
-                {step.num}
-              </div>
-              <h3 className="text-xl font-medium text-[#111] mb-3">{step.title}</h3>
-              <p className="text-[#787774] leading-relaxed">{step.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Resumen Completo de Funcionalidades */}
-      <section className="py-24 bg-[#FBFBFA] border-t border-[#EAEAEA] px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-[var(--font-playfair)] text-4xl text-[#111] mb-4">Todo el arsenal a tu disposición</h2>
-            <p className="text-[#787774]">Un paneo rápido de todas las herramientas incluidas en la plataforma.</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {[
-              { icon: <Map size={20} />, title: "Tracking Satelital", desc: "Ubicación exacta 24/7." },
-              { icon: <Shield size={20} />, title: "Control Antirrobo", desc: "Alertas por desvíos o paradas." },
-              { icon: <Activity size={20} />, title: "Velocidad Máxima", desc: "Auditoría en ruta en tiempo real." },
-              { icon: <Users size={20} />, title: "Multiusuario", desc: "Gerentes y despachantes conectados." },
-              { icon: <Phone size={20} />, title: "Bot de WhatsApp", desc: "Notificaciones directas sin usar la app." },
-              { icon: <Database size={20} />, title: "Historial Logístico", desc: "Playbacks de rutas pasadas." }
-            ].map((feature, idx) => (
-              <div key={idx} className="bg-white border border-[#EAEAEA] p-6 rounded-xl flex flex-col items-start gap-4 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-10 h-10 bg-[#FBFBFA] rounded-full border border-[#EAEAEA] flex items-center justify-center text-[#111]">
-                  {feature.icon}
-                </div>
+          <Tabs defaultValue="pesada" className="w-full">
+            <TabsList className="grid w-full md:w-3/4 mx-auto grid-cols-1 md:grid-cols-3 h-auto gap-4 bg-transparent mb-12">
+              <TabsTrigger value="pesada" className="data-[state=active]:bg-[#F2B705] data-[state=active]:text-[#1E2227] data-[state=active]:shadow-md border border-[#EAEAEA] bg-[#F6F4EE] py-3 rounded-lg font-medium transition-all">Larga Distancia</TabsTrigger>
+              <TabsTrigger value="ultima-milla" className="data-[state=active]:bg-[#F2B705] data-[state=active]:text-[#1E2227] data-[state=active]:shadow-md border border-[#EAEAEA] bg-[#F6F4EE] py-3 rounded-lg font-medium transition-all">Última Milla</TabsTrigger>
+              <TabsTrigger value="corporativo" className="data-[state=active]:bg-[#F2B705] data-[state=active]:text-[#1E2227] data-[state=active]:shadow-md border border-[#EAEAEA] bg-[#F6F4EE] py-3 rounded-lg font-medium transition-all">Flota Corporativa</TabsTrigger>
+            </TabsList>
+            
+            {/* Larga Distancia */}
+            <TabsContent value="pesada" className="reveal-up mt-6">
+              <div className="grid md:grid-cols-2 gap-12 items-center bg-[#F6F4EE] p-8 md:p-12 rounded-2xl border border-[#EAEAEA]">
                 <div>
-                  <h4 className="font-semibold text-[#111] mb-1">{feature.title}</h4>
-                  <p className="text-sm text-[#787774]">{feature.desc}</p>
+                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-[#1E2227] shadow-sm mb-6">
+                    <Truck size={24} />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Control estricto de combustible y desvíos</h3>
+                  <p className="text-[#787774] mb-6 leading-relaxed">En rutas largas, un desvío mínimo o una parada no autorizada significa miles de pesos en combustible perdido. TrackOps audita la ruta ideal vs la real.</p>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Rendimiento L/100km preciso</li>
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Alertas por paradas en zonas rojas</li>
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Control de excesos de velocidad en ruta</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-lg border border-[#EAEAEA]">
+                   <div className="flex justify-between items-center mb-4 pb-4 border-b border-[#EAEAEA]">
+                     <span className="font-semibold text-[#1E2227]">Reporte de Ruta #982</span>
+                     <span className="text-red-600 text-sm font-medium bg-red-50 px-2 py-1 rounded">Desvío detectado</span>
+                   </div>
+                   <div className="space-y-4">
+                      <div>
+                        <div className="text-xs text-[#787774] mb-1">Combustible Proyectado</div>
+                        <div className="text-lg font-mono text-[#1E2227]">450 L</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-[#787774] mb-1">Combustible Real Consumido</div>
+                        <div className="text-lg font-mono text-red-600">512 L <span className="text-xs ml-2">(+62 L)</span></div>
+                      </div>
+                   </div>
                 </div>
               </div>
-            ))}
+            </TabsContent>
+            
+            {/* Última Milla */}
+            <TabsContent value="ultima-milla" className="reveal-up mt-6">
+              <div className="grid md:grid-cols-2 gap-12 items-center bg-[#F6F4EE] p-8 md:p-12 rounded-2xl border border-[#EAEAEA]">
+                <div>
+                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-[#1E2227] shadow-sm mb-6">
+                    <Package size={24} />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Agilidad operativa y despachos</h3>
+                  <p className="text-[#787774] mb-6 leading-relaxed">El tráfico en la ciudad es caótico. Monitoreá tus entregas en vivo y usá geocercas para saber exactamente a qué hora llegó tu chofer al cliente.</p>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Geocercas automáticas en clientes</li>
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Tiempos de carga y descarga</li>
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Asignación de vehículos a despachantes</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-lg border border-[#EAEAEA] relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-2 h-full bg-[#346538]"></div>
+                   <h4 className="font-semibold text-[#1E2227] mb-2 flex items-center gap-2"><Bell size={16} /> Llegada a destino</h4>
+                   <p className="text-sm text-[#787774] mb-4">La camioneta Sprinter ingresó a la geocerca "Centro de Distribución Norte".</p>
+                   <div className="text-xs font-mono text-[#1E2227] bg-[#F6F4EE] inline-block px-2 py-1 rounded border border-[#EAEAEA]">14:32 hrs - Tiempo estimado en sitio: 15 min</div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Corporativo / Servicios */}
+            <TabsContent value="corporativo" className="reveal-up mt-6">
+              <div className="grid md:grid-cols-2 gap-12 items-center bg-[#F6F4EE] p-8 md:p-12 rounded-2xl border border-[#EAEAEA]">
+                <div>
+                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-[#1E2227] shadow-sm mb-6">
+                    <Briefcase size={24} />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Mantenimiento y Vencimientos</h3>
+                  <p className="text-[#787774] mb-6 leading-relaxed">Flotas comerciales, autos de gerencia o grúas. Que un vehículo no se detenga por una VTV vencida o un cambio de aceite olvidado.</p>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Matriz predictiva por Km o Fechas</li>
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Alertas de VTV, Seguros y Patentes</li>
+                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Bitácora digital de mantenimientos</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-lg border border-[#EAEAEA]">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-semibold text-[#1E2227]">Vencimientos Próximos</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border border-[#EAEAEA] rounded bg-[#FBFBFA]">
+                      <span className="text-sm font-medium">VTV - Hilux Blanca</span>
+                      <span className="text-xs font-bold text-[#F2B705] bg-[#F2B705]/10 px-2 py-1 rounded">Faltan 5 días</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border border-[#EAEAEA] rounded bg-[#FBFBFA]">
+                      <span className="text-sm font-medium">Aceite - Focus</span>
+                      <span className="text-xs font-bold text-[#346538] bg-[#346538]/10 px-2 py-1 rounded">En 1.200 km</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
+      {/* Geolocker Style Comparison Table */}
+      <section id="comparativa" className="py-24 md:py-32 px-6 bg-[#1E2227] text-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl mb-6">No somos solo un GPS.</h2>
+            <p className="text-[#A1A1AA] text-lg">La diferencia entre saber dónde está un camión y tener el control absoluto de tu operación logística y financiera.</p>
+          </div>
+
+          <div className="bg-[#181B1F] border border-[#333] rounded-2xl overflow-hidden shadow-2xl">
+            <div className="overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow className="border-[#333] hover:bg-transparent">
+                    <TableHead className="hidden md:table-cell w-[25%] py-6 px-4 md:px-6 text-white font-medium text-base md:text-lg">Área Operativa</TableHead>
+                    <TableHead className="w-[50%] md:w-[35%] py-4 md:py-6 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-lg border-l border-[#333]">Sin TrackOps</TableHead>
+                    <TableHead className="w-[50%] md:w-[40%] py-4 md:py-6 px-3 md:px-6 text-[#F2B705] text-sm md:text-lg font-bold border-l border-[#333] bg-[#222830]">Ecosistema TrackOps</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Fila 1 */}
+                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
+                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Control de Mantenimiento</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Planillas de Excel, pizarrones borrados y services pasados.</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Matriz predictiva por componentes y odómetro GPS en vivo.</TableCell>
+                  </TableRow>
+                  {/* Fila 2 */}
+                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
+                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Vencimientos y Docs</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Vehículos parados por seguros o VTV vencidas por sorpresa.</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Alertas preventivas automatizadas a WhatsApp y Mail.</TableCell>
+                  </TableRow>
+                  {/* Fila 3 */}
+                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
+                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Control de Combustible</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Tickets de papel en la guantera y gastos imposibles de auditar.</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Algoritmo de eficiencia (L/100km) y alertas por desvío.</TableCell>
+                  </TableRow>
+                  {/* Fila 4 */}
+                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
+                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Asignación de Choferes</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Control informal de llaves de cada unidad en cada turno.</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Check-in/out por escaneo QR y trazabilidad exacta.</TableCell>
+                  </TableRow>
+                  {/* Fila 5 */}
+                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
+                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Visibilidad y Seguimiento</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Llamadas constantes al chofer y grandes tiempos ciegos.</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Mapa interactivo y telemetría 24/7 en vivo.</TableCell>
+                  </TableRow>
+                  {/* Fila 6 */}
+                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
+                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Historial y Auditoría</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Facturas perdidas y cero historial integrado.</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Ficha digital única con reportes totales.</TableCell>
+                  </TableRow>
+                  {/* Fila 7 */}
+                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
+                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base border-b-0">Toma de Decisiones</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed border-b-0"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Decisiones por intuición, sin métricas reales.</TableCell>
+                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed border-b-0"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Dashboard ejecutivo de Costo Operativo.</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Advanced Gapless Bento Grid */}
-      <section id="funciones" className="py-24 md:py-48 px-6 bg-[#111] text-white">
-        <div className="max-w-7xl mx-auto">
+      {/* Advanced Gapless Bento Grid (Features CRO) */}
+      <section id="funciones" className="py-24 md:py-32 px-6 bg-[#F6F4EE] border-b border-[#EAEAEA] relative overflow-hidden">
+        
+        {/* Animated Dashed Route Background */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40 hidden md:block">
+          <svg className="w-full h-full" viewBox="0 0 1440 800" preserveAspectRatio="none">
+            <path id="bg-route" d="M -100 150 C 400 100 800 700 1500 200" fill="none" stroke="#F2B705" strokeWidth="6" strokeDasharray="15 15" strokeLinecap="round" />
+            <g className="scroll-truck">
+              <circle cx="0" cy="0" r="20" fill="#1E2227" stroke="#FFF" strokeWidth="3" />
+              <Truck size={20} color="white" x="-10" y="-10" />
+            </g>
+          </svg>
+        </div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-16 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl lg:text-6xl mb-6">Control total.<br />Sin puntos ciegos.</h2>
-              <p className="text-[#A1A1AA] text-lg max-w-xl">No dependas de que el chofer te conteste. TrackOps centraliza la ubicación, la telemetría y los tiempos de entrega en un solo tablero.</p>
+              <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl lg:text-6xl mb-6 text-[#1E2227]">Control total.<br />Auditorías perfectas.</h2>
+              <p className="text-[#787774] text-lg max-w-xl">Módulos diseñados para atacar directamente los focos de pérdida de dinero en operaciones de transporte y servicios.</p>
             </div>
-            <a href="#precios" className="text-white border border-[#333] px-6 py-3 rounded-full hover:bg-[#222] transition-colors whitespace-nowrap text-center">
-              Ver planes de precios
-            </a>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4 grid-flow-dense">
             
-            <div className="reveal-up bento-card col-span-1 md:col-span-2 row-span-2 bg-[#1A1A1A] border border-[#333] rounded-2xl p-8 md:p-10 flex flex-col overflow-hidden relative group">
+            {/* Gestión Combustible (Main) */}
+            <div className="reveal-up bento-card col-span-1 md:col-span-2 row-span-2 bg-white border border-[#EAEAEA] rounded-2xl p-8 md:p-10 flex flex-col overflow-hidden relative shadow-sm group">
               <div className="relative z-10 mb-8">
-                <div className="w-12 h-12 bg-[#FDEBEC]/10 rounded flex items-center justify-center mb-6 text-[#FDEBEC]">
-                  <Zap size={24} />
+                <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-6 text-[#9F2F2D]">
+                  <Fuel size={24} />
                 </div>
-                <h3 className="text-2xl font-medium mb-4">Alertas operativas omnicanal</h3>
-                <p className="text-[#A1A1AA] max-w-md">Creá reglas por exceso de velocidad, o entradas a geocercas. Recibí el aviso crítico directamente en tu WhatsApp.</p>
+                <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Gestión de Combustible (L/100km)</h3>
+                <p className="text-[#787774] max-w-md">Cruzamos los datos del GPS con tus cargas de gasoil para detectar discrepancias, ordeñes o rutas ineficientes. Ahorrá hasta un 15% mensual.</p>
               </div>
               
-              {/* WhatsApp UI Redesign */}
-              <div className="mt-auto relative z-10 pl-4 w-[90%] md:w-[80%] transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                <div className="bg-[#E7FFDB] text-[#111] rounded-2xl rounded-tl-sm p-4 relative shadow-sm border border-[#d3f5c1]">
-                  {/* WhatsApp tail */}
-                  <svg viewBox="0 0 8 13" className="absolute top-0 -left-[7px] w-2 h-3 text-[#E7FFDB]"><path d="M5.188 1H0v11.142c0 .873.582.497.582.497l4.606-4.225V1Z" fill="currentColor"/></svg>
-                  
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-sm text-[#075E54]">TrackOps Bot</span>
-                    <span className="text-[10px] text-gray-500 font-medium">10:42</span>
-                  </div>
-                  <p className="text-sm leading-snug">
-                    ⚠️ <strong>Alerta Operativa</strong><br/>
-                    El vehículo <strong>AC 345 FG</strong> superó el límite de velocidad en <em>Ruta 9 (110 km/h)</em>.<br/><br/>
-                    <em>Chofer: M. Rossi</em>
-                  </p>
-                  <div className="flex justify-end mt-1">
-                    <CheckCheck size={14} className="text-[#34B7F1]" />
-                  </div>
+              <div className="mt-auto relative z-10 p-6 bg-[#F6F4EE] rounded-xl border border-[#EAEAEA]">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-semibold text-[#1E2227]">Camión #04 - Volvo FH</span>
+                  <span className="text-xs font-mono bg-white px-2 py-1 rounded border border-[#EAEAEA]">Este mes</span>
                 </div>
-              </div>
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#9F2F2D]/20 rounded-full blur-[80px] -z-0" />
-            </div>
-
-            <div className="reveal-up bento-card col-span-1 md:col-span-2 row-span-1 bg-[#1A1A1A] border border-[#333] rounded-2xl p-8 flex justify-between overflow-hidden relative group">
-              <div className="relative z-10 w-2/3">
-                <div className="w-10 h-10 bg-[#E1F3FE]/10 rounded flex items-center justify-center mb-6 text-[#E1F3FE]">
-                  <Map size={20} />
+                <div className="h-2 w-full bg-[#EAEAEA] rounded-full overflow-hidden mb-2">
+                  <div className="h-full bg-[#9F2F2D] w-[85%] rounded-full"></div>
                 </div>
-                <h3 className="text-xl font-medium mb-3">Conexión GPS Nativa</h3>
-                <p className="text-[#A1A1AA] text-sm">Sumá el kilometraje automático de tu proveedor de rastreo actual, o usá los nuestros. Mapa en vivo.</p>
-              </div>
-              <div className="absolute right-0 top-0 h-full w-1/3 bg-[#0F0F0F] border-l border-[#333] flex items-center justify-center relative overflow-hidden">
-                {/* SVG Route Mini Map */}
-                <svg className="w-full h-full absolute inset-0 opacity-40" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M 0 80 Q 50 60 100 20" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeDasharray="4 4" />
-                </svg>
-                <div className="w-4 h-4 bg-[#E1F3FE] rounded-full shadow-[0_0_15px_rgba(225,243,254,0.8)] z-10 animate-pulse relative">
-                  <div className="absolute -inset-2 rounded-full border border-[#E1F3FE]/50 animate-ping" />
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#787774]">Consumo promedio</span>
+                  <span className="font-bold text-[#1E2227]">32 L / 100km <span className="text-red-500 font-normal">↑ 5%</span></span>
                 </div>
               </div>
             </div>
 
-            <div className="reveal-up bento-card col-span-1 md:col-span-1 row-span-1 bg-[#1A1A1A] border border-[#333] rounded-2xl p-8 relative overflow-hidden group">
-               <div className="w-10 h-10 bg-white/5 rounded flex items-center justify-center mb-6 text-white">
-                  <Shield size={20} />
+            {/* Prevención de VTV/Seguros */}
+            <div className="reveal-up bento-card col-span-1 md:col-span-2 row-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm relative group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F2B705]/10 rounded-bl-full -z-0" />
+              <div className="relative z-10">
+                <div className="w-10 h-10 bg-[#F2B705]/10 rounded flex items-center justify-center mb-6 text-[#F2B705]">
+                  <ShieldAlert size={20} />
                 </div>
-              <h3 className="text-lg font-medium mb-3">Historial Logístico</h3>
-              <p className="text-[#A1A1AA] text-sm">Reproducí el trayecto exacto de cualquier día. Rutas, paradas y velocidades.</p>
+                <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Prevención de VTV y Seguros</h3>
+                <p className="text-[#787774] text-sm max-w-sm">Evitá multas carísimas y vehículos secuestrados. TrackOps te alerta semanas antes de cualquier vencimiento regulatorio o mecánico.</p>
+              </div>
             </div>
 
-            <div className="reveal-up bento-card col-span-1 md:col-span-1 row-span-1 bg-[#1A1A1A] border border-[#333] rounded-2xl p-8 relative overflow-hidden group">
-               <div className="w-10 h-10 bg-[#FBF3DB]/10 rounded flex items-center justify-center mb-6 text-[#FBF3DB]">
-                  <Users size={20} />
+            {/* Bitácora Digital */}
+            <div className="reveal-up bento-card col-span-1 md:col-span-1 row-span-1 bg-[#1E2227] border border-[#333] rounded-2xl p-8 relative overflow-hidden shadow-lg group">
+               <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center mb-6 text-white">
+                  <FileText size={20} />
                 </div>
-              <h3 className="text-lg font-medium mb-3">Multiusuario</h3>
-              <p className="text-[#A1A1AA] text-sm">Despachantes, gerentes y seguridad en un solo sistema sincronizado.</p>
+              <h3 className="text-lg font-semibold text-white mb-3">Bitácora Digital (Auditorías)</h3>
+              <p className="text-[#A1A1AA] text-sm">Todo gasto, repuesto y ruta queda inmutablemente ligado a la patente del vehículo.</p>
+            </div>
+
+            {/* Alertas WhatsApp */}
+            <div className="reveal-up bento-card col-span-1 md:col-span-1 row-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 relative overflow-hidden shadow-sm group">
+               <div className="w-10 h-10 bg-[#E7FFDB] rounded flex items-center justify-center mb-6 text-[#075E54]">
+                  <Phone size={20} />
+                </div>
+              <h3 className="text-lg font-semibold text-[#1E2227] mb-3">WhatsApp Operativo</h3>
+              <p className="text-[#787774] text-sm">Alertas directas por exceso de velocidad, botón de pánico o entrada a geocercas.</p>
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* Dynamic Pricing Quoter with CountUp */}
+      {/* Dynamic Pricing Quoter with AnimatePresence */}
       <section id="precios" className="py-24 md:py-40 px-6 bg-white relative">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#111] mb-6">Cotizador Automático</h2>
-            <p className="text-[#787774] text-lg">Pagas según tu flota real. La instalación del hardware GPS está <strong className="text-[#111]">incluida</strong>.</p>
+            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#1E2227] mb-6">Inversión con Retorno Inmediato</h2>
+            <p className="text-[#787774] text-lg">Pagas según tu flota real. La instalación del hardware GPS está <strong className="text-[#1E2227]">incluida en el alta</strong>.</p>
           </div>
 
-          <div className="flex justify-center items-center mb-12">
-            <div className="flex items-center gap-4">
-              <span className={`text-sm font-medium ${!annualMode ? 'text-[#111]' : 'text-[#787774]'}`}>Mensual</span>
-              <Switch.Root
-                checked={annualMode}
-                onCheckedChange={setAnnualMode}
-                className="w-14 h-7 bg-[#EAEAEA] rounded-full relative shadow-inner focus:outline-none focus:ring-2 focus:ring-[#111] data-[state=checked]:bg-[#111]"
-              >
-                <Switch.Thumb className="block w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 translate-x-1 data-[state=checked]:translate-x-8" />
-              </Switch.Root>
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium ${annualMode ? 'text-[#111]' : 'text-[#787774]'}`}>Anual</span>
-                <span className="bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">10% OFF</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-[#FBFBFA] border border-[#EAEAEA] rounded-2xl p-8 md:p-16 shadow-xl max-w-4xl mx-auto grid md:grid-cols-2 gap-12 md:gap-24 items-center">
+
+          <div className="bg-[#F6F4EE] border border-[#EAEAEA] rounded-2xl p-8 md:p-16 shadow-xl max-w-4xl mx-auto grid md:grid-cols-2 gap-12 md:gap-24 items-center">
             
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-8 order-2 md:order-1">
               <div>
-                <label className="text-[#111] font-medium text-lg mb-2 block flex justify-between items-center">
+                <label className="text-[#1E2227] font-medium text-lg mb-2 block flex justify-between items-center">
                   <span>Tamaño de tu flota</span>
-                  <span className="bg-[#111] text-white text-sm font-mono px-3 py-1 rounded">
+                  <span className="bg-[#1E2227] text-white text-sm font-mono px-3 py-1 rounded">
                     {vehicles[0] === 50 ? '+50' : vehicles[0]} {vehicles[0] === 1 ? 'vehículo' : 'vehículos'}
                   </span>
                 </label>
-                <p className="text-[#787774] text-sm mb-8">Desliza para calcular el valor mensual (máx 50 online).</p>
-                
+ 
                 <Slider.Root 
                   className="relative flex items-center select-none touch-none w-full h-5"
                   value={vehicles}
@@ -569,10 +661,10 @@ export default function LandingPage() {
                   step={1}
                 >
                   <Slider.Track className="bg-[#EAEAEA] relative grow rounded-full h-[6px]">
-                    <Slider.Range className="absolute bg-[#111] rounded-full h-full" />
+                    <Slider.Range className="absolute bg-[#1E2227] rounded-full h-full" />
                   </Slider.Track>
                   <Slider.Thumb 
-                    className="block w-6 h-6 bg-white border-2 border-[#111] rounded-full hover:bg-[#FBFBFA] focus:outline-none focus:ring-4 focus:ring-[#F2B705]/30 shadow-md cursor-grab active:cursor-grabbing transition-colors"
+                    className="block w-6 h-6 bg-white border-2 border-[#1E2227] rounded-full hover:bg-[#FBFBFA] focus:outline-none focus:ring-4 focus:ring-[#F2B705]/30 shadow-md cursor-grab active:cursor-grabbing transition-colors"
                     aria-label="Vehículos"
                   />
                 </Slider.Root>
@@ -581,15 +673,32 @@ export default function LandingPage() {
               <div className="bg-white border border-[#EAEAEA] p-4 rounded-lg flex items-start gap-3">
                 <CheckCircle2 className="text-[#346538] mt-0.5" size={18} />
                 <div>
-                  <h4 className="text-[#111] font-medium text-sm">Instalación y Equipos GPS Incluidos</h4>
-                  <p className="text-[#787774] text-xs mt-1">Sin costos de alta sorpresa. Solo la suscripción.</p>
+                  <h4 className="text-[#1E2227] font-medium text-sm">Instalación y Equipos Incluidos</h4>
+                  <p className="text-[#787774] text-xs mt-1">Sin costos de hardware sorpresa. Equipos en comodato.</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-[#EAEAEA] rounded-xl p-8 md:p-10 flex flex-col items-center text-center shadow-sm relative overflow-hidden">
+            <div className="bg-white border border-[#EAEAEA] rounded-xl p-8 md:p-10 flex flex-col items-center text-center shadow-sm relative overflow-hidden order-1 md:order-2">
+              <div className="w-full flex justify-center items-center mb-8 pb-8 border-b border-[#EAEAEA]">
+                <div className="flex items-center gap-3">
+                  <span className={`text-sm font-medium ${!annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Mes</span>
+                  <Switch.Root
+                    checked={annualMode}
+                    onCheckedChange={setAnnualMode}
+                    className="w-12 h-6 bg-[#EAEAEA] rounded-full relative shadow-inner focus:outline-none focus:ring-2 focus:ring-[#1E2227] data-[state=checked]:bg-[#1E2227]"
+                  >
+                    <Switch.Thumb className="block w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 translate-x-1 data-[state=checked]:translate-x-7" />
+                  </Switch.Root>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Anual</span>
+                    <span className="bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">10% OFF</span>
+                  </div>
+                </div>
+              </div>
+              
               <div className="text-xs font-mono uppercase tracking-widest text-[#787774] mb-2">{currentTier.type}</div>
-              <div className="text-[#111] text-sm mb-6 bg-[#FBFBFA] px-3 py-1 rounded border border-[#EAEAEA]">{currentTier.label}</div>
+              <div className="text-[#1E2227] text-sm mb-6 bg-[#F6F4EE] px-3 py-1 rounded border border-[#EAEAEA]">{currentTier.label}</div>
               
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="font-mono text-2xl text-[#787774]">$</span>
@@ -602,7 +711,7 @@ export default function LandingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="font-[var(--font-playfair)] text-5xl md:text-6xl font-medium text-[#111]"
+                    className="font-[var(--font-playfair)] text-5xl md:text-6xl font-semibold text-[#1E2227]"
                   >
                     {new Intl.NumberFormat('es-AR').format(currentPrice)}
                   </motion.span>
@@ -611,11 +720,11 @@ export default function LandingPage() {
                 <span className="text-[#787774] text-sm font-medium ml-1">ARS / mes</span>
               </div>
               
-              <a href="#" className="w-full bg-[#F2B705] text-[#111] py-4 rounded-full font-bold hover:bg-[#e0aa00] transition-colors shadow-[0_0_30px_rgba(242,183,5,0.3)] text-lg">
-                Empezar prueba gratis
+              <a href="#" className="w-full bg-[#F2B705] text-[#1E2227] py-4 rounded-full font-bold hover:bg-[#e0aa00] transition-colors shadow-[0_0_30px_rgba(242,183,5,0.3)] text-lg">
+                Comenzar Onboarding
               </a>
               <p className="mt-4 text-[11px] text-[#787774] font-mono">
-                {annualMode ? 'Facturación anual. 14 días de prueba.' : '14 días de prueba. Cancelás cuando quieras.'}
+                {annualMode ? 'Facturación anual. Soporte técnico incluido.' : 'Soporte técnico incluido. Cancelás cuando quieras.'}
               </p>
               
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F2B705]/10 rounded-full blur-[40px] pointer-events-none" />
@@ -624,83 +733,87 @@ export default function LandingPage() {
           </div>
           
           <div className="mt-12 text-center text-[#787774] text-sm">
-            ¿Tenés más de 50 vehículos? <a href="#" className="text-[#111] font-medium underline underline-offset-4">Hablá con ventas para un plan a medida</a>.
+            ¿Tenés más de 50 vehículos o requerimientos de integración API? <a href="#" className="text-[#1E2227] font-medium underline underline-offset-4">Hablá con ventas para un plan corporativo</a>.
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-24 px-6 bg-[#FBFBFA] border-t border-[#EAEAEA]">
+      {/* FAQ Section with Shadcn Accordion */}
+      <section className="py-24 px-6 bg-[#F6F4EE] border-t border-[#EAEAEA]">
         <div className="max-w-3xl mx-auto">
-          <h2 className="font-[var(--font-playfair)] text-4xl text-[#111] mb-12 text-center">Preguntas Frecuentes</h2>
+          <h2 className="font-[var(--font-playfair)] text-4xl text-[#1E2227] mb-12 text-center">Preguntas Frecuentes</h2>
           
-          <div className="flex flex-col gap-4">
+          <Accordion type="single" collapsible className="w-full bg-white rounded-2xl border border-[#EAEAEA] shadow-sm p-2">
             {[
-              { q: "¿Tengo que comprarles los GPS a ustedes?", a: "No. Si ya tenés un proveedor de rastreo satelital, nos integramos con ellos para absorber el kilometraje automáticamente. Si no tenés, nosotros te proveemos los equipos en comodato (instalación incluida)." },
-              { q: "¿Cómo funcionan las alertas por WhatsApp?", a: "Configurás reglas operativas (por ejemplo, si un camión sale de CABA, o si supera los 90km/h). Apenas ocurre el evento, el sistema te envía un mensaje automático al WhatsApp." },
-              { q: "¿Hay límite de usuarios?", a: "No, podés invitar a todos tus gerentes, guardias y despachantes sin costo extra. Cobramos únicamente por la cantidad de vehículos activos en la plataforma." },
-              { q: "¿Cuánto tarda la instalación si elijo sus equipos?", a: "La instalación se coordina en un máximo de 72hs hábiles en tu base de operaciones, para que no tengas que mover los camiones." }
+              { q: "¿Tengo que comprarles los GPS a ustedes?", a: "No. Si ya tenés un proveedor de rastreo satelital, nos integramos vía API para absorber el kilometraje y posiciones automáticamente. Si no tenés, nosotros te proveemos los equipos en comodato (instalación incluida en el alta)." },
+              { q: "¿Cómo se previenen los robos de combustible?", a: "El sistema cruza los litros cargados (vía integración con tarjetas de combustible o carga manual) versus el kilometraje real recorrido por el GPS y el consumo teórico del vehículo. Cualquier anomalía salta en rojo en el dashboard." },
+              { q: "¿Hay límite de usuarios para gerentes y despachantes?", a: "No, podés invitar a todo tu equipo operativo y administrativo sin costo extra. TrackOps cobra únicamente por la cantidad de vehículos activos procesando datos." },
+              { q: "¿Cuánto tarda la instalación si elijo sus equipos GPS?", a: "La instalación se coordina en un máximo de 72hs hábiles en tu base de operaciones, con técnicos especializados, para que no tengas que mover los camiones de su ruta." }
             ].map((faq, i) => (
-              <div key={i} className="bg-white border border-[#EAEAEA] rounded-lg overflow-hidden">
-                <button 
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
-                >
-                  <span className="font-medium text-[#111]">{faq.q}</span>
-                  <motion.div
-                    animate={{ rotate: openFaq === i ? 180 : 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
-                    {openFaq === i ? <Minus size={18} className="text-[#787774] shrink-0" /> : <Plus size={18} className="text-[#787774] shrink-0" />}
-                  </motion.div>
-                </button>
-                <AnimatePresence>
-                  {openFaq === i && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="px-6 text-[#787774] leading-relaxed overflow-hidden"
-                    >
-                      <div className="pb-5">{faq.a}</div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <AccordionItem key={i} value={`item-${i}`} className="border-b last:border-0 border-[#EAEAEA]">
+                <AccordionTrigger className="hover:no-underline px-6 py-5 text-left text-base font-semibold text-[#1E2227]">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-5 text-[#787774] text-base leading-relaxed">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#111] text-white py-24 px-6 border-t border-[#222]">
+      <footer className="bg-[#1E2227] text-white py-24 px-6 border-t border-[#111]">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-16">
           <div className="max-w-sm">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="relative w-8 h-8 flex items-center justify-center bg-white rounded">
-                 <Image src="/trackopslogo.png" alt="TrackOps" fill className="object-contain p-1" />
-              </div>
-              <span className="font-semibold tracking-tight text-white">TRACKOPS</span>
+            <div className="relative w-40 h-10 md:w-48 md:h-12 mb-8 opacity-90">
+               <Image src="/trackopslogo.png" alt="TrackOps" fill className="object-contain object-left scale-[1.8] md:scale-[2.2] origin-left filter brightness-0 invert" />
             </div>
-            <p className="text-[#A1A1AA] text-sm leading-relaxed">Tecnología de rastreo y control logístico en tiempo real para flotas en Argentina.</p>
+            <p className="text-[#A1A1AA] text-sm leading-relaxed">Software B2B de rastreo satelital, telemetría y control de gastos logísticos para flotas en Argentina.</p>
           </div>
           
           <div className="flex gap-16 md:gap-32">
             <div className="flex flex-col gap-4">
-              <h4 className="text-xs font-mono uppercase tracking-widest text-[#5C6B74]">Producto</h4>
-              <a href="#como-funciona" className="text-sm text-[#EAEAEA] hover:text-[#F2B705] transition-colors">Cómo funciona</a>
-              <a href="#funciones" className="text-sm text-[#EAEAEA] hover:text-[#F2B705] transition-colors">Funciones</a>
-              <a href="#precios" className="text-sm text-[#EAEAEA] hover:text-[#F2B705] transition-colors">Precios</a>
+              <h4 className="text-xs font-mono uppercase tracking-widest text-[#5C6B74]">Soluciones</h4>
+              <a href="#industrias" className="text-sm text-[#EAEAEA] hover:text-[#F2B705] transition-colors">Larga Distancia</a>
+              <a href="#industrias" className="text-sm text-[#EAEAEA] hover:text-[#F2B705] transition-colors">Última Milla</a>
+              <a href="#funciones" className="text-sm text-[#EAEAEA] hover:text-[#F2B705] transition-colors">Control Combustible</a>
             </div>
             <div className="flex flex-col gap-4">
               <h4 className="text-xs font-mono uppercase tracking-widest text-[#5C6B74]">Empresa</h4>
-              <a href="#" className="text-sm text-[#EAEAEA] hover:text-white transition-colors">Contacto</a>
-              <a href="#" className="text-sm text-[#EAEAEA] hover:text-white transition-colors">Términos</a>
+              <a href="#" className="text-sm text-[#EAEAEA] hover:text-white transition-colors">Contacto Ventas</a>
+              <a href="#" className="text-sm text-[#EAEAEA] hover:text-white transition-colors">Términos y Privacidad</a>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* WhatsApp Fixed Button - using Portal to escape any stacking context issues */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {scrolled && (
+            <motion.a 
+              initial={{ opacity: 0, scale: 0.5, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.5, y: 50 }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              href="https://wa.me/5492916489004?text=Hola%20TrackOps!%20Vengo%20de%20la%20web%20y%20quiero%20recibir%20m%C3%A1s%20informaci%C3%B3n%20sobre%20el%20sistema%20para%20mi%20flota." 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[100] bg-[#25D366] text-white px-5 py-3.5 rounded-full flex items-center gap-3 font-bold shadow-[0_8px_30px_rgba(37,211,102,0.4)]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-6 h-6 md:w-7 md:h-7" fill="currentColor">
+                <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zM223.9 414.7c-32.9 0-65.4-8.8-94-25.5l-6.7-4-69.8 18.3L72 334.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-2.2-3.7-.2-5.7 1.2-7.1 1.3-1.3 2.8-3.2 4.1-4.9 1.4-1.6 1.8-2.8 2.8-4.6 1-1.8.5-3.5-.2-4.9-1.9-3.7-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+              </svg>
+              <span className="text-base md:text-lg tracking-wide">Cotizá por WhatsApp</span>
+            </motion.a>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
     </div>
   );
 }

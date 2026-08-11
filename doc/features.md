@@ -196,3 +196,75 @@ http://trackops.com.ar/
 Implementacion de chatbot por whatsapp con MCP para que los choferes puedan consultar el estado de su unidad, kilometraje, vencimientos, etc. y que el sistema les pueda responder automaticamente. O para subir pdfs, o varias cosas.
 
 Hacer GEO/SEO para mejorar posicionamiento de la web
+
+
+
+FEATURES AFANADAS GEOLOCKER:
+
+- Cargás por WhatsApp, sin apps
+
+- Mandás la foto del ticket y listo
+
+Sacás la foto del comprobante y la inteligencia artificial lee patente, litros, tipo de combustible y precio. El sistema completa los datos solo: vos solo confirmás.
+
+- Consumo real calculado por GPS
+
+Cruzamos cada carga con los kilómetros y las horas de marcha reales del equipo. Sabés el consumo promedio, los picos y los máximos y mínimos de cada unidad.
+
+- Control de costos, sin planillas
+
+Cargás el precio por litro (opcional) y recordamos el último que usaste. Vas viendo cuánto gastás en combustible por vehículo, por tipo y por estación.
+
+-----------------
+
+- Ubicación en vivo en el mapa
+
+Posición actualizada al segundo, con estados claros: en movimiento, ralentí, detenido o sin señal. El mapa sigue al vehículo solo.
+
+- Historial y reproducción de recorridos
+
+Volvé en el tiempo y reproducí la ruta exacta que hizo cualquier unidad, como una grabación. Acelerá, pausá y revisá cada parada.
+
+Geocercas con alertas de entrada y salida
+Dibujás depósitos, obras o rutas autorizadas y el sistema te avisa al instante si un vehículo entra o sale de la zona.
+
+- 9 tipos de alerta inteligente
+
+Exceso de velocidad, salida de geocerca, ralentí excesivo, encendido fuera de horario, corte de energía y más. Te llegan al instante por email o en la plataforma, vos elegís cuáles activar.
+Control de horarios de uso
+
+- Definís cuándo se puede usar cada vehículo. 
+
+Si alguien lo enciende un feriado o de madrugada, te enterás al instante.
+
+- Reportes en PDF y Excel
+
+Kilómetros reales, velocidades, paradas e índice de eficiencia. Exportás en PDF o Excel, listos para mostrar o facturar.
+
+-----------------
+
+- Por kilómetros, horas o fecha
+
+Configurás el ciclo una vez —cada 10.000 km, cada 500 horas, cada año— y el sistema agenda solo el próximo service. Se repite automáticamente.
+
+- Checklist según el vehículo
+
+Catálogo de tareas listo por tipo: auto, camión, camioneta, maquinaria, moto, acoplado. Marcás lo hecho y sumás lo que falte.
+
+- Te avisa antes de que sea tarde
+
+El kilometraje y las horas se cuentan solos desde el GPS. Cuando se acerca el umbral, la tarea aparece pendiente y te llega el aviso.
+
+-------------------
+
+- Alertas de vencimiento de RTO
+
+Cargás la fecha y te avisamos 30, 20 y 10 días antes. Se acabaron las multas y los vehículos parados por una revisión vencida.
+
+- Recordatorio del turno
+
+Cargá la fecha del turno de revisión y te lo recordamos a 15 y 7 días. Llegás siempre, sin perder la cita.
+
+- Toda la documentación, ordenada
+
+Cédula, seguro, RTO, verificación, títulos… todos los papeles de cada vehículo guardados en la nube, en un solo lugar.
