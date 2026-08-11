@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1786232166664,
+      "tag": "0000_broad_wolfpack",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786331467599,
+      "tag": "0001_strong_micromacro",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786333319798,
+      "tag": "0002_orange_tyrannus",
+      "breakpoints": true
+    }
+  ]
+}
