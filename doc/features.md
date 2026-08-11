@@ -194,3 +194,5 @@ http://trackops.com.ar/
 2da fase:
 
 Implementacion de chatbot por whatsapp con MCP para que los choferes puedan consultar el estado de su unidad, kilometraje, vencimientos, etc. y que el sistema les pueda responder automaticamente. O para subir pdfs, o varias cosas.
+
+Hacer GEO/SEO para mejorar posicionamiento de la web
