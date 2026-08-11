@@ -186,6 +186,11 @@ Usuario de vendedor/instalador, va a gestionar la instalacion de los gps y el se
 
 
 Fleet = Flota, Ops = Operaciones
-TrakOps
+TrackOps
 http://fleethub.com.ar/
-http://trakops.com.ar/
+http://trackops.com.ar/
+
+
+2da fase:
+
+Implementacion de chatbot por whatsapp con MCP para que los choferes puedan consultar el estado de su unidad, kilometraje, vencimientos, etc. y que el sistema les pueda responder automaticamente. O para subir pdfs, o varias cosas.

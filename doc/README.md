@@ -5,7 +5,7 @@
 | **MinIO Console** | [http://localhost:9001](http://localhost:9001) | `9001` | `minioadmin` | `minioadmin` | S3 Console (API en puerto `9002`) |
 | **Umami Analytics** | [http://localhost:3002](http://localhost:3002) | `3002` | `admin` | `umami` | Usuario y clave por defecto de Umami |
 | **Portainer CE** | [http://localhost:9000](http://localhost:9000) | `9000` | Te pide registrarlo | Te pide registrarlo | Infraestructura 24/7 permanente |
-| **PostgreSQL DB** | [http://localhost:5432](http://localhost:5432) | `5432` | `postgres` | `postgres` | Base de datos principal (`prada_db`) |
+| **PostgreSQL DB** | [http://localhost:5432](http://localhost:5432) | `5432` | `postgres` | `postgres` | Base de datos principal (`trackops_db`) |
 
 ---
 

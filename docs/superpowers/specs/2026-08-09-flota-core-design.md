@@ -29,6 +29,10 @@ The current application has static UI shells for dashboards and vehicle lists. T
   - A Server Action (`createMaintenanceLog`) will handle the insertion.
   - **Business Logic**: The action must also update `vehicles.kilometrajeActual` if the new log's mileage is higher than the current vehicle mileage.
 
+### 4. Interactive GPS Map (Simulated)
+- **View**: `src/app/dashboard/gps/page.tsx`
+- **Logic**: Real GPS backend integration is excluded for this iteration. However, we will implement the UI layout for the interactive map (using a placeholder or mock markers) alongside typical tracking system options (vehicle list panel, status filters like 'en marcha', 'detenido', 'sin transmisión').
+
 ### 4. Database Seeding & Setup
 - **File**: `src/db/seed.ts`
 - **Purpose**: Automate the creation of test data to avoid manual data entry during testing.
