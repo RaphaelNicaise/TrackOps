@@ -1,1 +1,25 @@
+# Env
 .env
+.env.local
+.env.*.local
+
+# Dependencies
+**/node_modules/
+node_modules/
+
+# Next.js build output
+.next
+out/
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Local tooling symlinks (Claude junctions -> .agents/skills)
+.claude/
+
+# Misc
+.DS_Store
+*.log
