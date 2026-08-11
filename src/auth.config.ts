@@ -1,0 +1,46 @@
+import type { NextAuthConfig } from "next-auth";
+
+export const authConfig = {
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret-key-trackops-authjs-123456789",
+  pages: {
+    signIn: "/auth/login",
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+      const isOnChofer = nextUrl.pathname.startsWith("/chofer");
+
+      if (isOnDashboard || isOnChofer) {
+        if (isLoggedIn) return true;
+        return false; // Redirect unauthenticated users to login page
+      } else if (isLoggedIn) {
+        // Redirect to dashboard if trying to access auth pages while logged in
+        if (nextUrl.pathname.startsWith("/auth")) {
+          return Response.redirect(new URL("/dashboard", nextUrl));
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        // user object is only passed on initial sign in
+        token.role = user.role;
+        token.empresaId = user.empresaId;
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        if (session.user) {
+          session.user.id = token.id as string;
+          session.user.role = token.role as string;
+          session.user.empresaId = token.empresaId as number | undefined;
+        }
+      }
+      return session;
+    },
+  },
+  providers: [], // Add providers with an empty array for now
+} satisfies NextAuthConfig;
