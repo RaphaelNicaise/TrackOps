@@ -10,7 +10,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
-import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu } from "lucide-react";
+import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu, Satellite, FolderOpen, Smartphone, Sparkles, Receipt, FileWarning, Wrench, ClipboardList } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
 import LogoLoop from "@/components/LogoLoop";
@@ -372,112 +372,48 @@ export default function LandingPage() {
         />
       </section>
 
-      {/* Casos de Uso por Industria (TABS) */}
-      <section id="industrias" className="py-24 md:py-32 px-6 bg-white border-b border-[#EAEAEA]">
-        <div className="max-w-5xl mx-auto">
+      {/* 3 Simples Pasos (Implementación) */}
+      <section id="implementacion" className="py-24 md:py-32 px-6 bg-white border-b border-[#EAEAEA]">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#1E2227] mb-6">Diseñado para cada operación</h2>
-            <p className="text-[#787774] text-lg max-w-2xl mx-auto">No importa si cruzás el país o si entregás en la misma cuadra. La plataforma se adapta a las reglas de tu negocio.</p>
+            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#1E2227] mb-6">De los papeles al control total en 3 simples pasos.</h2>
+            <p className="text-[#787774] text-lg max-w-2xl mx-auto">Sin implementaciones eternas. Diseñado para que arranques a gestionar tu flota hoy mismo.</p>
           </div>
 
-          <Tabs defaultValue="pesada" className="w-full">
-            <TabsList className="grid w-full md:w-3/4 mx-auto grid-cols-1 md:grid-cols-3 h-auto gap-4 bg-transparent mb-12">
-              <TabsTrigger value="pesada" className="data-[state=active]:bg-[#F2B705] data-[state=active]:text-[#1E2227] data-[state=active]:shadow-md border border-[#EAEAEA] bg-[#F6F4EE] py-3 rounded-lg font-medium transition-all">Larga Distancia</TabsTrigger>
-              <TabsTrigger value="ultima-milla" className="data-[state=active]:bg-[#F2B705] data-[state=active]:text-[#1E2227] data-[state=active]:shadow-md border border-[#EAEAEA] bg-[#F6F4EE] py-3 rounded-lg font-medium transition-all">Última Milla</TabsTrigger>
-              <TabsTrigger value="corporativo" className="data-[state=active]:bg-[#F2B705] data-[state=active]:text-[#1E2227] data-[state=active]:shadow-md border border-[#EAEAEA] bg-[#F6F4EE] py-3 rounded-lg font-medium transition-all">Flota Corporativa</TabsTrigger>
-            </TabsList>
-            
-            {/* Larga Distancia */}
-            <TabsContent value="pesada" className="reveal-up mt-6">
-              <div className="grid md:grid-cols-2 gap-12 items-center bg-[#F6F4EE] p-8 md:p-12 rounded-2xl border border-[#EAEAEA]">
-                <div>
-                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-[#1E2227] shadow-sm mb-6">
-                    <Truck size={24} />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Control estricto de combustible y desvíos</h3>
-                  <p className="text-[#787774] mb-6 leading-relaxed">En rutas largas, un desvío mínimo o una parada no autorizada significa miles de pesos en combustible perdido. TrackOps audita la ruta ideal vs la real.</p>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Rendimiento L/100km preciso</li>
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Alertas por paradas en zonas rojas</li>
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Control de excesos de velocidad en ruta</li>
-                  </ul>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-[#EAEAEA]">
-                   <div className="flex justify-between items-center mb-4 pb-4 border-b border-[#EAEAEA]">
-                     <span className="font-semibold text-[#1E2227]">Reporte de Ruta #982</span>
-                     <span className="text-red-600 text-sm font-medium bg-red-50 px-2 py-1 rounded">Desvío detectado</span>
-                   </div>
-                   <div className="space-y-4">
-                      <div>
-                        <div className="text-xs text-[#787774] mb-1">Combustible Proyectado</div>
-                        <div className="text-lg font-mono text-[#1E2227]">450 L</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-[#787774] mb-1">Combustible Real Consumido</div>
-                        <div className="text-lg font-mono text-red-600">512 L <span className="text-xs ml-2">(+62 L)</span></div>
-                      </div>
-                   </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            {/* Última Milla */}
-            <TabsContent value="ultima-milla" className="reveal-up mt-6">
-              <div className="grid md:grid-cols-2 gap-12 items-center bg-[#F6F4EE] p-8 md:p-12 rounded-2xl border border-[#EAEAEA]">
-                <div>
-                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-[#1E2227] shadow-sm mb-6">
-                    <Package size={24} />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Agilidad operativa y despachos</h3>
-                  <p className="text-[#787774] mb-6 leading-relaxed">El tráfico en la ciudad es caótico. Monitoreá tus entregas en vivo y usá geocercas para saber exactamente a qué hora llegó tu chofer al cliente.</p>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Geocercas automáticas en clientes</li>
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Tiempos de carga y descarga</li>
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Asignación de vehículos a despachantes</li>
-                  </ul>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-[#EAEAEA] relative overflow-hidden">
-                   <div className="absolute top-0 right-0 w-2 h-full bg-[#346538]"></div>
-                   <h4 className="font-semibold text-[#1E2227] mb-2 flex items-center gap-2"><Bell size={16} /> Llegada a destino</h4>
-                   <p className="text-sm text-[#787774] mb-4">La camioneta Sprinter ingresó a la geocerca "Centro de Distribución Norte".</p>
-                   <div className="text-xs font-mono text-[#1E2227] bg-[#F6F4EE] inline-block px-2 py-1 rounded border border-[#EAEAEA]">14:32 hrs - Tiempo estimado en sitio: 15 min</div>
-                </div>
-              </div>
-            </TabsContent>
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Horizontal line for desktop */}
+            <div className="hidden md:block absolute top-12 left-[16.6%] right-[16.6%] h-[2px] bg-[#EAEAEA] -z-0"></div>
 
-            {/* Corporativo / Servicios */}
-            <TabsContent value="corporativo" className="reveal-up mt-6">
-              <div className="grid md:grid-cols-2 gap-12 items-center bg-[#F6F4EE] p-8 md:p-12 rounded-2xl border border-[#EAEAEA]">
-                <div>
-                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center text-[#1E2227] shadow-sm mb-6">
-                    <Briefcase size={24} />
-                  </div>
-                  <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Mantenimiento y Vencimientos</h3>
-                  <p className="text-[#787774] mb-6 leading-relaxed">Flotas comerciales, autos de gerencia o grúas. Que un vehículo no se detenga por una VTV vencida o un cambio de aceite olvidado.</p>
-                  <ul className="space-y-3">
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Matriz predictiva por Km o Fechas</li>
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Alertas de VTV, Seguros y Patentes</li>
-                    <li className="flex items-center gap-3 text-[#1E2227] font-medium"><Check size={18} className="text-[#346538]"/> Bitácora digital de mantenimientos</li>
-                  </ul>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-[#EAEAEA]">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-semibold text-[#1E2227]">Vencimientos Próximos</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border border-[#EAEAEA] rounded bg-[#FBFBFA]">
-                      <span className="text-sm font-medium">VTV - Hilux Blanca</span>
-                      <span className="text-xs font-bold text-[#F2B705] bg-[#F2B705]/10 px-2 py-1 rounded">Faltan 5 días</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border border-[#EAEAEA] rounded bg-[#FBFBFA]">
-                      <span className="text-sm font-medium">Aceite - Focus</span>
-                      <span className="text-xs font-bold text-[#346538] bg-[#346538]/10 px-2 py-1 rounded">En 1.200 km</span>
-                    </div>
-                  </div>
-                </div>
+            {/* Paso 1 */}
+            <div className="reveal-up bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm relative z-10 flex flex-col items-center text-center group hover:border-[#F2B705] transition-colors">
+              <div className="w-24 h-24 bg-[#F6F4EE] rounded-full flex items-center justify-center mb-6 text-[#1E2227] border-4 border-white shadow-sm group-hover:scale-110 transition-transform">
+                <Satellite size={32} strokeWidth={1.5} />
               </div>
-            </TabsContent>
-          </Tabs>
+              <div className="bg-[#1E2227] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Paso 1</div>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Conectamos tu flota</h3>
+              <p className="text-[#787774] text-sm leading-relaxed">Instalamos los equipos sin costo extra en el alta, o nos integramos con tu proveedor actual. El sistema empieza a leer el kilometraje y consumo en tiempo real, de forma automática.</p>
+            </div>
+
+            {/* Paso 2 */}
+            <div className="reveal-up bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm relative z-10 flex flex-col items-center text-center group hover:border-[#F2B705] transition-colors" style={{ transitionDelay: '100ms' }}>
+              <div className="w-24 h-24 bg-[#F6F4EE] rounded-full flex items-center justify-center mb-6 text-[#1E2227] border-4 border-white shadow-sm group-hover:scale-110 transition-transform">
+                <FolderOpen size={32} strokeWidth={1.5} />
+              </div>
+              <div className="bg-[#1E2227] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Paso 2</div>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Digitalizamos tu operación</h3>
+              <p className="text-[#787774] text-sm leading-relaxed">Olvidate de los pizarrones y las planillas. Cargás tus vehículos, choferes, fechas de services y vencimientos (VTV, seguros, licencias) en una plataforma única y centralizada.</p>
+            </div>
+
+            {/* Paso 3 */}
+            <div className="reveal-up bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm relative z-10 flex flex-col items-center text-center group hover:border-[#F2B705] transition-colors" style={{ transitionDelay: '200ms' }}>
+              <div className="w-24 h-24 bg-[#F6F4EE] rounded-full flex items-center justify-center mb-6 text-[#1E2227] border-4 border-white shadow-sm group-hover:scale-110 transition-transform">
+                <Smartphone size={32} strokeWidth={1.5} />
+              </div>
+              <div className="bg-[#1E2227] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Paso 3</div>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Tomá el control por WhatsApp</h3>
+              <p className="text-[#787774] text-sm leading-relaxed">La plataforma trabaja sola. Vos y tu equipo empiezan a recibir alertas automáticas en el celular antes de que venza un papel, cuando toca un service o si detectamos desvíos de combustible.</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -549,9 +485,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Advanced Gapless Bento Grid (Features CRO) */}
+      {/* Módulos (Features) */}
       <section id="funciones" className="py-24 md:py-32 px-6 bg-[#F6F4EE] border-b border-[#EAEAEA] relative overflow-hidden">
-        
         {/* Animated Dashed Route Background */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40 hidden md:block">
           <svg className="w-full h-full" viewBox="0 0 1440 800" preserveAspectRatio="none">
@@ -564,68 +499,59 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="mb-16 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div>
-              <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl lg:text-6xl mb-6 text-[#1E2227]">Control total.<br />Auditorías perfectas.</h2>
-              <p className="text-[#787774] text-lg max-w-xl">Módulos diseñados para atacar directamente los focos de pérdida de dinero en operaciones de transporte y servicios.</p>
-            </div>
+          <div className="mb-16 md:mb-24 text-center max-w-3xl mx-auto">
+            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl lg:text-6xl mb-6 text-[#1E2227]">Todo lo que necesitás para que tu flota deje de perder plata.</h2>
+            <p className="text-[#787774] text-lg">Módulos diseñados para atacar los focos de pérdida en logística: combustible, roturas y multas.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4 grid-flow-dense">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            {/* Gestión Combustible (Main) */}
-            <div className="reveal-up bento-card col-span-1 md:col-span-2 row-span-2 bg-white border border-[#EAEAEA] rounded-2xl p-8 md:p-10 flex flex-col overflow-hidden relative shadow-sm group">
-              <div className="relative z-10 mb-8">
-                <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-6 text-[#9F2F2D]">
-                  <Fuel size={24} />
-                </div>
-                <h3 className="text-2xl font-semibold text-[#1E2227] mb-4">Gestión de Combustible (L/100km)</h3>
-                <p className="text-[#787774] max-w-md">Cruzamos los datos del GPS con tus cargas de gasoil para detectar discrepancias, ordeñes o rutas ineficientes. Ahorrá hasta un 15% mensual.</p>
+            {/* Tarjeta 1 */}
+            <div className="reveal-up col-span-1 md:col-span-2 lg:col-span-2 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+              <div className="absolute top-6 right-6 bg-[#E7FFDB] text-[#075E54] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20 z-10">
+                <Sparkles size={12} /> NUEVO
               </div>
-              
-              <div className="mt-auto relative z-10 p-6 bg-[#F6F4EE] rounded-xl border border-[#EAEAEA]">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="font-semibold text-[#1E2227]">Camión #04 - Volvo FH</span>
-                  <span className="text-xs font-mono bg-white px-2 py-1 rounded border border-[#EAEAEA]">Este mes</span>
-                </div>
-                <div className="h-2 w-full bg-[#EAEAEA] rounded-full overflow-hidden mb-2">
-                  <div className="h-full bg-[#9F2F2D] w-[85%] rounded-full"></div>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#787774]">Consumo promedio</span>
-                  <span className="font-bold text-[#1E2227]">32 L / 100km <span className="text-red-500 font-normal">↑ 5%</span></span>
-                </div>
+              <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-6 text-[#9F2F2D]">
+                <Receipt size={24} />
               </div>
+              <h3 className="text-2xl font-semibold text-[#1E2227] mb-3 pr-24">Carga de tickets con Inteligencia Artificial</h3>
+              <p className="text-[#787774] leading-relaxed max-w-xl">¿Tus choferes cargan gasoil? Que manden una foto del ticket por WhatsApp. Nuestra IA lee los litros, el importe y la patente. El sistema cruza esa carga con los km reales del GPS para detectar desvíos, "ordeñes" o ineficiencias al instante.</p>
             </div>
 
-            {/* Prevención de VTV/Seguros */}
-            <div className="reveal-up bento-card col-span-1 md:col-span-2 row-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm relative group overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F2B705]/10 rounded-bl-full -z-0" />
-              <div className="relative z-10">
-                <div className="w-10 h-10 bg-[#F2B705]/10 rounded flex items-center justify-center mb-6 text-[#F2B705]">
-                  <ShieldAlert size={20} />
-                </div>
-                <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Prevención de VTV y Seguros</h3>
-                <p className="text-[#787774] text-sm max-w-sm">Evitá multas carísimas y vehículos secuestrados. TrackOps te alerta semanas antes de cualquier vencimiento regulatorio o mecánico.</p>
+            {/* Tarjeta 2 */}
+            <div className="reveal-up col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
+              <div className="w-12 h-12 bg-[#F2B705]/10 rounded flex items-center justify-center mb-6 text-[#F2B705]">
+                <FileWarning size={24} />
               </div>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Cero multas por papeles vencidos</h3>
+              <p className="text-[#787774] leading-relaxed text-sm">Se acabaron los camiones parados. Cargá la fecha de vencimiento de la VTV/RTO, Ruta, Seguros o Licencias, y TrackOps te avisará 30, 15 y 7 días antes directo a tu WhatsApp y Mail.</p>
             </div>
 
-            {/* Bitácora Digital */}
-            <div className="reveal-up bento-card col-span-1 md:col-span-1 row-span-1 bg-[#1E2227] border border-[#333] rounded-2xl p-8 relative overflow-hidden shadow-lg group">
-               <div className="w-10 h-10 bg-white/10 rounded flex items-center justify-center mb-6 text-white">
-                  <FileText size={20} />
-                </div>
-              <h3 className="text-lg font-semibold text-white mb-3">Bitácora Digital (Auditorías)</h3>
-              <p className="text-[#A1A1AA] text-sm">Todo gasto, repuesto y ruta queda inmutablemente ligado a la patente del vehículo.</p>
+            {/* Tarjeta 3 */}
+            <div className="reveal-up col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
+              <div className="w-12 h-12 bg-[#E1F3FE] rounded flex items-center justify-center mb-6 text-[#1F6C9F]">
+                <Wrench size={24} />
+              </div>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Mantenimiento Predictivo Automático</h3>
+              <p className="text-[#787774] leading-relaxed text-sm">Chau al Excel. Configurá tus mantenimientos una sola vez (ej. cambio de aceite cada 10.000 km). El sistema cuenta los kilómetros solo mediante el GPS y te genera la alerta para que saques turno en el taller antes de que sea tarde.</p>
             </div>
 
-            {/* Alertas WhatsApp */}
-            <div className="reveal-up bento-card col-span-1 md:col-span-1 row-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 relative overflow-hidden shadow-sm group">
-               <div className="w-10 h-10 bg-[#E7FFDB] rounded flex items-center justify-center mb-6 text-[#075E54]">
-                  <Phone size={20} />
-                </div>
-              <h3 className="text-lg font-semibold text-[#1E2227] mb-3">WhatsApp Operativo</h3>
-              <p className="text-[#787774] text-sm">Alertas directas por exceso de velocidad, botón de pánico o entrada a geocercas.</p>
+            {/* Tarjeta 4 */}
+            <div className="reveal-up col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
+              <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-6 text-purple-700">
+                <Map size={24} />
+              </div>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Historial, Geocercas y Telemetría 24/7</h3>
+              <p className="text-[#787774] leading-relaxed text-sm">No somos solo un punto en el mapa. Volvé en el tiempo para reproducir rutas exactas. Dibujá zonas permitidas y recibí alertas de excesos de velocidad, ralentí excesivo o si encienden un vehículo de madrugada.</p>
+            </div>
+
+            {/* Tarjeta 5 */}
+            <div className="reveal-up col-span-1 md:col-span-2 lg:col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
+              <div className="w-12 h-12 bg-[#1E2227] rounded flex items-center justify-center mb-6 text-white">
+                <ClipboardList size={24} />
+              </div>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Auditoría y Ficha Única del Vehículo</h3>
+              <p className="text-[#787774] leading-relaxed text-sm">Toda la vida de tu unidad en un solo lugar. Desde la cédula y siniestros, hasta el costo por kilómetro (CPK) y la asignación de choferes por código QR. Exportá reportes en PDF y Excel listos.</p>
             </div>
 
           </div>

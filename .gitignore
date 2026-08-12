@@ -23,3 +23,5 @@ coverage/
 # Misc
 .DS_Store
 *.log
+
+doc/money.md
