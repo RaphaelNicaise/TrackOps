@@ -74,14 +74,20 @@ export default function LandingPage() {
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-      if (window.scrollY > lastScrollY) {
-        setScrollDirection("down");
-      } else if (window.scrollY < lastScrollY) {
-        setScrollDirection("up");
-      }
-      lastScrollY = window.scrollY;
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setScrolled(y > 20);
+        const delta = y - lastScrollY;
+        if (Math.abs(delta) > 2) {
+          setScrollDirection(delta > 0 ? "down" : "up");
+        }
+        lastScrollY = y;
+        ticking = false;
+      });
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
