@@ -79,11 +79,12 @@ export default function LandingPage() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const y = window.scrollY;
+        const y = Math.round(window.scrollY * 100) / 100;
         setScrolled(y > 20);
-        const delta = y - lastScrollY;
-        if (Math.abs(delta) > 2) {
-          setScrollDirection(delta > 0 ? "down" : "up");
+        if (y > lastScrollY) {
+          setScrollDirection("down");
+        } else if (y < lastScrollY) {
+          setScrollDirection("up");
         }
         lastScrollY = y;
         ticking = false;
@@ -226,8 +227,8 @@ export default function LandingPage() {
       {/* Enterprise Full-Width Navbar (Dynamic Scroll) */}
       <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md border-b border-[#EAEAEA] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]' : 'bg-transparent'} ${scrollDirection === "down" && !mobileMenuOpen ? '-translate-y-full md:translate-y-0' : 'translate-y-0'}`}>
         <header className={`w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${scrolled || mobileMenuOpen ? 'h-20 md:h-20' : 'h-24 md:h-24'}`}>
-          <Link href="/" className="block relative w-40 h-10 md:w-48 md:h-12 group z-50">
-            <Image src="/trackopslogo.png" alt="TrackOps" fill className="object-contain object-left scale-[1.8] md:scale-[2.2] origin-left transition-transform group-hover:opacity-90" priority />
+          <Link href="/" className="block relative w-1/2 h-10 md:w-48 md:h-12 group z-50">
+            <Image src="/trackopslogo.png" alt="TrackOps" fill className="object-contain object-left scale-100 md:scale-[2.2] origin-left transition-transform group-hover:opacity-90" priority />
           </Link>
           
           <nav className="hidden md:flex items-center gap-8 bg-white/50 backdrop-blur-sm border border-transparent px-6 py-2 rounded-full transition-all">
