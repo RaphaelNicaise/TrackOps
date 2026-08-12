@@ -101,7 +101,7 @@
 }
 
 .scroll-stack-inner {
-  padding: 4vh 0 30vh;
+  padding: 4vh 0 14vh;
 }
 
 .scroll-stack-card {
@@ -119,4 +119,8 @@
 .scroll-stack-end {
   width: 100%;
   height: 1px;
+}
+
+.step-number.is-lit {
+  color: rgba(242, 183, 5, 0.2);
 }

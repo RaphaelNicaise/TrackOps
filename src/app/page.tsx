@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ScrollStack, { ScrollStackItem } from "@/components/ScrollStack";
+import BentoCard from "@/components/BentoCard";
 
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
@@ -75,7 +76,7 @@ export default function LandingPage() {
     let lastScrollY = window.scrollY;
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
-      if (window.scrollY > lastScrollY && window.scrollY > 150) {
+      if (window.scrollY > lastScrollY) {
         setScrollDirection("down");
       } else if (window.scrollY < lastScrollY) {
         setScrollDirection("up");
@@ -120,18 +121,30 @@ export default function LandingPage() {
       "-=0.8"
     );
 
-    // Animate map vehicle INSIDE SVG perfectly mapped
-    gsap.to(".map-vehicle", {
-      motionPath: {
-        path: "#route-path",
-        align: "#route-path",
-        alignOrigin: [0.5, 0.5],
-        autoRotate: true
-      },
-      duration: 35,
-      repeat: -1,
-      ease: "linear"
-    });
+    const createRouteVehicle = (selector: string, phaseOffset: number) => {
+      const tween = gsap.to(selector, {
+        motionPath: {
+          path: "#route-path",
+          align: "#route-path",
+          alignOrigin: [0.5, 0.5],
+          autoRotate: true
+        },
+        duration: 35,
+        repeat: -1,
+        ease: "linear"
+      });
+      tween.eventCallback("onUpdate", () => {
+        const p = tween.progress() % 1;
+        const band = 0.08;
+        let opacity = 1;
+        if (p < band) opacity = p / band;
+        else if (p > 1 - band) opacity = (1 - p) / band;
+        (tween.targets()[0] as HTMLElement).style.opacity = String(opacity);
+      });
+      if (phaseOffset) tween.progress(phaseOffset);
+    };
+    createRouteVehicle(".map-vehicle", 0);
+    createRouteVehicle(".map-vehicle-2", 0.5);
 
     // Bento Grid Entrance
     gsap.utils.toArray(".reveal-up").forEach((el: any, i) => {
@@ -149,6 +162,23 @@ export default function LandingPage() {
           }
         }
       );
+    });
+
+    const stepsMM = gsap.matchMedia();
+    stepsMM.add("(max-width: 767px)", () => {
+      const nums = gsap.utils.toArray<HTMLElement>(".step-number");
+      const lightOnly = (i: number) => {
+        nums.forEach((n, idx) => n.classList.toggle("is-lit", idx === i));
+      };
+      nums.forEach((num, i) => {
+        ScrollTrigger.create({
+          trigger: num,
+          start: "top 85%",
+          end: "top 5%",
+          onEnter: () => lightOnly(i),
+          onEnterBack: () => lightOnly(i)
+        });
+      });
     });
 
     // Scroll Truck Interactive Route
@@ -180,6 +210,7 @@ export default function LandingPage() {
 
     return () => {
       lenis.destroy();
+      stepsMM.revert();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
   }, []);
@@ -345,6 +376,10 @@ export default function LandingPage() {
                     <circle cx="0" cy="0" r="14" fill="#1E2227" stroke="#FFF" strokeWidth="2" />
                     <Truck size={12} color="white" x="-6" y="-6" />
                   </g>
+                  <g className="map-vehicle-2 text-white">
+                    <circle cx="0" cy="0" r="14" fill="#1E2227" stroke="#FFF" strokeWidth="2" />
+                    <Truck size={12} color="white" x="-6" y="-6" />
+                  </g>
                 </svg>
                 
                 {/* Map UI overlays */}
@@ -393,7 +428,7 @@ export default function LandingPage() {
             
             {/* Paso 1 */}
             <div className="reveal-up group relative">
-              <div className="text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-12 -left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+              <div className="step-number text-[100px] md:text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
                 01
               </div>
               <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -407,7 +442,7 @@ export default function LandingPage() {
 
             {/* Paso 2 */}
             <div className="reveal-up group relative">
-              <div className="text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-12 -left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+              <div className="step-number text-[100px] md:text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
                 02
               </div>
               <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -421,7 +456,7 @@ export default function LandingPage() {
 
             {/* Paso 3 */}
             <div className="reveal-up group relative">
-              <div className="text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-12 -left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+              <div className="step-number text-[100px] md:text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
                 03
               </div>
               <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -525,7 +560,7 @@ export default function LandingPage() {
           </div>
           
           {/* Mobile Scroll Stack (Visually hidden on desktop) */}
-          <div className="block md:hidden w-full relative z-20 pb-[6vh]">
+          <div className="block md:hidden w-full relative z-20 pb-[2vh]">
             <ScrollStack
               useWindowScroll
               itemDistance={40}
@@ -536,7 +571,7 @@ export default function LandingPage() {
               itemScale={0.02}
               blurAmount={1.5}
             >
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
                 <div className="absolute top-4 right-4 bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20 z-10">
                   <Sparkles size={10} /> NUEVO
                 </div>
@@ -549,7 +584,7 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
                 <div className="w-12 h-12 bg-[#F2B705]/10 rounded flex items-center justify-center mb-4 text-[#F2B705]">
                   <FileWarning size={24} />
                 </div>
@@ -559,7 +594,7 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
                 <div className="w-12 h-12 bg-[#E1F3FE] rounded flex items-center justify-center mb-4 text-[#1F6C9F]">
                   <Wrench size={24} />
                 </div>
@@ -569,7 +604,7 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
                 <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-4 text-purple-700">
                   <Map size={24} />
                 </div>
@@ -579,7 +614,7 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
                 <div className="w-12 h-12 bg-[#1E2227] rounded flex items-center justify-center mb-4 text-white">
                   <ClipboardList size={24} />
                 </div>
@@ -595,52 +630,52 @@ export default function LandingPage() {
           <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
             
             {/* Tarjeta 1 */}
-            <div className="reveal-up col-span-1 md:col-span-2 lg:col-span-2 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <BentoCard className="reveal-up col-span-1 md:col-span-2 lg:col-span-2">
               <div className="absolute top-6 right-6 bg-[#E7FFDB] text-[#075E54] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20 z-10">
                 <Sparkles size={12} /> NUEVO
               </div>
-              <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-6 text-[#9F2F2D]">
+              <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-6 text-[#9F2F2D] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <Receipt size={24} />
               </div>
-              <h3 className="text-2xl font-semibold text-[#1E2227] mb-3 pr-24">Carga de tickets con Inteligencia Artificial</h3>
+              <h3 className="text-2xl font-semibold text-[#1E2227] mb-3 pr-24 transition-colors duration-300 group-hover:text-[#111]">Carga de tickets con Inteligencia Artificial</h3>
               <p className="text-[#787774] leading-relaxed max-w-xl">¿Tus choferes cargan gasoil? Que manden una foto del ticket por WhatsApp. Nuestra IA lee los litros, el importe y la patente. El sistema cruza esa carga con los km reales del GPS para detectar desvíos, "ordeñes" o ineficiencias al instante.</p>
-            </div>
+            </BentoCard>
 
             {/* Tarjeta 2 */}
-            <div className="reveal-up col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
-              <div className="w-12 h-12 bg-[#F2B705]/10 rounded flex items-center justify-center mb-6 text-[#F2B705]">
+            <BentoCard className="reveal-up col-span-1">
+              <div className="w-12 h-12 bg-[#F2B705]/10 rounded flex items-center justify-center mb-6 text-[#F2B705] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <FileWarning size={24} />
               </div>
-              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Cero multas por papeles vencidos</h3>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Cero multas por papeles vencidos</h3>
               <p className="text-[#787774] leading-relaxed text-sm">Se acabaron los camiones parados. Cargá la fecha de vencimiento de la VTV/RTO, Ruta, Seguros o Licencias, y TrackOps te avisará 30, 15 y 7 días antes directo a tu WhatsApp y Mail.</p>
-            </div>
+            </BentoCard>
 
             {/* Tarjeta 3 */}
-            <div className="reveal-up col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
-              <div className="w-12 h-12 bg-[#E1F3FE] rounded flex items-center justify-center mb-6 text-[#1F6C9F]">
+            <BentoCard className="reveal-up col-span-1">
+              <div className="w-12 h-12 bg-[#E1F3FE] rounded flex items-center justify-center mb-6 text-[#1F6C9F] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <Wrench size={24} />
               </div>
-              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Mantenimiento Predictivo Automático</h3>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Mantenimiento Predictivo Automático</h3>
               <p className="text-[#787774] leading-relaxed text-sm">Chau al Excel. Configurá tus mantenimientos una sola vez (ej. cambio de aceite cada 10.000 km). El sistema cuenta los kilómetros solo mediante el GPS y te genera la alerta para que saques turno en el taller antes de que sea tarde.</p>
-            </div>
+            </BentoCard>
 
             {/* Tarjeta 4 */}
-            <div className="reveal-up col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
-              <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-6 text-purple-700">
+            <BentoCard className="reveal-up col-span-1">
+              <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-6 text-purple-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <Map size={24} />
               </div>
-              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Historial, Geocercas y Telemetría 24/7</h3>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Historial, Geocercas y Telemetría 24/7</h3>
               <p className="text-[#787774] leading-relaxed text-sm">No somos solo un punto en el mapa. Volvé en el tiempo para reproducir rutas exactas. Dibujá zonas permitidas y recibí alertas de excesos de velocidad, ralentí excesivo o si encienden un vehículo de madrugada.</p>
-            </div>
+            </BentoCard>
 
             {/* Tarjeta 5 */}
-            <div className="reveal-up col-span-1 md:col-span-2 lg:col-span-1 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow group">
-              <div className="w-12 h-12 bg-[#1E2227] rounded flex items-center justify-center mb-6 text-white">
+            <BentoCard className="reveal-up col-span-1 md:col-span-2 lg:col-span-1">
+              <div className="w-12 h-12 bg-[#1E2227] rounded flex items-center justify-center mb-6 text-white transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <ClipboardList size={24} />
               </div>
-              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Auditoría y Ficha Única del Vehículo</h3>
+              <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Auditoría y Ficha Única del Vehículo</h3>
               <p className="text-[#787774] leading-relaxed text-sm">Toda la vida de tu unidad en un solo lugar. Desde la cédula y siniestros, hasta el costo por kilómetro (CPK) y la asignación de choferes por código QR. Exportá reportes en PDF y Excel listos.</p>
-            </div>
+            </BentoCard>
 
           </div>
         </div>
