@@ -19,6 +19,7 @@ import LogoLoop from "@/components/LogoLoop";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ScrollStack, { ScrollStackItem } from "@/components/ScrollStack";
 
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
@@ -372,47 +373,66 @@ export default function LandingPage() {
         />
       </section>
 
-      {/* 3 Simples Pasos (Implementación) */}
-      <section id="implementacion" className="py-24 md:py-32 px-6 bg-white border-b border-[#EAEAEA]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#1E2227] mb-6">De los papeles al control total en 3 simples pasos.</h2>
-            <p className="text-[#787774] text-lg max-w-2xl mx-auto">Sin implementaciones eternas. Diseñado para que arranques a gestionar tu flota hoy mismo.</p>
+      {/* 3 Simples Pasos (Implementación) - Editorial & Sticky */}
+      <section id="implementacion" className="py-32 md:py-48 px-6 bg-[#FBFBFA] border-b border-[#EAEAEA] relative">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-16 md:gap-24 items-start">
+          
+          {/* Sticky Left Column */}
+          <div className="md:w-5/12 md:sticky top-32">
+            <h2 className="font-[var(--font-playfair)] text-5xl md:text-6xl text-[#1E2227] mb-6 leading-[1.1] tracking-tight">
+              De los papeles al control total.
+            </h2>
+            <p className="text-[#787774] text-xl leading-relaxed mb-8">
+              Sin implementaciones eternas. Diseñado para que arranques a gestionar tu flota hoy mismo, en 3 simples pasos.
+            </p>
+            <div className="hidden md:block w-full h-[1px] bg-[#EAEAEA] mt-12"></div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Horizontal line for desktop */}
-            <div className="hidden md:block absolute top-12 left-[16.6%] right-[16.6%] h-[2px] bg-[#EAEAEA] -z-0"></div>
-
+          {/* Scrolling Steps Right Column */}
+          <div className="md:w-7/12 flex flex-col gap-24">
+            
             {/* Paso 1 */}
-            <div className="reveal-up bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm relative z-10 flex flex-col items-center text-center group hover:border-[#F2B705] transition-colors">
-              <div className="w-24 h-24 bg-[#F6F4EE] rounded-full flex items-center justify-center mb-6 text-[#1E2227] border-4 border-white shadow-sm group-hover:scale-110 transition-transform">
-                <Satellite size={32} strokeWidth={1.5} />
+            <div className="reveal-up group relative">
+              <div className="text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-12 -left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+                01
               </div>
-              <div className="bg-[#1E2227] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Paso 1</div>
-              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Conectamos tu flota</h3>
-              <p className="text-[#787774] text-sm leading-relaxed">Instalamos los equipos sin costo extra en el alta, o nos integramos con tu proveedor actual. El sistema empieza a leer el kilometraje y consumo en tiempo real, de forma automática.</p>
+              <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                <Satellite size={24} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-3xl font-semibold text-[#1E2227] mb-4 tracking-tight">Conectamos tu flota</h3>
+              <p className="text-[#787774] text-lg leading-relaxed max-w-lg">
+                Instalamos los equipos sin costo extra en el alta, o nos integramos con tu proveedor actual. El sistema empieza a leer el kilometraje y consumo en tiempo real, de forma automática.
+              </p>
             </div>
 
             {/* Paso 2 */}
-            <div className="reveal-up bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm relative z-10 flex flex-col items-center text-center group hover:border-[#F2B705] transition-colors" style={{ transitionDelay: '100ms' }}>
-              <div className="w-24 h-24 bg-[#F6F4EE] rounded-full flex items-center justify-center mb-6 text-[#1E2227] border-4 border-white shadow-sm group-hover:scale-110 transition-transform">
-                <FolderOpen size={32} strokeWidth={1.5} />
+            <div className="reveal-up group relative">
+              <div className="text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-12 -left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+                02
               </div>
-              <div className="bg-[#1E2227] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Paso 2</div>
-              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Digitalizamos tu operación</h3>
-              <p className="text-[#787774] text-sm leading-relaxed">Olvidate de los pizarrones y las planillas. Cargás tus vehículos, choferes, fechas de services y vencimientos (VTV, seguros, licencias) en una plataforma única y centralizada.</p>
+              <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                <FolderOpen size={24} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-3xl font-semibold text-[#1E2227] mb-4 tracking-tight">Digitalizamos tu operación</h3>
+              <p className="text-[#787774] text-lg leading-relaxed max-w-lg">
+                Olvidate de los pizarrones y las planillas. Cargás tus vehículos, choferes, fechas de services y vencimientos (VTV, seguros, licencias) en una plataforma única y centralizada.
+              </p>
             </div>
 
             {/* Paso 3 */}
-            <div className="reveal-up bg-white p-8 rounded-2xl border border-[#EAEAEA] shadow-sm relative z-10 flex flex-col items-center text-center group hover:border-[#F2B705] transition-colors" style={{ transitionDelay: '200ms' }}>
-              <div className="w-24 h-24 bg-[#F6F4EE] rounded-full flex items-center justify-center mb-6 text-[#1E2227] border-4 border-white shadow-sm group-hover:scale-110 transition-transform">
-                <Smartphone size={32} strokeWidth={1.5} />
+            <div className="reveal-up group relative">
+              <div className="text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-12 -left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+                03
               </div>
-              <div className="bg-[#1E2227] text-white text-xs font-bold px-3 py-1 rounded-full mb-4">Paso 3</div>
-              <h3 className="text-xl font-semibold text-[#1E2227] mb-3">Tomá el control por WhatsApp</h3>
-              <p className="text-[#787774] text-sm leading-relaxed">La plataforma trabaja sola. Vos y tu equipo empiezan a recibir alertas automáticas en el celular antes de que venza un papel, cuando toca un service o si detectamos desvíos de combustible.</p>
+              <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                <Smartphone size={24} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-3xl font-semibold text-[#1E2227] mb-4 tracking-tight">Tomá el control por WhatsApp</h3>
+              <p className="text-[#787774] text-lg leading-relaxed max-w-lg">
+                La plataforma trabaja sola. Vos y tu equipo empiezan a recibir alertas automáticas en el celular antes de que venza un papel, cuando toca un service o si detectamos desvíos de combustible.
+              </p>
             </div>
+
           </div>
         </div>
       </section>
@@ -504,7 +524,75 @@ export default function LandingPage() {
             <p className="text-[#787774] text-lg">Módulos diseñados para atacar los focos de pérdida en logística: combustible, roturas y multas.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Mobile Scroll Stack (Visually hidden on desktop) */}
+          <div className="block md:hidden w-full relative z-20 pb-[6vh]">
+            <ScrollStack
+              useWindowScroll
+              itemDistance={40}
+              itemStackDistance={26}
+              stackPosition="14%"
+              scaleEndPosition="6%"
+              baseScale={0.92}
+              itemScale={0.02}
+              blurAmount={1.5}
+            >
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+                <div className="absolute top-4 right-4 bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20 z-10">
+                  <Sparkles size={10} /> NUEVO
+                </div>
+                <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-4 text-[#9F2F2D]">
+                  <Receipt size={24} />
+                </div>
+                <h3 className="text-xl font-semibold text-[#1E2227] mb-2 pr-16">Carga con IA</h3>
+                <p className="text-[#787774] text-sm leading-relaxed">
+                  Nuestra IA lee los tickets por WhatsApp. El sistema cruza esa carga con los km del GPS para detectar desvíos.
+                </p>
+              </ScrollStackItem>
+
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+                <div className="w-12 h-12 bg-[#F2B705]/10 rounded flex items-center justify-center mb-4 text-[#F2B705]">
+                  <FileWarning size={24} />
+                </div>
+                <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Cero multas</h3>
+                <p className="text-[#787774] text-sm leading-relaxed">
+                  Cargá la fecha de vencimiento y TrackOps te avisará 30, 15 y 7 días antes directo a tu WhatsApp y Mail.
+                </p>
+              </ScrollStackItem>
+
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+                <div className="w-12 h-12 bg-[#E1F3FE] rounded flex items-center justify-center mb-4 text-[#1F6C9F]">
+                  <Wrench size={24} />
+                </div>
+                <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Service Automático</h3>
+                <p className="text-[#787774] text-sm leading-relaxed">
+                  El sistema cuenta los kilómetros solo mediante el GPS y te genera la alerta para el taller a tiempo.
+                </p>
+              </ScrollStackItem>
+
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+                <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-4 text-purple-700">
+                  <Map size={24} />
+                </div>
+                <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Telemetría 24/7</h3>
+                <p className="text-[#787774] text-sm leading-relaxed">
+                  Reproducí rutas exactas, dibujá geocercas y recibí alertas de velocidad o encendido de madrugada.
+                </p>
+              </ScrollStackItem>
+
+              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[300px]">
+                <div className="w-12 h-12 bg-[#1E2227] rounded flex items-center justify-center mb-4 text-white">
+                  <ClipboardList size={24} />
+                </div>
+                <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Auditoría Ficha Única</h3>
+                <p className="text-[#787774] text-sm leading-relaxed">
+                  Toda la vida de tu unidad en un solo lugar. Desde siniestros hasta costo por kilómetro y QR.
+                </p>
+              </ScrollStackItem>
+            </ScrollStack>
+          </div>
+
+          {/* Desktop Bento Grid (Visually hidden on mobile) */}
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
             
             {/* Tarjeta 1 */}
             <div className="reveal-up col-span-1 md:col-span-2 lg:col-span-2 bg-white border border-[#EAEAEA] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
