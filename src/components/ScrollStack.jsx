@@ -27,6 +27,8 @@ const ScrollStack = ({
   const cardsRef = useRef([]);
   const lastTransformsRef = useRef(new Map());
   const offsetsRef = useRef({ cards: [], end: 0, valid: false });
+  const isActiveRef = useRef(false);
+  const ioRef = useRef(null);
 
   const calculateProgress = useCallback((scrollTop, start, end) => {
     if (scrollTop < start) return 0;
@@ -78,19 +80,19 @@ const ScrollStack = ({
   const applyCardTransforms = useCallback(
     (card, i, { translateY, scale, rotation, blur }) => {
       const rounded = {
-        translateY: Math.round(translateY * 100) / 100,
+        translateY: Math.round(translateY) || 0,
         scale: Math.round(scale * 1000) / 1000,
         rotation: Math.round(rotation * 100) / 100,
-        blur: Math.round(blur * 100) / 100
+        blur: Math.round(blur) || 0
       };
 
       const lastTransform = lastTransformsRef.current.get(i);
       const hasChanged =
         !lastTransform ||
-        Math.abs(lastTransform.translateY - rounded.translateY) > 0.1 ||
+        lastTransform.translateY !== rounded.translateY ||
         Math.abs(lastTransform.scale - rounded.scale) > 0.001 ||
         Math.abs(lastTransform.rotation - rounded.rotation) > 0.1 ||
-        Math.abs(lastTransform.blur - rounded.blur) > 0.1;
+        lastTransform.blur !== rounded.blur;
 
       if (!hasChanged) return;
 

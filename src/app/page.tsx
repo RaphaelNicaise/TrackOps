@@ -694,23 +694,6 @@ export default function LandingPage() {
             </div>
 
             <div className="bg-white border border-[#EAEAEA] rounded-xl p-8 md:p-10 flex flex-col items-center text-center shadow-sm relative overflow-hidden order-1 md:order-2">
-              <div className="w-full flex justify-center items-center mb-8 pb-8 border-b border-[#EAEAEA]">
-                <div className="flex items-center gap-3">
-                  <span className={`text-sm font-medium ${!annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Mes</span>
-                  <Switch.Root
-                    checked={annualMode}
-                    onCheckedChange={setAnnualMode}
-                    className="w-12 h-6 bg-[#EAEAEA] rounded-full relative shadow-inner focus:outline-none focus:ring-2 focus:ring-[#1E2227] data-[state=checked]:bg-[#1E2227]"
-                  >
-                    <Switch.Thumb className="block w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 translate-x-1 data-[state=checked]:translate-x-7" />
-                  </Switch.Root>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Anual</span>
-                    <span className="bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">10% OFF</span>
-                  </div>
-                </div>
-              </div>
-              
               <div className="text-xs font-mono uppercase tracking-widest text-[#787774] mb-2">{currentTier.type}</div>
               <div className="text-[#1E2227] text-sm mb-6 bg-[#F6F4EE] px-3 py-1 rounded border border-[#EAEAEA]">{currentTier.label}</div>
               
@@ -733,9 +716,26 @@ export default function LandingPage() {
 
                 <span className="text-[#787774] text-sm font-medium ml-1">ARS / mes</span>
               </div>
-              
-              <a href="#" className="w-full bg-[#F2B705] text-[#1E2227] py-4 rounded-full font-bold hover:bg-[#e0aa00] transition-colors shadow-[0_0_30px_rgba(242,183,5,0.3)] text-lg">
-                Comenzar Onboarding
+
+              <div className="w-full flex justify-center items-center mt-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <span className={`text-sm font-medium ${!annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Mes</span>
+                  <Switch.Root
+                    checked={annualMode}
+                    onCheckedChange={setAnnualMode}
+                    className="w-12 h-6 bg-[#EAEAEA] rounded-full relative shadow-inner focus:outline-none focus:ring-2 focus:ring-[#1E2227] data-[state=checked]:bg-[#1E2227]"
+                  >
+                    <Switch.Thumb className="block w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 translate-x-1 data-[state=checked]:translate-x-7" />
+                  </Switch.Root>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Anual</span>
+                    <span className="bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">10% OFF</span>
+                  </div>
+                </div>
+              </div>
+
+              <a href="#" className="w-full bg-[#F2B705] text-[#1E2227] py-4 rounded-full font-bold hover:bg-[#e0aa04] hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] transition-all duration-300 text-lg">
+                Empezar ahora
               </a>
               <p className="mt-4 text-[11px] text-[#787774] font-mono">
                 {annualMode ? 'Facturación anual. Soporte técnico incluido.' : 'Soporte técnico incluido. Cancelás cuando quieras.'}
