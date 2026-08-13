@@ -5,6 +5,7 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -25,63 +26,84 @@ import {
   CreditCard,
   LogOut,
   ChevronLeft,
-  Building2,
-  ScrollText,
-  AlertTriangle,
   Bell,
-  Clock,
-  Radio
+  Map
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
 type NavItem = {
-  title?: string;
-  url?: string;
+  title: string;
+  url: string;
   icon?: any;
-  isSeparator?: boolean;
 };
 
-const navByRole: Record<string, NavItem[]> = {
-  SUPER_ADMIN: [
-    { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Empresas", url: "/dashboard/superadmin/empresas", icon: Building2 },
-    { title: "Suscripciones", url: "/dashboard/superadmin/suscripciones", icon: CreditCard },
-    { title: "Auditoría", url: "/dashboard/superadmin/auditoria", icon: ScrollText },
-    { isSeparator: true },
-    { title: "Flota", url: "/dashboard/flota", icon: Truck },
-    { title: "Mantenimiento", url: "/dashboard/mantenimiento", icon: Wrench },
-    { title: "Combustible", url: "/dashboard/combustible", icon: Fuel },
-    { title: "GPS & Tracking", url: "/dashboard/gps", icon: MapPin },
-    { title: "Documentación", url: "/dashboard/documentacion", icon: FileText },
-    { title: "Personal", url: "/dashboard/personal", icon: Users },
-    { isSeparator: true },
-    { title: "Usuarios", url: "/dashboard/configuracion/usuarios", icon: Settings },
-  ],
-  ADMIN_EMPRESA: [
-    { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Flota", url: "/dashboard/flota", icon: Truck },
-    { title: "Mantenimiento", url: "/dashboard/mantenimiento", icon: Wrench },
-    { title: "Combustible", url: "/dashboard/combustible", icon: Fuel },
-    { title: "GPS & Tracking", url: "/dashboard/gps", icon: MapPin },
-    { title: "Documentación", url: "/dashboard/documentacion", icon: FileText },
-    { title: "Personal", url: "/dashboard/personal", icon: Users },
-    { isSeparator: true },
-    { title: "Alertas", url: "/dashboard/alertas", icon: Bell },
-    { title: "Usuarios", url: "/dashboard/configuracion/usuarios", icon: Settings },
-  ],
+type NavGroup = {
+  label?: string;
+  items: NavItem[];
+};
+
+const adminNav: NavGroup[] = [
+  {
+    items: [
+      { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Mapa", url: "/dashboard/mapa", icon: Map },
+    ]
+  },
+  {
+    label: "Monitoreo",
+    items: [
+      { title: "Dashboard", url: "/dashboard/monitoreo/dashboard", icon: LayoutDashboard },
+      { title: "Alertas", url: "/dashboard/monitoreo/alertas", icon: Bell },
+    ]
+  },
+  {
+    label: "Control de Flota",
+    items: [
+      { title: "Vehículos", url: "/dashboard/control-flota/vehiculos", icon: Truck },
+      { title: "Mantenimiento", url: "/dashboard/control-flota/mantenimiento", icon: Wrench },
+      { title: "Combustible", url: "/dashboard/control-flota/combustible", icon: Fuel },
+      { title: "Sitios", url: "/dashboard/control-flota/sitios", icon: MapPin },
+      { title: "Grupos de vehículos", url: "/dashboard/control-flota/grupos", icon: Users },
+    ]
+  },
+  {
+    label: "Reportes",
+    items: [
+      { title: "Reportes", url: "/dashboard/reportes", icon: FileText },
+    ]
+  },
+  {
+    label: "Administración",
+    items: [
+      { title: "Configuración", url: "/dashboard/administracion/configuracion", icon: Settings },
+      { title: "Usuarios", url: "/dashboard/administracion/usuarios", icon: Users },
+      { title: "Facturación", url: "/dashboard/administracion/facturacion", icon: CreditCard },
+    ]
+  }
+];
+
+const navByRole: Record<string, NavGroup[]> = {
+  SUPER_ADMIN: adminNav,
+  ADMIN_EMPRESA: adminNav,
   CHOFER: [
-    { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Mi Jornada", url: "/dashboard/chofer", icon: Clock },
-    { title: "Combustible", url: "/dashboard/combustible", icon: Fuel },
+    {
+      items: [
+        { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
+        { title: "Combustible", url: "/dashboard/control-flota/combustible", icon: Fuel },
+      ]
+    }
   ],
   VENDEDOR_INSTALADOR: [
-    { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Instalaciones GPS", url: "/dashboard/instalaciones", icon: Radio },
-    { title: "Flota", url: "/dashboard/flota", icon: Truck },
-    { title: "GPS & Tracking", url: "/dashboard/gps", icon: MapPin },
+    {
+      items: [
+        { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
+        { title: "Mapa", url: "/dashboard/mapa", icon: Map },
+      ]
+    }
   ],
 };
 
@@ -94,19 +116,18 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  const items = navByRole[userRole || ""] || navByRole["CHOFER"];
+  const groups = navByRole[userRole || ""] || navByRole["CHOFER"];
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarHeader className="p-2 border-b border-border/50">
         <div className="flex items-center justify-between w-full overflow-hidden">
-          <div className="flex items-center gap-3 overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-            <div className="h-9 w-9 shrink-0 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-              <Truck className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg tracking-tight whitespace-nowrap">
-              TrackOps
-            </span>
+          <div className="flex items-center h-12 overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+            <img 
+              src="/trackopslogo.png" 
+              alt="TrackOps Logo" 
+              className="h-12 w-auto object-contain"
+            />
           </div>
 
           <Button
@@ -122,45 +143,42 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="p-2">
-        <SidebarGroup className="p-0">
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1.5">
-              {items.map((item, index) => {
-                if (item.isSeparator) {
+        {groups.map((group, groupIdx) => (
+          <SidebarGroup key={`group-${groupIdx}`} className="p-0 mb-4">
+            {group.label && (
+              <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider group-data-[collapsible=icon]:hidden">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1.5">
+                {group.items.map((item, itemIdx) => {
+                  const Icon = item.icon;
                   return (
-                    <div
-                      key={`sep-${index}`}
-                      className="my-2 h-px bg-border/50 group-data-[collapsible=icon]:hidden"
-                    />
-                  );
-                }
-
-                const Icon = item.icon;
-
-                return (
-                  <SidebarMenuItem key={`${item.title}-${index}`}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === item.url}
-                      tooltip={item.title}
-                      className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
-                    >
-                      <Link
-                        href={item.url!}
-                        className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                    <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))}
+                        tooltip={item.title}
+                        className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
                       >
-                        {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                        <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-                          {item.title}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                        <Link
+                          href={item.url}
+                          className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                        >
+                          {Icon && <Icon className="h-5 w-5 shrink-0" />}
+                          <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+                            {item.title}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="p-2 border-t border-border/50">
