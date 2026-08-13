@@ -12,7 +12,7 @@ import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
 import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu, Satellite, FolderOpen, Smartphone, Sparkles, Receipt, FileWarning, Wrench, ClipboardList } from "lucide-react";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import LogoLoop from "@/components/LogoLoop";
 
 // Shadcn UI Components (Assuming they are generated in @/components/ui/)
@@ -43,9 +43,10 @@ const LOGOS_CONFIANZA = [
 export default function LandingPage() {
   const heroTextRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
-  const [scrollDirection, setScrollDirection] = useState("up");
+  const [navHidden, setNavHidden] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { scrollY } = useScroll();
   
   // Slider state
   const [vehicles, setVehicles] = useState([10]);
@@ -72,49 +73,30 @@ export default function LandingPage() {
     }
   }, [calculatedPrice, currentPrice]);
 
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-    const handleScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const currentScrollY = Math.round(window.scrollY * 100) / 100;
-        setScrolled(currentScrollY > 20);
-        
-        // Handle mobile bounce at the top
-        if (currentScrollY <= 0) {
-          setScrollDirection("up");
-          lastScrollY = currentScrollY;
-          ticking = false;
-          return;
-        }
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() || 0;
+    
+    // Background style
+    setScrolled(latest > 20);
 
-        // Handle mobile bounce at the bottom
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        if (currentScrollY >= maxScroll) {
-          lastScrollY = currentScrollY;
-          ticking = false;
-          return;
-        }
+    // If menu is open or we are at the top, force show
+    if (mobileMenuOpen || latest <= 0) {
+      setNavHidden(false);
+      return;
+    }
 
-        const diff = currentScrollY - lastScrollY;
-        
-        if (Math.abs(diff) > 5) {
-          if (diff > 0) {
-            setScrollDirection("down");
-          } else {
-            setScrollDirection("up");
-          }
-          lastScrollY = currentScrollY;
-        }
-        
-        ticking = false;
-      });
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    // Calculate diff and apply threshold
+    const diff = latest - previous;
+    if (Math.abs(diff) > 5) {
+      if (diff > 0 && latest > 150) {
+        // Scrolling down past 150px
+        setNavHidden(true);
+      } else {
+        // Scrolling up
+        setNavHidden(false);
+      }
+    }
+  });
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
@@ -247,7 +229,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F6F4EE] selection:bg-[#F2B705] selection:text-[#111]">
       {/* Enterprise Full-Width Navbar (Dynamic Scroll) */}
-      <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md border-b border-[#EAEAEA] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]' : 'bg-transparent'} ${scrollDirection === "down" && !mobileMenuOpen ? '-translate-y-full md:translate-y-0' : 'translate-y-0'}`}>
+      <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md border-b border-[#EAEAEA] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]' : 'bg-transparent'} ${navHidden && !mobileMenuOpen ? '-translate-y-full md:translate-y-0' : 'translate-y-0'}`}>
         <header className={`w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${scrolled || mobileMenuOpen ? 'h-20 md:h-20' : 'h-24 md:h-24'}`}>
           <Link href="/" className="block relative h-12 md:h-16 group z-50">
             <img src="/trackopslogo.png" alt="TrackOps" className="h-full w-auto object-contain object-left transition-transform group-hover:opacity-90" />
@@ -266,11 +248,11 @@ export default function LandingPage() {
             <a href="#precios" onClick={(e) => handleSmoothScroll(e, '#precios')} className="hidden md:flex bg-transparent text-[#1E2227] text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-black/5 transition-all duration-200 border border-[#1E2227]/20">
               Ver Precios
             </a>
-            <Link href="/demo" className="bg-[#F2B705] text-[#1E2227] text-xs md:text-sm font-bold px-4 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#e0aa04] hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap">
+            <Link href="/demo" className="hidden md:flex bg-[#F2B705] text-[#1E2227] text-xs md:text-sm font-bold px-4 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#e0aa04] hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap">
               Probar Demo ¡Ya!
             </Link>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-[#1E2227] p-1 ml-1">
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-[#1E2227] p-2 ml-2 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors">
+              {mobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
             </button>
           </div>
         </header>
