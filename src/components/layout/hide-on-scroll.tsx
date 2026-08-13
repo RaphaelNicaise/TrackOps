@@ -13,29 +13,51 @@ export default function HideOnScroll({
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
+    
     const handleScroll = () => {
-      const y = window.scrollY;
-      if (y > lastScrollY && y > 0) {
-        setHidden(true);
-      } else if (y < lastScrollY) {
+      const currentScrollY = window.scrollY;
+      
+      // Handle mobile bounce at the top
+      if (currentScrollY <= 0) {
         setHidden(false);
+        lastScrollY = currentScrollY;
+        return;
       }
-      lastScrollY = y;
+
+      // Handle mobile bounce at the bottom
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (currentScrollY >= maxScroll) {
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      // Calculate scroll difference
+      const diff = currentScrollY - lastScrollY;
+      
+      // Require a minimum scroll distance to trigger hiding/showing
+      // This prevents micro-bounces from constantly toggling the navbar
+      if (Math.abs(diff) > 5) {
+        if (diff > 0) {
+          // Scrolling down
+          setHidden(true);
+        } else {
+          // Scrolling up
+          setHidden(false);
+        }
+        lastScrollY = currentScrollY;
+      }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-30 transition-transform duration-300 ${
-          hidden ? "-translate-y-full" : "translate-y-0"
-        } md:translate-y-0`}
-      >
-        {children}
-      </header>
-      <div className={`shrink-0 transition-[height] duration-300 md:h-14 ${hidden ? "h-0" : heightClass}`} />
-    </>
+    <header
+      className={`sticky top-0 z-30 transition-transform duration-300 ${
+        hidden ? "-translate-y-full" : "translate-y-0"
+      } md:translate-y-0`}
+    >
+      {children}
+    </header>
   );
 }
