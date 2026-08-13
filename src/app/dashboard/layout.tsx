@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { DashboardMain } from "@/components/layout/dashboard-main";
 import HideOnScroll from "@/components/layout/hide-on-scroll";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Truck } from "lucide-react";
+import Image from "next/image";
 
 export default async function DashboardLayout({
   children,
@@ -20,12 +21,11 @@ export default async function DashboardLayout({
             <div className="flex items-center gap-3">
               <SidebarTrigger className="md:hidden" />
               <div className="flex items-center gap-2 md:hidden">
-                <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shadow-sm">
-                  <Truck className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <span className="font-bold text-sm tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                  TrackOps
-                </span>
+                <img 
+                  src="/trackopslogo.png" 
+                  alt="TrackOps Logo" 
+                  className="h-9 w-auto object-contain"
+                />
               </div>
               <div className="text-xs text-muted-foreground font-mono hidden md:block">
                 TRACKOPS / DASHBOARD
@@ -48,9 +48,9 @@ export default async function DashboardLayout({
             </div>
           </div>
         </HideOnScroll>
-        <div className="p-4 md:p-8 max-w-6xl mx-auto w-full flex-1">
+        <DashboardMain>
           {children}
-        </div>
+        </DashboardMain>
       </main>
     </SidebarProvider>
   );
