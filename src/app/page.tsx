@@ -12,7 +12,7 @@ import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
 import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu, Satellite, FolderOpen, Smartphone, Sparkles, Receipt, FileWarning, Wrench, ClipboardList } from "lucide-react";
 
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import LogoLoop from "@/components/LogoLoop";
 
 // Shadcn UI Components (Assuming they are generated in @/components/ui/)
@@ -42,11 +42,10 @@ const LOGOS_CONFIANZA = [
 
 export default function LandingPage() {
   const heroTextRef = useRef(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [navHidden, setNavHidden] = useState(false);
+  const navbarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { scrollY } = useScroll();
   
   // Slider state
   const [vehicles, setVehicles] = useState([10]);
@@ -73,31 +72,6 @@ export default function LandingPage() {
     }
   }, [calculatedPrice, currentPrice]);
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const previous = scrollY.getPrevious() || 0;
-    
-    // Background style
-    setScrolled(latest > 20);
-
-    // If menu is open or we are at the top, force show
-    if (mobileMenuOpen || latest <= 0) {
-      setNavHidden(false);
-      return;
-    }
-
-    // Calculate diff and apply threshold
-    const diff = latest - previous;
-    if (Math.abs(diff) > 5) {
-      if (diff > 0 && latest > 150) {
-        // Scrolling down past 150px
-        setNavHidden(true);
-      } else {
-        // Scrolling up
-        setNavHidden(false);
-      }
-    }
-  });
-
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
     const target = document.querySelector(targetId);
@@ -115,6 +89,51 @@ export default function LandingPage() {
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
+    });
+
+    lenis.on('scroll', (e: any) => {
+      if (!navbarRef.current || !headerRef.current) return;
+      
+      const scrollY = e.animatedScroll;
+      const isMobile = window.innerWidth < 768;
+      
+      // Handle background classes imperatively for zero-lag
+      if (scrollY > 20) {
+        navbarRef.current.classList.add('bg-white/95', 'backdrop-blur-md', 'border-b', 'border-[#EAEAEA]', 'shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]');
+        navbarRef.current.classList.remove('bg-transparent');
+        headerRef.current.classList.remove('h-24', 'md:h-24');
+        headerRef.current.classList.add('h-20', 'md:h-20');
+      } else {
+        navbarRef.current.classList.remove('bg-white/95', 'backdrop-blur-md', 'border-b', 'border-[#EAEAEA]', 'shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]');
+        navbarRef.current.classList.add('bg-transparent');
+        headerRef.current.classList.add('h-24', 'md:h-24');
+        headerRef.current.classList.remove('h-20', 'md:h-20');
+      }
+
+      // Handle mobile hide/show nav logic
+      if (scrollY <= 0) {
+        navbarRef.current.style.transform = 'translateY(0)';
+        return;
+      }
+
+      // If mobile menu is open, force show
+      if (document.body.classList.contains('menu-open')) {
+        navbarRef.current.style.transform = 'translateY(0)';
+        return;
+      }
+
+      if (isMobile && scrollY > 150) {
+        if (e.direction === 1) {
+          // Scrolling down
+          navbarRef.current.style.transform = 'translateY(-100%)';
+        } else if (e.direction === -1) {
+          // Scrolling up
+          navbarRef.current.style.transform = 'translateY(0)';
+        }
+      } else {
+        // Always show on desktop
+        navbarRef.current.style.transform = 'translateY(0)';
+      }
     });
 
     lenis.on('scroll', ScrollTrigger.update);
@@ -226,11 +245,33 @@ export default function LandingPage() {
     };
   }, []);
 
+  // Sync mobile menu state with imperative styles
+  useEffect(() => {
+    if (!navbarRef.current || !headerRef.current) return;
+    
+    if (mobileMenuOpen) {
+      document.body.classList.add('menu-open');
+      navbarRef.current.classList.add('bg-white/95', 'backdrop-blur-md', 'border-b', 'border-[#EAEAEA]', 'shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]');
+      navbarRef.current.classList.remove('bg-transparent');
+      navbarRef.current.style.transform = 'translateY(0)';
+    } else {
+      document.body.classList.remove('menu-open');
+      if (window.scrollY <= 20) {
+        navbarRef.current.classList.remove('bg-white/95', 'backdrop-blur-md', 'border-b', 'border-[#EAEAEA]', 'shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]');
+        navbarRef.current.classList.add('bg-transparent');
+      }
+    }
+  }, [mobileMenuOpen]);
+
   return (
     <div className="min-h-screen bg-[#F6F4EE] selection:bg-[#F2B705] selection:text-[#111]">
       {/* Enterprise Full-Width Navbar (Dynamic Scroll) */}
-      <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || mobileMenuOpen ? 'bg-white/95 backdrop-blur-md border-b border-[#EAEAEA] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)]' : 'bg-transparent'} ${navHidden && !mobileMenuOpen ? '-translate-y-full md:translate-y-0' : 'translate-y-0'}`}>
-        <header className={`w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${scrolled || mobileMenuOpen ? 'h-20 md:h-20' : 'h-24 md:h-24'}`}>
+      <div 
+        ref={navbarRef}
+        style={{ transform: 'translateY(0)' }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent`}
+      >
+        <header ref={headerRef} className={`w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-300 h-24 md:h-24`}>
           <Link href="/" className="block relative h-12 md:h-16 group z-50">
             <img src="/trackopslogo.png" alt="TrackOps" className="h-full w-auto object-contain object-left transition-transform group-hover:opacity-90" />
           </Link>
