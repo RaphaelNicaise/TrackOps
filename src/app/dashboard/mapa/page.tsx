@@ -94,7 +94,7 @@ export default function MapaPage() {
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-4 left-4 z-20 shadow-md bg-background border rounded-full h-14 w-14 transition-all hover:scale-105 [&>svg]:!size-7"
+          className="absolute top-4 left-4 z-20 shadow-md bg-background border rounded-full h-12 w-12 transition-all hover:scale-105 [&>svg]:!size-6"
           onClick={() => setIsListOpen(true)}
         >
           <PanelLeftOpen />
