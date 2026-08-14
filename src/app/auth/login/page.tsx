@@ -3,19 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck } from "lucide-react";
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center justify-center text-center">
-          <div className="h-12 w-12 rounded-lg bg-accent flex items-center justify-center mb-4">
-            <Truck className="h-6 w-6 text-accent-foreground" />
-          </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            Ingreso a TrackOps
-          </h1>
+          <img 
+            src="/trackopslogo.png" 
+            alt="TrackOps Logo" 
+            className="h-12 md:h-14 w-auto mb-6 object-contain" 
+          />
           <p className="text-muted-foreground mt-2">
             Plataforma B2B de Gestión de Flotas
           </p>

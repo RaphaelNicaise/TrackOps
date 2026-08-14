@@ -165,7 +165,12 @@ export default function MapaPage() {
             filteredVehiculos.map((v) => (
               <div
                 key={v.id}
-                onClick={() => setFocusedVehicleId(v.id)}
+                onClick={() => {
+                  setFocusedVehicleId(v.id);
+                  if (window.innerWidth < 768) {
+                    setIsListOpen(false);
+                  }
+                }}
                 className={`group relative p-3.5 bg-card/80 backdrop-blur-sm border rounded-2xl cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
                   focusedVehicleId === v.id ? "border-primary shadow-md ring-1 ring-primary/30" :
                   v.hasAlert ? "border-destructive/30 hover:border-destructive/60" : "hover:border-primary/40"
