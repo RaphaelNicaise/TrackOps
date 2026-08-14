@@ -5,7 +5,9 @@ import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "rea
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { renderToString } from "react-dom/server";
-import { Car, Truck as TruckIcon, AlertTriangle } from "lucide-react";
+import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, Route, Gauge } from "lucide-react";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import { Button } from "@/components/ui/button";
 
 // Fix Leaflet's default icon path issues with Webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -21,6 +23,7 @@ interface FleetMapProps {
   vehiculos?: any[];
   isListOpen?: boolean;
   focusedVehicleId?: number | null;
+  setFocusedVehicleId?: (id: number | null) => void;
 }
 
 function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any[]; isListOpen: boolean; focusedVehicleId: number | null }) {
@@ -57,8 +60,10 @@ function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any
   return null;
 }
 
-export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVehicleId = null }: FleetMapProps) {
+export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVehicleId = null, setFocusedVehicleId }: FleetMapProps) {
   const [mounted, setMounted] = useState(false);
+  
+  const focusedVehicle = focusedVehicleId ? vehiculos.find(v => v.id === focusedVehicleId) : null;
 
   useEffect(() => {
     setMounted(true);
@@ -83,54 +88,115 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
         <ZoomControl position="bottomright" />
         <MapBounds vehiculos={vehiculos} isListOpen={isListOpen} focusedVehicleId={focusedVehicleId} />
         
-        {vehiculos.map((v) => {
-          let bgClass = "bg-emerald-500";
-          if (v.estado === "Ralentí") bgClass = "bg-amber-500";
-          if (v.estado === "Detenido") bgClass = "bg-slate-500";
-          if (v.hasAlert) bgClass = "bg-destructive";
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={50}
+          showCoverageOnHover={false}
+          iconCreateFunction={(cluster: any) => {
+            return L.divIcon({
+              html: `<div class="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center rounded-full font-bold shadow-lg border-2 border-background ring-2 ring-primary/20">${cluster.getChildCount()}</div>`,
+              className: 'custom-cluster-icon',
+              iconSize: [40, 40],
+            });
+          }}
+        >
+          {vehiculos.map((v) => {
+            let bgClass = "bg-emerald-500";
+            if (v.estado === "Ralentí") bgClass = "bg-amber-500";
+            if (v.estado === "Detenido") bgClass = "bg-slate-500";
+            if (v.hasAlert) bgClass = "bg-destructive";
 
-          const iconHtml = renderToString(
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-card border shadow-lg">
-              {v.tipo === "Camión" || v.tipo === "Camioneta" ? (
-                <TruckIcon className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
-              ) : (
-                <Car className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
-              )}
-              {/* Status Indicator Dot */}
-              <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${bgClass}`} />
-              {v.hasAlert && (
-                <div className="absolute -bottom-2 bg-destructive text-destructive-foreground text-[8px] font-bold px-1 rounded-sm shadow-sm flex items-center gap-0.5">
-                  <AlertTriangle className="w-2 h-2" />
-                </div>
-              )}
-            </div>
-          );
-
-          const customIcon = L.divIcon({
-            html: iconHtml,
-            className: "bg-transparent border-none",
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -16]
-          });
-
-          return (
-            <Marker key={v.id} position={[v.lat, v.lng]} icon={customIcon}>
-              <Popup className="rounded-xl overflow-hidden shadow-xl border-0">
-                <div className="p-1 min-w-[140px]">
-                  <div className="font-bold text-sm mb-1">{v.patente}</div>
-                  <div className="text-xs text-muted-foreground">{v.tipo}</div>
-                  <div className="mt-2 text-xs font-semibold flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded-full ${bgClass}`} />
-                    {v.estado}
+            const iconHtml = renderToString(
+              <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-card border shadow-lg">
+                {v.tipo === "Camión" || v.tipo === "Camioneta" ? (
+                  <TruckIcon className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
+                ) : (
+                  <Car className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
+                )}
+                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${bgClass}`} />
+                {v.hasAlert && (
+                  <div className="absolute -bottom-2 bg-destructive text-destructive-foreground text-[8px] font-bold px-1 rounded-sm shadow-sm flex items-center gap-0.5">
+                    <AlertTriangle className="w-2 h-2" />
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">{v.velocidad}</div>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+                )}
+              </div>
+            );
+
+            const customIcon = L.divIcon({
+              html: iconHtml,
+              className: "bg-transparent border-none",
+              iconSize: [32, 32],
+              iconAnchor: [16, 16],
+            });
+
+            return (
+              <Marker 
+                key={v.id} 
+                position={[v.lat, v.lng]} 
+                icon={customIcon}
+                eventHandlers={{
+                  click: () => {
+                    setFocusedVehicleId?.(v.id);
+                  }
+                }}
+              />
+            );
+          })}
+        </MarkerClusterGroup>
       </MapContainer>
+
+      {/* Floating Vehicle Info Panel */}
+      {focusedVehicle && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-md">
+          <div className="bg-background/95 backdrop-blur-md rounded-2xl shadow-2xl border border-border overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
+            <div className="flex justify-between items-start p-4 border-b border-border/50">
+              <div>
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  {focusedVehicle.patente}
+                  {focusedVehicle.hasAlert && (
+                    <AlertTriangle className="w-4 h-4 text-destructive animate-pulse" />
+                  )}
+                </h3>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{focusedVehicle.tipo}</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-full hover:bg-muted"
+                onClick={() => setFocusedVehicleId?.(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="p-4 grid gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <Gauge className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium">{focusedVehicle.kilometraje}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  {focusedVehicle.hasAlert ? (
+                    <span className="flex items-center gap-1.5 text-destructive bg-destructive/10 px-2 py-1 rounded-md">
+                      <Bell className="w-4 h-4" />
+                      {focusedVehicle.alertasCount} {focusedVehicle.alertasCount === 1 ? 'Alerta' : 'Alertas'}
+                    </span>
+                  ) : (
+                    <span className="text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-md">
+                      Sin alertas
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <Button className="w-full gap-2">
+                <Route className="w-4 h-4" />
+                Ver Recorrido
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

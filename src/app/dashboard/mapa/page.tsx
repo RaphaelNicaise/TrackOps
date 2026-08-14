@@ -30,14 +30,16 @@ interface Vehicle {
   hasAlert: boolean;
   lat: number;
   lng: number;
+  kilometraje: string;
+  alertasCount: number;
 }
 
 const mockVehiculos: Vehicle[] = [
-  { id: 1, patente: "AB 123 CD", tipo: "Camioneta", estado: "En movimiento", velocidad: "60 km/h", ultimaActualizacion: "Hace 2 min", online: true, hasAlert: false, lat: -38.7150, lng: -62.2650 },
-  { id: 2, patente: "EF 456 GH", tipo: "Auto", estado: "Detenido", velocidad: "0 km/h", ultimaActualizacion: "Hace 5 min", online: true, hasAlert: true, lat: -38.7200, lng: -62.2700 },
-  { id: 3, patente: "IJ 789 KL", tipo: "Utilitario", estado: "Ralentí", velocidad: "0 km/h", ultimaActualizacion: "Hace 1 min", online: true, hasAlert: false, lat: -38.7100, lng: -62.2600 },
-  { id: 4, patente: "MN 012 OP", tipo: "Camión", estado: "En movimiento", velocidad: "75 km/h", ultimaActualizacion: "Hace 30 seg", online: true, hasAlert: true, lat: -38.7250, lng: -62.2550 },
-  { id: 5, patente: "QR 345 ST", tipo: "Auto", estado: "Detenido", velocidad: "0 km/h", ultimaActualizacion: "Hace 1 hora", online: true, hasAlert: false, lat: -38.7180, lng: -62.2800 },
+  { id: 1, patente: "AB 123 CD", tipo: "Camioneta", estado: "En movimiento", velocidad: "60 km/h", ultimaActualizacion: "Hace 2 min", online: true, hasAlert: false, lat: -38.7150, lng: -62.2650, kilometraje: "125.430 km", alertasCount: 0 },
+  { id: 2, patente: "EF 456 GH", tipo: "Auto", estado: "Detenido", velocidad: "0 km/h", ultimaActualizacion: "Hace 5 min", online: true, hasAlert: true, lat: -38.7200, lng: -62.2700, kilometraje: "89.210 km", alertasCount: 2 },
+  { id: 3, patente: "IJ 789 KL", tipo: "Utilitario", estado: "Ralentí", velocidad: "0 km/h", ultimaActualizacion: "Hace 1 min", online: true, hasAlert: false, lat: -38.7100, lng: -62.2600, kilometraje: "45.100 km", alertasCount: 0 },
+  { id: 4, patente: "MN 012 OP", tipo: "Camión", estado: "En movimiento", velocidad: "75 km/h", ultimaActualizacion: "Hace 30 seg", online: true, hasAlert: true, lat: -38.7250, lng: -62.2550, kilometraje: "312.800 km", alertasCount: 1 },
+  { id: 5, patente: "QR 345 ST", tipo: "Auto", estado: "Detenido", velocidad: "0 km/h", ultimaActualizacion: "Hace 1 hora", online: true, hasAlert: false, lat: -38.7180, lng: -62.2800, kilometraje: "67.900 km", alertasCount: 0 },
 ];
 
 const getStateColor = (estado: VehicleState) => {
@@ -79,7 +81,12 @@ export default function MapaPage() {
     <div className="absolute inset-0 flex">
       {/* Absolute Map Background */}
       <div className="absolute inset-0 z-0">
-        <FleetMap vehiculos={filteredVehiculos} isListOpen={isListOpen} focusedVehicleId={focusedVehicleId} />
+        <FleetMap 
+          vehiculos={filteredVehiculos} 
+          isListOpen={isListOpen} 
+          focusedVehicleId={focusedVehicleId} 
+          setFocusedVehicleId={setFocusedVehicleId} 
+        />
       </div>
 
       {/* Floating Toggle Button (if closed) */}
