@@ -121,10 +121,10 @@ export default function MapaPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted transition-colors"
+              className="h-12 w-12 rounded-full text-muted-foreground hover:bg-muted transition-colors [&>svg]:!size-6"
               onClick={() => setIsListOpen(false)}
             >
-              <PanelLeftClose className="h-4 w-4" />
+              <PanelLeftClose />
             </Button>
           </div>
 
