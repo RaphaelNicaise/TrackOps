@@ -94,10 +94,10 @@ export default function MapaPage() {
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-4 left-4 z-20 shadow-md bg-background border rounded-full h-10 w-10 transition-all hover:scale-105"
+          className="absolute top-4 left-4 z-20 shadow-md bg-background border rounded-full h-14 w-14 transition-all hover:scale-105"
           onClick={() => setIsListOpen(true)}
         >
-          <PanelLeftOpen className="h-5 w-5" />
+          <PanelLeftOpen className="h-7 w-7" />
         </Button>
       )}
 

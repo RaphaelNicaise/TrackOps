@@ -67,6 +67,7 @@ const adminNav: NavGroup[] = [
       { title: "Mantenimiento", url: "/dashboard/control-flota/mantenimiento", icon: Wrench },
       { title: "Combustible", url: "/dashboard/control-flota/combustible", icon: Fuel },
       { title: "Sitios", url: "/dashboard/control-flota/sitios", icon: MapPin },
+      { title: "Geocercas", url: "/dashboard/control-flota/geocercas", icon: Map },
       { title: "Grupos de vehículos", url: "/dashboard/control-flota/grupos", icon: Users },
     ]
   },
