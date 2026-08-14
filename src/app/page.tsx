@@ -12,7 +12,7 @@ import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
 import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu, Satellite, FolderOpen, Smartphone, Sparkles, Receipt, FileWarning, Wrench, ClipboardList } from "lucide-react";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import LogoLoop from "@/components/LogoLoop";
 
 // Shadcn UI Components (Assuming they are generated in @/components/ui/)
@@ -44,8 +44,15 @@ export default function LandingPage() {
   const heroTextRef = useRef(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { scrollY } = useScroll();
+
+  // Optimized scroll trigger for the WhatsApp button
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setScrolled(latest > 300);
+  });
   
   // Slider state
   const [vehicles, setVehicles] = useState([10]);
