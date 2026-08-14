@@ -27,13 +27,15 @@ import {
   LogOut,
   ChevronLeft,
   Bell,
-  Map
+  Map,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type NavItem = {
   title: string;
@@ -144,42 +146,83 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="p-2">
-        {groups.map((group, groupIdx) => (
-          <SidebarGroup key={`group-${groupIdx}`} className="p-0 mb-4">
-            {group.label && (
-              <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider group-data-[collapsible=icon]:hidden">
-                {group.label}
-              </SidebarGroupLabel>
-            )}
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-1.5">
-                {group.items.map((item, itemIdx) => {
-                  const Icon = item.icon;
-                  return (
-                    <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))}
-                        tooltip={item.title}
-                        className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
-                      >
-                        <Link
-                          href={item.url}
-                          className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+        {groups.map((group, groupIdx) => {
+          if (group.label) {
+            return (
+              <Collapsible key={`group-${groupIdx}`} defaultOpen className="group/collapsible">
+                <SidebarGroup className="p-0 mb-4">
+                  <SidebarGroupLabel asChild className="group-data-[collapsible=icon]:hidden">
+                    <CollapsibleTrigger className="flex w-full items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground hover:bg-muted/50 p-2 rounded-md transition-all cursor-pointer">
+                      {group.label}
+                      <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </CollapsibleTrigger>
+                  </SidebarGroupLabel>
+                  <CollapsibleContent>
+                    <SidebarGroupContent className="pt-1">
+                      <SidebarMenu className="gap-1.5">
+                        {group.items.map((item, itemIdx) => {
+                          const Icon = item.icon;
+                          return (
+                            <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
+                              <SidebarMenuButton
+                                asChild
+                                isActive={pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))}
+                                tooltip={item.title}
+                                className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
+                              >
+                                <Link
+                                  href={item.url}
+                                  className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                                >
+                                  {Icon && <Icon className="h-5 w-5 shrink-0" />}
+                                  <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+                                    {item.title}
+                                  </span>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        })}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </CollapsibleContent>
+                </SidebarGroup>
+              </Collapsible>
+            );
+          }
+
+          return (
+            <SidebarGroup key={`group-${groupIdx}`} className="p-0 mb-4">
+              <SidebarGroupContent>
+                <SidebarMenu className="gap-1.5">
+                  {group.items.map((item, itemIdx) => {
+                    const Icon = item.icon;
+                    return (
+                      <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))}
+                          tooltip={item.title}
+                          className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
                         >
-                          {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                          <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-                            {item.title}
-                          </span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+                          <Link
+                            href={item.url}
+                            className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                          >
+                            {Icon && <Icon className="h-5 w-5 shrink-0" />}
+                            <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+                              {item.title}
+                            </span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter className="p-2 border-t border-border/50">
