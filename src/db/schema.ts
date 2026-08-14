@@ -102,6 +102,7 @@ export const vehicles = pgTable("vehicles", {
   tipo: varchar("tipo", { length: 30 }).default("camion"), // camion, bus, utilitario, auto
   chasis: varchar("chasis", { length: 30 }),
   kilometrajeActual: integer("kilometraje_actual").default(0).notNull(),
+  rto: timestamp("rto"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -6,9 +6,14 @@ import { ReactNode } from "react";
 export function DashboardMain({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isMap = pathname === "/dashboard/mapa";
+  const isVehiculos = pathname.startsWith("/dashboard/control-flota/vehiculos");
 
   if (isMap) {
     return <div className="relative w-full h-[calc(100dvh-3.5rem)] overflow-hidden">{children}</div>;
+  }
+
+  if (isVehiculos) {
+    return <div className="w-full flex-1">{children}</div>;
   }
 
   return (
