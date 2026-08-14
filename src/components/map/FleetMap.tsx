@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
 import { renderToString } from "react-dom/server";
 import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, Route, Gauge } from "lucide-react";
