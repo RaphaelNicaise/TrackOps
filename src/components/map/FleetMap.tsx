@@ -34,29 +34,37 @@ function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any
   useEffect(() => {
     if (!vehiculos || vehiculos.length === 0) return;
     
-    let bounds;
-    
-    if (focusedVehicleId) {
-      const focusedVehicle = vehiculos.find(v => v.id === focusedVehicleId);
-      if (focusedVehicle) {
-        bounds = L.latLngBounds([focusedVehicle.lat, focusedVehicle.lng], [focusedVehicle.lat, focusedVehicle.lng]);
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+
+      let bounds;
+      
+      if (focusedVehicleId) {
+        const focusedVehicle = vehiculos.find(v => v.id === focusedVehicleId);
+        if (focusedVehicle) {
+          bounds = L.latLngBounds([focusedVehicle.lat, focusedVehicle.lng], [focusedVehicle.lat, focusedVehicle.lng]);
+        }
       }
-    }
-    
-    if (!bounds) {
-      // Create bounds from all vehicle coordinates
-      bounds = L.latLngBounds(vehiculos.map(v => [v.lat, v.lng]));
-    }
-    
-    // Fit bounds, adding extra padding on the left if the sidebar is open
-    // so the vehicles are centered in the VISIBLE portion of the map.
-    map.fitBounds(bounds, {
-      paddingTopLeft: [isListOpen ? 380 : 50, 50],
-      paddingBottomRight: [50, 50],
-      maxZoom: focusedVehicleId ? 16 : 15,
-      animate: true,
-      duration: 1.5
-    });
+      
+      if (!bounds) {
+        // Create bounds from all vehicle coordinates
+        bounds = L.latLngBounds(vehiculos.map(v => [v.lat, v.lng]));
+      }
+      
+      const isMobile = window.innerWidth < 768;
+      
+      // Fit bounds, adding extra padding on the left if the sidebar is open on desktop
+      // so the vehicles are centered in the VISIBLE portion of the map.
+      map.fitBounds(bounds, {
+        paddingTopLeft: [isListOpen && !isMobile ? 380 : 50, 50],
+        paddingBottomRight: [50, 50],
+        maxZoom: focusedVehicleId ? 16 : 15,
+        animate: true,
+        duration: 1.5
+      });
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, [vehiculos, map, isListOpen, focusedVehicleId]);
 
   return null;
