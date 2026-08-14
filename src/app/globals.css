@@ -87,6 +87,19 @@
     border-width: 1px !important;
     border-color: hsl(var(--border)) !important;
   }
+
+  /* Smooth theme switch */
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition:
+      background-color 300ms ease,
+      border-color 300ms ease,
+      color 300ms ease,
+      fill 300ms ease,
+      stroke 300ms ease,
+      box-shadow 300ms ease !important;
+  }
 }
 
 /* ScrollStack Component Styles */

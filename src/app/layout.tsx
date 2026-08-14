@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { UmamiAnalytics } from "@/components/umami-analytics";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 
 const outfit = Outfit({ 
   subsets: ["latin"],
@@ -25,8 +26,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning className={`${outfit.variable} ${playfair.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("theme")==="dark"){document.documentElement.classList.add("dark")}}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="overflow-x-hidden w-full max-w-full font-sans">
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         <UmamiAnalytics />
       </body>
     </html>

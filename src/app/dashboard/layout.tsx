@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardMain } from "@/components/layout/dashboard-main";
 import HideOnScroll from "@/components/layout/hide-on-scroll";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import Image from "next/image";
 
 export default async function DashboardLayout({
@@ -32,6 +33,7 @@ export default async function DashboardLayout({
               </div>
             </div>
             <div className="text-sm flex items-center gap-3">
+              <ThemeToggle />
               <span className="bg-accent text-accent-foreground px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider hidden sm:inline-flex">
                 {session?.user?.role || "GUEST"}
               </span>
