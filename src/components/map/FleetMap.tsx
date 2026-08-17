@@ -20,6 +20,13 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+if (typeof window !== "undefined") {
+  (window as any).L = L;
+  try {
+    require("leaflet.markercluster");
+  } catch {}
+}
+
 const defaultCenter = { lat: -38.7183, lng: -62.2663 }; // Bahia Blanca
 
 interface FleetMapProps {
@@ -42,17 +49,25 @@ function VehicleClusterGroup({
   useEffect(() => {
     if (!map) return;
 
+    if (typeof (L as any).markerClusterGroup !== "function") {
+      if (typeof window !== "undefined") {
+        (window as any).L = L;
+        require("leaflet.markercluster");
+      }
+    }
+
     // Create marker cluster group with custom minimalist amber/dark icon
     const clusterGroup = L.markerClusterGroup({
       showCoverageOnHover: false,
-      maxClusterRadius: 45,
+      maxClusterRadius: 80,
       spiderfyOnMaxZoom: true,
       zoomToBoundsOnClick: true,
+      disableClusteringAtZoom: 16,
       iconCreateFunction: (cluster) => {
         const count = cluster.getChildCount();
-        const size = count < 10 ? 36 : count < 50 ? 42 : 48;
+        const size = count < 10 ? 38 : count < 50 ? 44 : 50;
         return L.divIcon({
-          html: `<div class="relative flex items-center justify-center w-full h-full rounded-full bg-[#1E2227] text-white font-bold text-xs shadow-xl border-2 border-[#F2B705] hover:scale-110 transition-transform duration-200 cursor-pointer">
+          html: `<div style="width: ${size}px; height: ${size}px; line-height: 1;" class="relative flex items-center justify-center rounded-full bg-[#1E2227] text-white font-bold text-xs shadow-xl border-2 border-[#F2B705] hover:scale-110 transition-transform duration-200 cursor-pointer">
             <span class="tracking-tight">${count}</span>
             <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#F2B705] border border-[#1E2227]"></span>
           </div>`,
