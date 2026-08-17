@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, Truck, FileText, ChevronRight, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { format, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
@@ -77,6 +78,7 @@ function SortHeader({
 }
 
 export function VehiculosTable({ vehicles }: VehiculosTableProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortState | null>(null);
 
@@ -165,20 +167,18 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
               return (
                 <TableRow
                   key={v.id}
-                  className="cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-500/15 transition-colors"
+                  onClick={() => router.push(`/dashboard/control-flota/vehiculos/${v.id}`)}
+                  className="cursor-pointer hover:bg-amber-50/70 dark:hover:bg-amber-500/15 transition-colors group"
                 >
                   <TableCell>
-                    <Link
-                      href={`/dashboard/control-flota/vehiculos/${v.id}`}
-                      className="flex items-center gap-3 group"
-                    >
+                    <div className="flex items-center gap-3">
                       <span className="h-8 w-8 shrink-0 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
                         <Truck className="h-4 w-4 text-primary" />
                       </span>
                       <span className="font-mono text-sm font-semibold uppercase tracking-wide group-hover:text-primary transition-colors">
                         {v.patente}
                       </span>
-                    </Link>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm font-medium">
@@ -211,7 +211,8 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <Link
-                      href={`/dashboard/control-flota/vehiculos/${v.id}`}
+                      href={`/dashboard/control-flota/vehiculos/${v.id}?tab=documentacion`}
+                      onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                     >
                       <FileText className="h-3.5 w-3.5" />
@@ -221,6 +222,7 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
                   <TableCell className="text-right pr-3">
                     <Link
                       href={`/dashboard/control-flota/vehiculos/${v.id}`}
+                      onClick={(e) => e.stopPropagation()}
                       aria-label={`Abrir ${v.patente}`}
                       className="inline-flex items-center justify-center h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
                     >
