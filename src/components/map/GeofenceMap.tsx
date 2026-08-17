@@ -81,6 +81,10 @@ function getRadiusHandlePosition(center: [number, number], radioMeters: number):
   return [lat, lng + deltaLng];
 }
 
+function getCircleBounds(centro: [number, number], radioMeters: number): L.LatLngBounds {
+  return L.latLng(centro[0], centro[1]).toBounds(radioMeters);
+}
+
 // ---------------------------------------------------------------------------
 // Custom Leaflet DivIcons
 // ---------------------------------------------------------------------------
@@ -182,8 +186,7 @@ function MapBounds({
         if (draftGeofence.tipo === "Polígono" && draftGeofence.coordenadas && draftGeofence.coordenadas.length >= 3) {
           bounds = L.latLngBounds(draftGeofence.coordenadas);
         } else if (draftGeofence.tipo === "Círculo" && draftGeofence.centro && draftGeofence.radio) {
-          const circle = L.circle(draftGeofence.centro, { radius: draftGeofence.radio });
-          bounds = circle.getBounds();
+          bounds = getCircleBounds(draftGeofence.centro, draftGeofence.radio);
         }
         if (bounds) {
           map.fitBounds(bounds, {
@@ -211,8 +214,7 @@ function MapBounds({
           if (focused.tipo === "Polígono" && focused.coordenadas && focused.coordenadas.length > 0) {
             bounds = L.latLngBounds(focused.coordenadas);
           } else if (focused.tipo === "Círculo" && focused.centro && focused.radio) {
-            const circle = L.circle(focused.centro, { radius: focused.radio });
-            bounds = circle.getBounds();
+            bounds = getCircleBounds(focused.centro, focused.radio);
           }
         }
       }
@@ -223,8 +225,8 @@ function MapBounds({
           if (g.tipo === "Polígono" && g.coordenadas) {
             allLatLngs.push(...g.coordenadas);
           } else if (g.tipo === "Círculo" && g.centro && g.radio) {
-            const circle = L.circle(g.centro, { radius: g.radio });
-            allLatLngs.push(circle.getBounds().getNorthWest(), circle.getBounds().getSouthEast());
+            const circleBounds = getCircleBounds(g.centro, g.radio);
+            allLatLngs.push(circleBounds.getNorthWest(), circleBounds.getSouthEast());
           }
         });
 
