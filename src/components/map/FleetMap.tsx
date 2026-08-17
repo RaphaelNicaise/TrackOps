@@ -8,7 +8,7 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
 import "leaflet.markercluster";
 import { renderToString } from "react-dom/server";
-import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, ArrowUpRight, Route, Gauge } from "lucide-react";
+import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, ArrowUpRight, Route, Gauge, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -248,8 +248,9 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
                 <Gauge className="w-4 h-4 text-muted-foreground" />
                 <div className="leading-tight">
                   <span className="font-semibold text-sm">{focusedVehicle.velocidad}</span>
-                  <span className="block text-[10px] text-muted-foreground uppercase tracking-wide">
-                    Últ. registro
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <Clock className="w-2.5 h-2.5 opacity-70" />
+                    {focusedVehicle.ultimaActualizacion}
                   </span>
                 </div>
               </div>
