@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
+import { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, ZoomControl, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
+import "leaflet.markercluster";
 import { renderToString } from "react-dom/server";
 import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, ArrowUpRight, Route, Gauge } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +27,91 @@ interface FleetMapProps {
   isListOpen?: boolean;
   focusedVehicleId?: number | null;
   setFocusedVehicleId?: (id: number | null) => void;
+}
+
+function VehicleClusterGroup({
+  vehiculos,
+  setFocusedVehicleId,
+}: {
+  vehiculos: any[];
+  setFocusedVehicleId?: (id: number | null) => void;
+}) {
+  const map = useMap();
+  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    // Create marker cluster group with custom minimalist amber/dark icon
+    const clusterGroup = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      maxClusterRadius: 45,
+      spiderfyOnMaxZoom: true,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        const size = count < 10 ? 36 : count < 50 ? 42 : 48;
+        return L.divIcon({
+          html: `<div class="relative flex items-center justify-center w-full h-full rounded-full bg-[#1E2227] text-white font-bold text-xs shadow-xl border-2 border-[#F2B705] hover:scale-110 transition-transform duration-200 cursor-pointer">
+            <span class="tracking-tight">${count}</span>
+            <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#F2B705] border border-[#1E2227]"></span>
+          </div>`,
+          className: "bg-transparent border-none",
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
+      },
+    });
+
+    clusterGroupRef.current = clusterGroup;
+
+    // Add markers for each vehicle
+    vehiculos.forEach((v) => {
+      let bgClass = "bg-emerald-500";
+      if (v.estado === "Ralentí") bgClass = "bg-amber-500";
+      if (v.estado === "Detenido") bgClass = "bg-slate-500";
+      if (v.hasAlert) bgClass = "bg-destructive";
+
+      const iconHtml = renderToString(
+        <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-card border shadow-lg cursor-pointer">
+          {v.tipo === "Camión" || v.tipo === "Camioneta" ? (
+            <TruckIcon className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
+          ) : (
+            <Car className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
+          )}
+          <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${bgClass}`} />
+          {v.hasAlert && (
+            <div className="absolute -bottom-2 bg-destructive text-destructive-foreground text-[8px] font-bold px-1 rounded-sm shadow-sm flex items-center gap-0.5">
+              <AlertTriangle className="w-2 h-2" />
+            </div>
+          )}
+        </div>
+      );
+
+      const customIcon = L.divIcon({
+        html: iconHtml,
+        className: "bg-transparent border-none",
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+
+      const marker = L.marker([v.lat, v.lng], { icon: customIcon });
+      marker.bindPopup(`<span class="font-semibold text-sm">${v.patente}</span> - <span class="text-xs text-muted-foreground">${v.tipo}</span>`);
+      marker.on("click", () => {
+        setFocusedVehicleId?.(v.id);
+      });
+
+      clusterGroup.addLayer(marker);
+    });
+
+    map.addLayer(clusterGroup);
+
+    return () => {
+      map.removeLayer(clusterGroup);
+    };
+  }, [map, vehiculos, setFocusedVehicleId]);
+
+  return null;
 }
 
 function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any[]; isListOpen: boolean; focusedVehicleId: number | null }) {
@@ -86,53 +174,7 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
         />
         <ZoomControl position="bottomright" />
         <MapBounds vehiculos={vehiculos} isListOpen={isListOpen} focusedVehicleId={focusedVehicleId} />
-        
-        {vehiculos.map((v) => {
-          let bgClass = "bg-emerald-500";
-          if (v.estado === "Ralentí") bgClass = "bg-amber-500";
-          if (v.estado === "Detenido") bgClass = "bg-slate-500";
-          if (v.hasAlert) bgClass = "bg-destructive";
-
-          const iconHtml = renderToString(
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-card border shadow-lg">
-              {v.tipo === "Camión" || v.tipo === "Camioneta" ? (
-                <TruckIcon className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
-              ) : (
-                <Car className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
-              )}
-              <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${bgClass}`} />
-              {v.hasAlert && (
-                <div className="absolute -bottom-2 bg-destructive text-destructive-foreground text-[8px] font-bold px-1 rounded-sm shadow-sm flex items-center gap-0.5">
-                  <AlertTriangle className="w-2 h-2" />
-                </div>
-              )}
-            </div>
-          );
-
-          const customIcon = L.divIcon({
-            html: iconHtml,
-            className: "bg-transparent border-none",
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-          });
-
-          return (
-            <Marker 
-              key={v.id} 
-              position={[v.lat, v.lng]} 
-              icon={customIcon}
-              eventHandlers={{
-                click: () => {
-                  setFocusedVehicleId?.(v.id);
-                }
-              }}
-            >
-              <Popup>
-                <span className="font-semibold">{v.patente}</span>
-              </Popup>
-            </Marker>
-          );
-        })}
+        <VehicleClusterGroup vehiculos={vehiculos} setFocusedVehicleId={setFocusedVehicleId} />
       </MapContainer>
 
       {/* Floating Vehicle Info Panel */}
