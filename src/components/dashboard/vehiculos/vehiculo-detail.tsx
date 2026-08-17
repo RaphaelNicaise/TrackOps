@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Truck, CircleAlert, FileText } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { ArrowLeft, Truck, CircleAlert } from "lucide-react";
 import { format, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,11 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import { EditVehicleDialog, DeleteVehicleButton } from "./vehicle-dialogs";
+import { VehiculoDocumentos } from "./documentos";
 
 export type VehiculoDetailData = {
   id: number;
+  empresaId?: number | null;
   patente: string;
   marca: string;
   modelo: string;
@@ -48,6 +51,20 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const tabParam = searchParams?.get("tab");
+  const validTabs = ["informacion", "vencimientos", "documentacion"];
+  const activeTab = tabParam && validTabs.includes(tabParam) ? tabParam : "informacion";
+
+  const handleTabChange = (val: string) => {
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.set("tab", val);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const rtoVencido = vehicle.rto ? isBefore(vehicle.rto, new Date()) : null;
 
   return (
@@ -88,7 +105,11 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
         </div>
       </div>
 
-      <Tabs defaultValue="informacion" className="max-w-4xl">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
         <TabsList>
           <TabsTrigger value="informacion">
             Información
@@ -101,7 +122,7 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="informacion">
+        <TabsContent value="informacion" className="pt-2">
           <div className="grid gap-6 md:grid-cols-2 items-stretch max-w-4xl">
             <Card className="h-full">
               <CardHeader>
@@ -129,8 +150,8 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
           </div>
         </TabsContent>
 
-        <TabsContent value="vencimientos">
-          <Card>
+        <TabsContent value="vencimientos" className="pt-2">
+          <Card className="max-w-4xl">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CircleAlert className="h-4 w-4" />
@@ -140,15 +161,11 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
           </Card>
         </TabsContent>
 
-        <TabsContent value="documentacion">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <FileText className="h-4 w-4" />
-                Sin documentación cargada.
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="documentacion" className="pt-2">
+          <VehiculoDocumentos
+            vehicleId={vehicle.id}
+            empresaId={vehicle.empresaId}
+          />
         </TabsContent>
       </Tabs>
     </div>
