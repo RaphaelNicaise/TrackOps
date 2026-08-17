@@ -194,7 +194,13 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
 
       {/* Floating Vehicle Info Panel */}
       {focusedVehicle && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-sm">
+        <div
+          className={`absolute bottom-6 z-[1000] w-[90%] max-w-sm transition-all duration-300 ease-in-out ${
+            isListOpen
+              ? "left-4 md:left-[380px] md:translate-x-0"
+              : "left-1/2 -translate-x-1/2"
+          }`}
+        >
           <div className="bg-background/95 backdrop-blur-md rounded-2xl shadow-2xl border border-border overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
             <div className="flex items-start justify-between gap-3 p-4 pb-3 border-b border-border/50">
               <Link

@@ -140,7 +140,7 @@ export default function MapaPage() {
         </div>
 
         {/* Vehicle List - Continuous Flush List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-border/60 border-t border-border/40 scroll-smooth">
+        <div className="flex-1 overflow-y-auto border-t border-border/40 scroll-smooth">
           {filteredVehiculos.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground p-6">
               No se encontraron vehículos.
@@ -155,13 +155,22 @@ export default function MapaPage() {
                     setIsListOpen(false);
                   }
                 }}
-                className={`group relative w-full px-4 py-3.5 flex items-center justify-between cursor-pointer transition-all duration-200 border-l-4 text-left ${
+                className={`group relative w-full px-4 py-3.5 flex items-center justify-between cursor-pointer transition-all duration-200 border-b border-border/60 text-left ${
                   focusedVehicleId === v.id
-                    ? "border-l-amber-500 bg-amber-500/[0.08]"
-                    : "border-l-transparent hover:border-l-amber-500 hover:bg-amber-500/[0.04]"
+                    ? "bg-amber-500/[0.08]"
+                    : "hover:bg-amber-500/[0.04]"
                 }`}
               >
-                <div className="flex-1 min-w-0 pr-3">
+                {/* Left amber indicator bar */}
+                <div
+                  className={`absolute left-0 top-0 bottom-0 w-1 transition-all duration-200 ${
+                    focusedVehicleId === v.id
+                      ? "bg-[#F2B705] opacity-100"
+                      : "bg-[#F2B705] opacity-0 group-hover:opacity-100"
+                  }`}
+                />
+
+                <div className="flex-1 min-w-0 pr-3 pl-1">
                   {/* Top Row: Online status dot + Plate + Alert + Vehicle Type */}
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className="flex items-center justify-center shrink-0 w-2.5 h-2.5">
