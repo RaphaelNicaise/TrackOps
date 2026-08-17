@@ -71,7 +71,7 @@ export async function POST(request: Request) {
         empresaId,
       };
 
-      const [created] = await db.insert(geofences).values(dbValues).returning();
+      const [created] = await db.insert(geofences).values(dbValues as any).returning();
       if (created) {
         return NextResponse.json(dbRowToGeofence(created), { status: 201 });
       }

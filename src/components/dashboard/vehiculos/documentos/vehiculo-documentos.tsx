@@ -6,7 +6,7 @@ import {
   Search,
   RotateCw,
   Files,
-  CalendarAlert,
+  CalendarClock,
   FolderTree,
   AlertCircle,
   CheckCircle2,
@@ -383,7 +383,7 @@ export function VehiculoDocumentos({
                 variant="outline"
                 className="h-7 gap-1.5 border-amber-300 bg-amber-50 px-2.5 text-xs font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400"
               >
-                <CalendarAlert className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                <CalendarClock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                 <span>
                   {metrics.expiredOrSoon} con alerta de vencimiento
                 </span>
