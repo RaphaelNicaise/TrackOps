@@ -10,6 +10,7 @@ import "leaflet.markercluster";
 import { renderToString } from "react-dom/server";
 import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, ArrowUpRight, Route, Gauge } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 // Fix Leaflet's default icon path issues with Webpack
@@ -172,7 +173,16 @@ function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any
 }
 
 export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVehicleId = null, setFocusedVehicleId }: FleetMapProps) {
+  const router = useRouter();
   const focusedVehicle = focusedVehicleId ? vehiculos.find(v => v.id === focusedVehicleId) : null;
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (panelRef.current) {
+      L.DomEvent.disableClickPropagation(panelRef.current);
+      L.DomEvent.disableScrollPropagation(panelRef.current);
+    }
+  }, [focusedVehicle]);
 
   return (
     <div className="h-full w-full relative z-0">
@@ -195,17 +205,22 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
       {/* Floating Vehicle Info Panel */}
       {focusedVehicle && (
         <div
-          className={`absolute bottom-6 z-[1000] w-[90%] max-w-sm transition-all duration-300 ease-in-out ${
+          ref={panelRef}
+          className={`absolute bottom-6 z-[1000] w-[90%] max-w-sm transition-all duration-300 ease-in-out pointer-events-auto ${
             isListOpen
               ? "left-4 md:left-[380px] md:translate-x-0"
               : "left-1/2 -translate-x-1/2"
           }`}
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="bg-background/95 backdrop-blur-md rounded-2xl shadow-2xl border border-border overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
             <div className="flex items-start justify-between gap-3 p-4 pb-3 border-b border-border/50">
-              <Link
-                href={`/dashboard/control-flota/vehiculos/${focusedVehicle.id}`}
-                className="group min-w-0"
+              <div
+                className="group min-w-0 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/dashboard/control-flota/vehiculos/${focusedVehicle.id}`);
+                }}
               >
                 <h3 className="font-bold text-lg flex items-center gap-2 truncate group-hover:text-primary transition-colors">
                   {focusedVehicle.patente}
@@ -214,12 +229,15 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
                   )}
                 </h3>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">{focusedVehicle.tipo}</p>
-              </Link>
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 -mt-1 -mr-1 shrink-0 rounded-full hover:bg-muted"
-                onClick={() => setFocusedVehicleId?.(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFocusedVehicleId?.(null);
+                }}
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -248,13 +266,26 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
             </div>
 
             <div className="px-4 pb-4 grid grid-cols-2 gap-2">
-              <Button asChild variant="outline" size="sm" className="gap-2">
-                <Link href={`/dashboard/control-flota/vehiculos/${focusedVehicle.id}`}>
-                  <ArrowUpRight className="w-4 h-4" />
-                  Ver vehículo
-                </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/dashboard/control-flota/vehiculos/${focusedVehicle.id}`);
+                }}
+              >
+                <ArrowUpRight className="w-4 h-4" />
+                Ver vehículo
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
                 <Route className="w-4 h-4" />
                 Ver recorrido
               </Button>
