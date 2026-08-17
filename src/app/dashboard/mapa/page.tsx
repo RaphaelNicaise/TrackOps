@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Search, Car, Truck, PanelLeftClose, PanelLeftOpen, Activity, Pause, Navigation, Clock, Wifi, Filter, ChevronDown, Gauge, AlertTriangle } from "lucide-react";
+import { Search, Car, Truck, PanelLeftClose, PanelLeftOpen, Activity, Pause, Navigation, Clock, Wifi, Filter, ChevronDown, ChevronRight, Gauge, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { mockVehiculos } from "@/lib/mock-vehicles";
@@ -139,10 +139,10 @@ export default function MapaPage() {
           </div>
         </div>
 
-        {/* Vehicle List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 scroll-smooth">
+        {/* Vehicle List - Continuous Flush List */}
+        <div className="flex-1 overflow-y-auto divide-y divide-border/60 border-t border-border/40 scroll-smooth">
           {filteredVehiculos.length === 0 ? (
-            <div className="text-center text-sm text-muted-foreground mt-10">
+            <div className="text-center text-sm text-muted-foreground p-6">
               No se encontraron vehículos.
             </div>
           ) : (
@@ -155,49 +155,58 @@ export default function MapaPage() {
                     setIsListOpen(false);
                   }
                 }}
-                className={`group relative p-3.5 bg-card/80 backdrop-blur-sm border rounded-2xl cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-                  focusedVehicleId === v.id ? "border-primary shadow-md ring-1 ring-primary/30" :
-                  v.hasAlert ? "border-destructive/30 hover:border-destructive/60" : "hover:border-primary/40"
+                className={`group relative w-full px-4 py-3.5 flex items-center justify-between cursor-pointer transition-all duration-200 border-l-4 text-left ${
+                  focusedVehicleId === v.id
+                    ? "border-l-amber-500 bg-amber-500/[0.08]"
+                    : "border-l-transparent hover:border-l-amber-500 hover:bg-amber-500/[0.04]"
                 }`}
               >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center shrink-0 w-3 h-3 ml-1">
+                <div className="flex-1 min-w-0 pr-3">
+                  {/* Top Row: Online status dot + Plate + Alert + Vehicle Type */}
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="flex items-center justify-center shrink-0 w-2.5 h-2.5">
                       {v.online ? (
-                        <span className="relative flex h-2.5 w-2.5">
+                        <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-sm"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
                       ) : (
-                        <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30"></span>
+                        <span className="h-2 w-2 rounded-full bg-muted-foreground/30"></span>
                       )}
                     </div>
-                    <div>
-                      <div className="font-bold text-sm tracking-tight text-foreground flex items-center gap-1.5">
-                        {v.patente}
-                        {v.hasAlert && (
-                          <AlertTriangle className="h-3.5 w-3.5 text-destructive animate-pulse" />
-                        )}
-                      </div>
-                      <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{v.tipo}</div>
-                    </div>
+                    <span className="font-bold text-sm tracking-tight text-foreground flex items-center gap-1.5 truncate">
+                      {v.patente}
+                      {v.hasAlert && (
+                        <AlertTriangle className="h-3.5 w-3.5 text-destructive animate-pulse shrink-0" />
+                      )}
+                    </span>
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-auto shrink-0">
+                      {v.tipo}
+                    </span>
                   </div>
-                  
-                  <div className={`flex items-center text-[10px] px-2 py-1 rounded-md border font-semibold tracking-wide shadow-sm shrink-0 ${getStateColor(v.estado)}`}>
-                    {getStateIcon(v.estado)}
-                    {v.estado}
+
+                  {/* Bottom Row: State Badge + Speed + Last Update */}
+                  <div className="flex items-center justify-between gap-2 mt-2">
+                    <div className={`flex items-center text-[10px] px-2 py-0.5 rounded border font-semibold tracking-wide shrink-0 ${getStateColor(v.estado)}`}>
+                      {getStateIcon(v.estado)}
+                      {v.estado}
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground ml-auto">
+                      <span className="flex items-center gap-1 font-medium text-foreground">
+                        <Gauge className="w-3 h-3 text-muted-foreground" />
+                        {v.velocidad}
+                      </span>
+                      <span className="flex items-center gap-1 text-[10px] opacity-70">
+                        <Clock className="w-3 h-3" />
+                        {v.ultimaActualizacion}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-foreground">
-                    <Gauge className="w-3.5 h-3.5 text-primary/70" />
-                    {v.velocidad}
-                  </div>
-                  <div className="flex items-center text-[10px] font-medium text-muted-foreground">
-                    <Clock className="w-3 h-3 mr-1 opacity-70" />
-                    {v.ultimaActualizacion}
-                  </div>
+                {/* Right Arrow / Chevron */}
+                <div className="shrink-0 pl-1">
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/30 transition-all duration-200 group-hover:text-amber-500 group-hover:translate-x-0.5" />
                 </div>
               </div>
             ))
