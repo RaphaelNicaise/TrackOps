@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { vehicles, documents } from "@/db/schema";
+import { vehicles, vehicleDocuments } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { mockVehiculos } from "@/lib/mock-vehicles";
 import { VehiculosTable } from "@/components/dashboard/vehiculos/vehiculos-table";
@@ -25,14 +25,19 @@ export default async function VehiculosPage() {
         chasis: vehicles.chasis,
         kilometrajeActual: vehicles.kilometrajeActual,
         rto: vehicles.rto,
-        docCount: sql<number>`count(${documents.id})`,
+        docCount: sql<number>`cast(count(${vehicleDocuments.id}) as integer)`,
       })
       .from(vehicles)
-      .leftJoin(documents, eq(documents.vehicleId, vehicles.id))
+      .leftJoin(vehicleDocuments, eq(vehicleDocuments.vehicleId, vehicles.id))
       .where(empresaId ? eq(vehicles.empresaId, empresaId) : undefined)
       .groupBy(vehicles.id)
       .orderBy(vehicles.patente);
-  } catch {
+
+    if (!rows || rows.length === 0) {
+      rows = mockVehiculos;
+    }
+  } catch (error) {
+    console.warn("VehiculosPage DB fallback:", error);
     rows = mockVehiculos;
   }
 
