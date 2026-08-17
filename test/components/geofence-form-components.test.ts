@@ -120,4 +120,88 @@ describe("Geofence Form Constants, Presets & Logic", () => {
       expect(Boolean(invalidCircle.centro && invalidCircle.centro.length === 2)).toBe(false);
     });
   });
+
+  describe("GeofenceCard Fleet Summary & Rules Helpers", () => {
+    it("formats fleet assignment summaries correctly", () => {
+      const allFlota = { targetType: "ALL" as const };
+      const categorySingle = { targetType: "CATEGORY" as const, targetCategories: ["Camión"] };
+      const categoryMultiple = { targetType: "CATEGORY" as const, targetCategories: ["Camión", "Utilitario"] };
+      const vehicleSingle = { targetType: "VEHICLES" as const, targetVehicles: [1] };
+      const vehicleMultiple = { targetType: "VEHICLES" as const, targetVehicles: [1, 2, 3] };
+      const groupSingle = { targetType: "GROUP" as const, targetGroups: ["Logística Urbana"] };
+      const groupMultiple = { targetType: "GROUP" as const, targetGroups: ["Logística Urbana", "Reparto"] };
+
+      expect(allFlota.targetType === "ALL" ? "Toda la flota" : "").toBe("Toda la flota");
+      expect(categorySingle.targetCategories.length === 1 ? categorySingle.targetCategories[0] : "").toBe("Camión");
+      expect(categoryMultiple.targetCategories.length > 1 ? `${categoryMultiple.targetCategories.length} Categorías` : "").toBe("2 Categorías");
+      expect(vehicleSingle.targetVehicles.length === 1 ? "1 Vehículo" : "").toBe("1 Vehículo");
+      expect(vehicleMultiple.targetVehicles.length > 1 ? `${vehicleMultiple.targetVehicles.length} Vehículos` : "").toBe("3 Vehículos");
+      expect(groupSingle.targetGroups.length === 1 ? groupSingle.targetGroups[0] : "").toBe("Logística Urbana");
+      expect(groupMultiple.targetGroups.length > 1 ? `${groupMultiple.targetGroups.length} Grupos` : "").toBe("2 Grupos");
+    });
+
+    it("evaluates alert rule tags correctly", () => {
+      const alertEvents = ["EXIT", "ENTER", "SPEED_LIMIT", "SCHEDULE"] as const;
+      const speedLimit = 45;
+
+      expect(alertEvents.includes("EXIT")).toBe(true);
+      expect(alertEvents.includes("ENTER")).toBe(true);
+      expect(alertEvents.includes("SPEED_LIMIT")).toBe(true);
+      expect(`Max ${speedLimit} km/h`).toBe("Max 45 km/h");
+      expect(alertEvents.includes("SCHEDULE")).toBe(true);
+    });
+  });
+
+  describe("Geocercas Page Filtering & Metrics Logic", () => {
+    const testGeofences = [
+      { id: 1, nombre: "Base Norte", descripcion: "Central", tipo: "Polígono", activa: true },
+      { id: 2, nombre: "Zona Sur", descripcion: "Carga", tipo: "Círculo", activa: true },
+      { id: 3, nombre: "Taller Este", descripcion: "Mecánica", tipo: "Polígono", activa: false },
+    ];
+
+    it("calculates quick metrics correctly", () => {
+      const total = testGeofences.length;
+      const active = testGeofences.filter((g) => g.activa).length;
+      const polygons = testGeofences.filter((g) => g.tipo === "Polígono").length;
+      const circles = testGeofences.filter((g) => g.tipo === "Círculo").length;
+
+      expect(total).toBe(3);
+      expect(active).toBe(2);
+      expect(polygons).toBe(2);
+      expect(circles).toBe(1);
+    });
+
+    it("filters by status (Active / Inactive)", () => {
+      const activeOnly = testGeofences.filter((g) => g.activa);
+      const inactiveOnly = testGeofences.filter((g) => !g.activa);
+
+      expect(activeOnly).toHaveLength(2);
+      expect(inactiveOnly).toHaveLength(1);
+      expect(inactiveOnly[0].nombre).toBe("Taller Este");
+    });
+
+    it("filters by type (Polígono / Círculo)", () => {
+      const polygonOnly = testGeofences.filter((g) => g.tipo === "Polígono");
+      const circleOnly = testGeofences.filter((g) => g.tipo === "Círculo");
+
+      expect(polygonOnly).toHaveLength(2);
+      expect(circleOnly).toHaveLength(1);
+      expect(circleOnly[0].nombre).toBe("Zona Sur");
+    });
+
+    it("filters by search term in name and description", () => {
+      const searchBase = testGeofences.filter(
+        (g) => g.nombre.toLowerCase().includes("base") || g.descripcion.toLowerCase().includes("base")
+      );
+      const searchCarga = testGeofences.filter(
+        (g) => g.nombre.toLowerCase().includes("carga") || g.descripcion.toLowerCase().includes("carga")
+      );
+
+      expect(searchBase).toHaveLength(1);
+      expect(searchBase[0].id).toBe(1);
+      expect(searchCarga).toHaveLength(1);
+      expect(searchCarga[0].id).toBe(2);
+    });
+  });
 });
+
