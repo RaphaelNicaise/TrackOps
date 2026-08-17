@@ -251,3 +251,27 @@ export const vehicleDocuments = pgTable("vehicle_documents", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const geofences = pgTable("geofences", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
+  nombre: text("nombre").notNull(),
+  descripcion: text("descripcion"),
+  tipo: varchar("tipo", { length: 20 }).default("Polígono").notNull(),
+  color: varchar("color", { length: 30 }).default("#3b82f6").notNull(),
+  opacidad: doublePrecision("opacidad").default(0.25).notNull(),
+  coordenadas: text("coordenadas"),
+  centroLat: doublePrecision("centro_lat"),
+  centroLng: doublePrecision("centro_lng"),
+  radio: doublePrecision("radio"),
+  activa: integer("activa").default(1).notNull(),
+  targetType: varchar("target_type", { length: 30 }).default("ALL").notNull(),
+  targetVehicles: text("target_vehicles"),
+  targetCategories: text("target_categories"),
+  targetGroups: text("target_groups"),
+  alertEvents: text("alert_events"),
+  speedLimit: integer("speed_limit"),
+  actionTypes: text("action_types"),
+  emailRecipients: text("email_recipients"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
