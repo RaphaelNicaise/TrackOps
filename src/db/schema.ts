@@ -227,3 +227,27 @@ export const gpsInstallations = pgTable("gps_installations", {
   notas: text("notas"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const documentCategories = pgTable("document_categories", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
+  nombre: text("nombre").notNull(),
+  color: varchar("color", { length: 30 }).default("blue").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const vehicleDocuments = pgTable("vehicle_documents", {
+  id: serial("id").primaryKey(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
+  categoryId: integer("category_id").references(() => documentCategories.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  fileName: text("file_name").notNull(),
+  fileKey: text("file_key").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  fechaVencimiento: timestamp("fecha_vencimiento"),
+  notas: text("notas"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
