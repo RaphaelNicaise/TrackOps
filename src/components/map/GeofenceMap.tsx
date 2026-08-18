@@ -329,6 +329,380 @@ function MapDrawingHandler({
 }
 
 // ---------------------------------------------------------------------------
+// Native Leaflet Live Drag Polygon Editor (Zero React Rerenders during drag)
+// ---------------------------------------------------------------------------
+
+function InteractivePolygonEditor({
+  draftGeofence,
+  draftColor,
+  draftOpacity,
+  drawingMode,
+  onDraftChange,
+  mousePos,
+}: {
+  draftGeofence: GeofenceFormData;
+  draftColor: string;
+  draftOpacity: number;
+  drawingMode: DrawingMode;
+  onDraftChange?: (draft: GeofenceFormData) => void;
+  mousePos: [number, number] | null;
+}) {
+  const polygonRef = useRef<L.Polygon | null>(null);
+  const vertexMarkersRef = useRef<(L.Marker | null)[]>([]);
+  const midpointMarkersRef = useRef<(L.Marker | null)[]>([]);
+  const centroidMarkerRef = useRef<L.Marker | null>(null);
+  const liveCoordsRef = useRef<[number, number][]>(draftGeofence.coordenadas || []);
+  const centroidDragRef = useRef<{ startPos: L.LatLng; startCoords: [number, number][] } | null>(null);
+
+  // Sync ref with prop changes when not actively dragging
+  useEffect(() => {
+    liveCoordsRef.current = draftGeofence.coordenadas || [];
+  }, [draftGeofence.coordenadas]);
+
+  const coords = draftGeofence.coordenadas || [];
+  const polygonCentroid = useMemo(() => {
+    if (coords.length >= 3) {
+      return getPolygonCentroid(coords);
+    }
+    return null;
+  }, [coords]);
+
+  return (
+    <>
+      {/* Active Polygon Surface */}
+      {coords.length >= 3 && (
+        <Polygon
+          ref={polygonRef}
+          positions={coords}
+          interactive={false}
+          pathOptions={{
+            color: draftColor,
+            fillColor: draftColor,
+            fillOpacity: draftOpacity,
+            weight: 3,
+            dashArray: drawingMode === "draw_polygon" ? "6, 6" : undefined,
+          }}
+        />
+      )}
+
+      {/* Incomplete Polygon Polyline while drawing */}
+      {coords.length >= 2 && coords.length < 3 && (
+        <Polyline
+          positions={coords}
+          interactive={false}
+          pathOptions={{ color: draftColor, weight: 3, dashArray: "4, 4" }}
+        />
+      )}
+
+      {/* Live dashed cursor preview guide */}
+      {drawingMode === "draw_polygon" && mousePos && coords.length > 0 && (
+        <>
+          <Polyline
+            positions={[coords[coords.length - 1], mousePos]}
+            interactive={false}
+            pathOptions={{ color: draftColor, weight: 2, dashArray: "5, 5", opacity: 0.8 }}
+          />
+          {coords.length >= 2 && (
+            <Polyline
+              positions={[mousePos, coords[0]]}
+              interactive={false}
+              pathOptions={{ color: draftColor, weight: 1.5, dashArray: "3, 6", opacity: 0.5 }}
+            />
+          )}
+        </>
+      )}
+
+      {/* Draggable Polygon Vertices */}
+      {coords.map((coord, idx) => (
+        <Marker
+          key={`vertex-${idx}`}
+          ref={(el) => {
+            vertexMarkersRef.current[idx] = el;
+          }}
+          position={coord}
+          draggable={drawingMode === "edit_vertices" || drawingMode === "draw_polygon"}
+          icon={createVertexIcon(draftColor, idx)}
+          eventHandlers={{
+            drag: (e) => {
+              const marker = e.target;
+              const pos = marker.getLatLng();
+              liveCoordsRef.current[idx] = [pos.lat, pos.lng];
+              if (polygonRef.current) {
+                polygonRef.current.setLatLngs(liveCoordsRef.current);
+              }
+              // Update adjacent midpoint markers natively without react re-render
+              const n = liveCoordsRef.current.length;
+              if (n >= 3) {
+                const nextIdx = (idx + 1) % n;
+                const prevIdx = (idx - 1 + n) % n;
+                const currPos = liveCoordsRef.current[idx];
+                const nextPos = liveCoordsRef.current[nextIdx];
+                const prevPos = liveCoordsRef.current[prevIdx];
+
+                midpointMarkersRef.current[idx]?.setLatLng([
+                  (currPos[0] + nextPos[0]) / 2,
+                  (currPos[1] + nextPos[1]) / 2,
+                ]);
+                midpointMarkersRef.current[prevIdx]?.setLatLng([
+                  (prevPos[0] + currPos[0]) / 2,
+                  (prevPos[1] + currPos[1]) / 2,
+                ]);
+                const newCenter = getPolygonCentroid(liveCoordsRef.current);
+                centroidMarkerRef.current?.setLatLng(newCenter);
+              }
+            },
+            dragend: (e) => {
+              const marker = e.target;
+              const pos = marker.getLatLng();
+              liveCoordsRef.current[idx] = [pos.lat, pos.lng];
+              onDraftChange?.({
+                ...draftGeofence,
+                coordenadas: [...liveCoordsRef.current],
+              });
+            },
+            contextmenu: (e) => {
+              L.DomEvent.stopPropagation(e);
+              if (liveCoordsRef.current.length > 3) {
+                const newCoords = liveCoordsRef.current.filter((_, i) => i !== idx);
+                onDraftChange?.({
+                  ...draftGeofence,
+                  coordenadas: newCoords,
+                });
+              }
+            },
+          }}
+        />
+      ))}
+
+      {/* Ghost Midpoint Handles (+) to insert vertices */}
+      {drawingMode === "edit_vertices" &&
+        coords.length >= 3 &&
+        coords.map((coord, idx) => {
+          const nextCoord = coords[(idx + 1) % coords.length];
+          const midLat = (coord[0] + nextCoord[0]) / 2;
+          const midLng = (coord[1] + nextCoord[1]) / 2;
+          const midPos: [number, number] = [midLat, midLng];
+
+          return (
+            <Marker
+              key={`midpoint-${idx}`}
+              ref={(el) => {
+                midpointMarkersRef.current[idx] = el;
+              }}
+              position={midPos}
+              draggable={true}
+              icon={createMidpointIcon(draftColor)}
+              eventHandlers={{
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e);
+                  const newCoords = [...liveCoordsRef.current];
+                  newCoords.splice(idx + 1, 0, midPos);
+                  onDraftChange?.({
+                    ...draftGeofence,
+                    coordenadas: newCoords,
+                  });
+                },
+                drag: (e) => {
+                  const marker = e.target;
+                  const pos = marker.getLatLng();
+                  const tempCoords = [...liveCoordsRef.current];
+                  tempCoords.splice(idx + 1, 0, [pos.lat, pos.lng]);
+                  if (polygonRef.current) {
+                    polygonRef.current.setLatLngs(tempCoords);
+                  }
+                },
+                dragend: (e) => {
+                  const marker = e.target;
+                  const pos = marker.getLatLng();
+                  const newCoords = [...liveCoordsRef.current];
+                  newCoords.splice(idx + 1, 0, [pos.lat, pos.lng]);
+                  onDraftChange?.({
+                    ...draftGeofence,
+                    coordenadas: newCoords,
+                  });
+                },
+              }}
+            />
+          );
+        })}
+
+      {/* Draggable Polygon Centroid Translation Handle */}
+      {drawingMode === "edit_vertices" && polygonCentroid && coords.length >= 3 && (
+        <Marker
+          key="centroid-marker"
+          ref={centroidMarkerRef}
+          position={polygonCentroid}
+          draggable={true}
+          icon={createCenterIcon(draftColor)}
+          eventHandlers={{
+            dragstart: (e) => {
+              const marker = e.target;
+              centroidDragRef.current = {
+                startPos: marker.getLatLng(),
+                startCoords: [...liveCoordsRef.current],
+              };
+            },
+            drag: (e) => {
+              if (!centroidDragRef.current) return;
+              const marker = e.target;
+              const pos = marker.getLatLng();
+              const deltaLat = pos.lat - centroidDragRef.current.startPos.lat;
+              const deltaLng = pos.lng - centroidDragRef.current.startPos.lng;
+              const movedCoords = centroidDragRef.current.startCoords.map(
+                ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
+              );
+              liveCoordsRef.current = movedCoords;
+              if (polygonRef.current) {
+                polygonRef.current.setLatLngs(movedCoords);
+              }
+              // Update vertex and midpoint handles in real time
+              vertexMarkersRef.current.forEach((m, vIdx) => {
+                if (m && movedCoords[vIdx]) m.setLatLng(movedCoords[vIdx]);
+              });
+              midpointMarkersRef.current.forEach((m, mIdx) => {
+                if (m && movedCoords[mIdx]) {
+                  const nextC = movedCoords[(mIdx + 1) % movedCoords.length];
+                  m.setLatLng([(movedCoords[mIdx][0] + nextC[0]) / 2, (movedCoords[mIdx][1] + nextC[1]) / 2]);
+                }
+              });
+            },
+            dragend: (e) => {
+              if (!centroidDragRef.current) return;
+              const marker = e.target;
+              const pos = marker.getLatLng();
+              const deltaLat = pos.lat - centroidDragRef.current.startPos.lat;
+              const deltaLng = pos.lng - centroidDragRef.current.startPos.lng;
+              const newCoords = centroidDragRef.current.startCoords.map(
+                ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
+              );
+              centroidDragRef.current = null;
+              onDraftChange?.({
+                ...draftGeofence,
+                coordenadas: newCoords,
+              });
+            },
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Native Leaflet Live Drag Circle Editor (Zero React Rerenders during drag)
+// ---------------------------------------------------------------------------
+
+function InteractiveCircleEditor({
+  draftGeofence,
+  draftColor,
+  draftOpacity,
+  drawingMode,
+  onDraftChange,
+}: {
+  draftGeofence: GeofenceFormData;
+  draftColor: string;
+  draftOpacity: number;
+  drawingMode: DrawingMode;
+  onDraftChange?: (draft: GeofenceFormData) => void;
+}) {
+  const circleRef = useRef<L.Circle | null>(null);
+  const centerMarkerRef = useRef<L.Marker | null>(null);
+  const radiusMarkerRef = useRef<L.Marker | null>(null);
+  const liveCenterRef = useRef<[number, number]>(draftGeofence.centro || [-38.7183, -62.2663]);
+  const liveRadiusRef = useRef<number>(draftGeofence.radio || 300);
+
+  useEffect(() => {
+    if (draftGeofence.centro) liveCenterRef.current = draftGeofence.centro;
+    if (draftGeofence.radio) liveRadiusRef.current = draftGeofence.radio;
+  }, [draftGeofence.centro, draftGeofence.radio]);
+
+  if (!draftGeofence.centro || !draftGeofence.radio) return null;
+
+  return (
+    <>
+      <Circle
+        ref={circleRef}
+        center={draftGeofence.centro}
+        radius={draftGeofence.radio}
+        interactive={false}
+        pathOptions={{
+          color: draftColor,
+          fillColor: draftColor,
+          fillOpacity: draftOpacity,
+          weight: 3,
+        }}
+      />
+
+      {/* Center Translation Handle */}
+      <Marker
+        key="circle-center"
+        ref={centerMarkerRef}
+        position={draftGeofence.centro}
+        draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
+        icon={createCenterIcon(draftColor)}
+        eventHandlers={{
+          drag: (e) => {
+            const marker = e.target;
+            const pos = marker.getLatLng();
+            liveCenterRef.current = [pos.lat, pos.lng];
+            if (circleRef.current) {
+              circleRef.current.setLatLng(pos);
+            }
+            if (radiusMarkerRef.current) {
+              const newRadiusPos = getRadiusHandlePosition(liveCenterRef.current, liveRadiusRef.current);
+              radiusMarkerRef.current.setLatLng(newRadiusPos);
+            }
+          },
+          dragend: (e) => {
+            const marker = e.target;
+            const pos = marker.getLatLng();
+            liveCenterRef.current = [pos.lat, pos.lng];
+            onDraftChange?.({
+              ...draftGeofence,
+              centro: [pos.lat, pos.lng],
+            });
+          },
+        }}
+      />
+
+      {/* Radius Resizing Handle */}
+      <Marker
+        key="circle-radius"
+        ref={radiusMarkerRef}
+        position={getRadiusHandlePosition(draftGeofence.centro, draftGeofence.radio)}
+        draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
+        icon={createRadiusIcon(draftColor)}
+        eventHandlers={{
+          drag: (e) => {
+            const marker = e.target;
+            const pos = marker.getLatLng();
+            const centerLatLng = L.latLng(liveCenterRef.current[0], liveCenterRef.current[1]);
+            const newDistance = centerLatLng.distanceTo(pos);
+            const r = Math.max(10, Math.round(newDistance));
+            liveRadiusRef.current = r;
+            if (circleRef.current) {
+              circleRef.current.setRadius(r);
+            }
+          },
+          dragend: (e) => {
+            const marker = e.target;
+            const pos = marker.getLatLng();
+            const centerLatLng = L.latLng(liveCenterRef.current[0], liveCenterRef.current[1]);
+            const newDistance = centerLatLng.distanceTo(pos);
+            const r = Math.max(10, Math.round(newDistance));
+            liveRadiusRef.current = r;
+            onDraftChange?.({
+              ...draftGeofence,
+              radio: r,
+            });
+          },
+        }}
+      />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main GeofenceMap Component
 // ---------------------------------------------------------------------------
 
@@ -347,65 +721,30 @@ export default function GeofenceMap({
 }: GeofenceMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mousePos, setMousePos] = useState<[number, number] | null>(null);
-  const centroidDragRef = useRef<{ startPos: L.LatLng; startCoords: [number, number][] } | null>(null);
-  const dragRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    return () => {
-      if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
-    };
   }, []);
-
-  // RAF throttled draft update for 60fps buttery smooth dragging
-  const updateDraftSmooth = useCallback(
-    (updated: GeofenceFormData) => {
-      if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
-      dragRafRef.current = requestAnimationFrame(() => {
-        onDraftChange?.(updated);
-      });
-    },
-    [onDraftChange]
-  );
-
-  const updateDraftFinal = useCallback(
-    (updated: GeofenceFormData) => {
-      if (dragRafRef.current) {
-        cancelAnimationFrame(dragRafRef.current);
-        dragRafRef.current = null;
-      }
-      onDraftChange?.(updated);
-    },
-    [onDraftChange]
-  );
 
   // Handlers for Toolbar actions
   const handleUndoPoint = useCallback(() => {
     if (!draftGeofence?.coordenadas || draftGeofence.coordenadas.length === 0) return;
     const newCoords = draftGeofence.coordenadas.slice(0, -1);
-    updateDraftFinal({
+    onDraftChange?.({
       ...draftGeofence,
       coordenadas: newCoords,
     });
-  }, [draftGeofence, updateDraftFinal]);
+  }, [draftGeofence, onDraftChange]);
 
   const handleClear = useCallback(() => {
     if (!draftGeofence) return;
-    updateDraftFinal({
+    onDraftChange?.({
       ...draftGeofence,
       coordenadas: [],
       centro: undefined,
       radio: 300,
     });
-  }, [draftGeofence, updateDraftFinal]);
-
-  // Polygon centroid translation
-  const polygonCentroid = useMemo(() => {
-    if (draftGeofence?.tipo === "Polígono" && draftGeofence?.coordenadas && draftGeofence.coordenadas.length > 0) {
-      return getPolygonCentroid(draftGeofence.coordenadas);
-    }
-    return null;
-  }, [draftGeofence]);
+  }, [draftGeofence, onDraftChange]);
 
   const draftColor = draftGeofence?.color || "#3b82f6";
   const draftOpacity = draftGeofence?.opacidad ?? 0.3;
@@ -435,7 +774,7 @@ export default function GeofenceMap({
               onClick={() => {
                 setDrawingMode?.("draw_polygon");
                 if (draftGeofence && draftGeofence.tipo !== "Polígono") {
-                  updateDraftFinal({
+                  onDraftChange?.({
                     ...draftGeofence,
                     tipo: "Polígono",
                     coordenadas: [],
@@ -459,7 +798,7 @@ export default function GeofenceMap({
               onClick={() => {
                 setDrawingMode?.("draw_circle");
                 if (draftGeofence && draftGeofence.tipo !== "Círculo") {
-                  updateDraftFinal({
+                  onDraftChange?.({
                     ...draftGeofence,
                     tipo: "Círculo",
                     centro: undefined,
@@ -584,7 +923,7 @@ export default function GeofenceMap({
           drawingMode={drawingMode}
           setDrawingMode={setDrawingMode}
           draftGeofence={draftGeofence}
-          onDraftChange={updateDraftFinal}
+          onDraftChange={onDraftChange}
           mousePos={mousePos}
           setMousePos={setMousePos}
         />
@@ -594,276 +933,25 @@ export default function GeofenceMap({
         {/* ================================================================= */}
         {isEditing && draftGeofence && (
           <>
-            {/* --- Polygon Draft Mode --- */}
-            {draftGeofence.tipo === "Polígono" && draftGeofence.coordenadas && (
-              <>
-                {/* Active Polygon Surface (interactive=false so pointer events pass straight to handles) */}
-                {draftGeofence.coordenadas.length >= 3 && (
-                  <Polygon
-                    positions={draftGeofence.coordenadas}
-                    interactive={false}
-                    pathOptions={{
-                      color: draftColor,
-                      fillColor: draftColor,
-                      fillOpacity: draftOpacity,
-                      weight: 3,
-                      dashArray: drawingMode === "draw_polygon" ? "6, 6" : undefined,
-                    }}
-                  />
-                )}
-
-                {/* Incomplete Polygon Polyline while drawing */}
-                {draftGeofence.coordenadas.length >= 2 && draftGeofence.coordenadas.length < 3 && (
-                  <Polyline
-                    positions={draftGeofence.coordenadas}
-                    interactive={false}
-                    pathOptions={{ color: draftColor, weight: 3, dashArray: "4, 4" }}
-                  />
-                )}
-
-                {/* Live dashed cursor preview guide */}
-                {drawingMode === "draw_polygon" &&
-                  mousePos &&
-                  draftGeofence.coordenadas.length > 0 && (
-                    <>
-                      <Polyline
-                        positions={[
-                          draftGeofence.coordenadas[draftGeofence.coordenadas.length - 1],
-                          mousePos,
-                        ]}
-                        interactive={false}
-                        pathOptions={{ color: draftColor, weight: 2, dashArray: "5, 5", opacity: 0.8 }}
-                      />
-                      {draftGeofence.coordenadas.length >= 2 && (
-                        <Polyline
-                          positions={[mousePos, draftGeofence.coordenadas[0]]}
-                          interactive={false}
-                          pathOptions={{ color: draftColor, weight: 1.5, dashArray: "3, 6", opacity: 0.5 }}
-                        />
-                      )}
-                    </>
-                  )}
-
-                {/* Draggable Polygon Vertices (stable key to prevent unmount on drag) */}
-                {draftGeofence.coordenadas.map((coord, idx) => (
-                  <Marker
-                    key={`vertex-${idx}`}
-                    position={coord}
-                    draggable={drawingMode === "edit_vertices" || drawingMode === "draw_polygon"}
-                    icon={createVertexIcon(draftColor, idx)}
-                    eventHandlers={{
-                      drag: (e) => {
-                        const marker = e.target;
-                        const pos = marker.getLatLng();
-                        const newCoords = [...(draftGeofence.coordenadas || [])];
-                        newCoords[idx] = [pos.lat, pos.lng];
-                        updateDraftSmooth({
-                          ...draftGeofence,
-                          coordenadas: newCoords,
-                        });
-                      },
-                      dragend: (e) => {
-                        const marker = e.target;
-                        const pos = marker.getLatLng();
-                        const newCoords = [...(draftGeofence.coordenadas || [])];
-                        newCoords[idx] = [pos.lat, pos.lng];
-                        updateDraftFinal({
-                          ...draftGeofence,
-                          coordenadas: newCoords,
-                        });
-                      },
-                      contextmenu: (e) => {
-                        L.DomEvent.stopPropagation(e);
-                        const coords = draftGeofence.coordenadas || [];
-                        if (coords.length > 3) {
-                          const newCoords = coords.filter((_, i) => i !== idx);
-                          updateDraftFinal({
-                            ...draftGeofence,
-                            coordenadas: newCoords,
-                          });
-                        }
-                      },
-                    }}
-                  />
-                ))}
-
-                {/* Ghost Midpoint Handles (+) to insert vertices */}
-                {drawingMode === "edit_vertices" &&
-                  draftGeofence.coordenadas.length >= 3 &&
-                  draftGeofence.coordenadas.map((coord, idx) => {
-                    const coords = draftGeofence.coordenadas!;
-                    const nextCoord = coords[(idx + 1) % coords.length];
-                    const midLat = (coord[0] + nextCoord[0]) / 2;
-                    const midLng = (coord[1] + nextCoord[1]) / 2;
-                    const midPos: [number, number] = [midLat, midLng];
-
-                    return (
-                      <Marker
-                        key={`midpoint-${idx}`}
-                        position={midPos}
-                        draggable={true}
-                        icon={createMidpointIcon(draftColor)}
-                        eventHandlers={{
-                          click: (e) => {
-                            L.DomEvent.stopPropagation(e);
-                            const newCoords = [...coords];
-                            newCoords.splice(idx + 1, 0, midPos);
-                            updateDraftFinal({
-                              ...draftGeofence,
-                              coordenadas: newCoords,
-                            });
-                          },
-                          drag: (e) => {
-                            const marker = e.target;
-                            const pos = marker.getLatLng();
-                            const newCoords = [...coords];
-                            newCoords.splice(idx + 1, 0, [pos.lat, pos.lng]);
-                            updateDraftSmooth({
-                              ...draftGeofence,
-                              coordenadas: newCoords,
-                            });
-                          },
-                          dragend: (e) => {
-                            const marker = e.target;
-                            const pos = marker.getLatLng();
-                            const newCoords = [...coords];
-                            newCoords.splice(idx + 1, 0, [pos.lat, pos.lng]);
-                            updateDraftFinal({
-                              ...draftGeofence,
-                              coordenadas: newCoords,
-                            });
-                          },
-                        }}
-                      />
-                    );
-                  })}
-
-                {/* Draggable Polygon Centroid Translation Handle */}
-                {drawingMode === "edit_vertices" &&
-                  polygonCentroid &&
-                  draftGeofence.coordenadas.length >= 3 && (
-                    <Marker
-                      key="centroid-marker"
-                      position={polygonCentroid}
-                      draggable={true}
-                      icon={createCenterIcon(draftColor)}
-                      eventHandlers={{
-                        dragstart: (e) => {
-                          const marker = e.target;
-                          centroidDragRef.current = {
-                            startPos: marker.getLatLng(),
-                            startCoords: [...(draftGeofence.coordenadas || [])],
-                          };
-                        },
-                        drag: (e) => {
-                          if (!centroidDragRef.current) return;
-                          const marker = e.target;
-                          const pos = marker.getLatLng();
-                          const deltaLat = pos.lat - centroidDragRef.current.startPos.lat;
-                          const deltaLng = pos.lng - centroidDragRef.current.startPos.lng;
-                          const newCoords = centroidDragRef.current.startCoords.map(
-                            ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
-                          );
-                          updateDraftSmooth({
-                            ...draftGeofence,
-                            coordenadas: newCoords,
-                          });
-                        },
-                        dragend: (e) => {
-                          if (!centroidDragRef.current) return;
-                          const marker = e.target;
-                          const pos = marker.getLatLng();
-                          const deltaLat = pos.lat - centroidDragRef.current.startPos.lat;
-                          const deltaLng = pos.lng - centroidDragRef.current.startPos.lng;
-                          const newCoords = centroidDragRef.current.startCoords.map(
-                            ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
-                          );
-                          centroidDragRef.current = null;
-                          updateDraftFinal({
-                            ...draftGeofence,
-                            coordenadas: newCoords,
-                          });
-                        },
-                      }}
-                    />
-                  )}
-              </>
+            {draftGeofence.tipo === "Polígono" && (
+              <InteractivePolygonEditor
+                draftGeofence={draftGeofence}
+                draftColor={draftColor}
+                draftOpacity={draftOpacity}
+                drawingMode={drawingMode}
+                onDraftChange={onDraftChange}
+                mousePos={mousePos}
+              />
             )}
 
-            {/* --- Circle Draft Mode --- */}
-            {draftGeofence.tipo === "Círculo" && draftGeofence.centro && draftGeofence.radio && (
-              <>
-                {/* Active Circle Surface (interactive=false) */}
-                <Circle
-                  center={draftGeofence.centro}
-                  radius={draftGeofence.radio}
-                  interactive={false}
-                  pathOptions={{
-                    color: draftColor,
-                    fillColor: draftColor,
-                    fillOpacity: draftOpacity,
-                    weight: 3,
-                  }}
-                />
-
-                {/* Center Translation Handle */}
-                <Marker
-                  key="circle-center"
-                  position={draftGeofence.centro}
-                  draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
-                  icon={createCenterIcon(draftColor)}
-                  eventHandlers={{
-                    drag: (e) => {
-                      const marker = e.target;
-                      const pos = marker.getLatLng();
-                      updateDraftSmooth({
-                        ...draftGeofence,
-                        centro: [pos.lat, pos.lng],
-                      });
-                    },
-                    dragend: (e) => {
-                      const marker = e.target;
-                      const pos = marker.getLatLng();
-                      updateDraftFinal({
-                        ...draftGeofence,
-                        centro: [pos.lat, pos.lng],
-                      });
-                    },
-                  }}
-                />
-
-                {/* Radius Resizing Handle */}
-                <Marker
-                  key="circle-radius"
-                  position={getRadiusHandlePosition(draftGeofence.centro, draftGeofence.radio)}
-                  draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
-                  icon={createRadiusIcon(draftColor)}
-                  eventHandlers={{
-                    drag: (e) => {
-                      if (!draftGeofence.centro) return;
-                      const marker = e.target;
-                      const pos = marker.getLatLng();
-                      const centerLatLng = L.latLng(draftGeofence.centro[0], draftGeofence.centro[1]);
-                      const newDistance = centerLatLng.distanceTo(pos);
-                      updateDraftSmooth({
-                        ...draftGeofence,
-                        radio: Math.max(10, Math.round(newDistance)),
-                      });
-                    },
-                    dragend: (e) => {
-                      if (!draftGeofence.centro) return;
-                      const marker = e.target;
-                      const pos = marker.getLatLng();
-                      const centerLatLng = L.latLng(draftGeofence.centro[0], draftGeofence.centro[1]);
-                      const newDistance = centerLatLng.distanceTo(pos);
-                      updateDraftFinal({
-                        ...draftGeofence,
-                        radio: Math.max(10, Math.round(newDistance)),
-                      });
-                    },
-                  }}
-                />
-              </>
+            {draftGeofence.tipo === "Círculo" && (
+              <InteractiveCircleEditor
+                draftGeofence={draftGeofence}
+                draftColor={draftColor}
+                draftOpacity={draftOpacity}
+                drawingMode={drawingMode}
+                onDraftChange={onDraftChange}
+              />
             )}
           </>
         )}
