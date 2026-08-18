@@ -883,12 +883,9 @@ export default function GeofenceMap({
           const weight = isFocused ? 3.5 : 2;
 
           const eventHandlers = {
-            click: () => {
-              setFocusedGeofenceId?.(g.id);
-              onSelectGeofence?.(g.id);
-            },
-            dblclick: (e: L.LeafletMouseEvent) => {
+            click: (e: L.LeafletMouseEvent) => {
               L.DomEvent.stopPropagation(e);
+              setFocusedGeofenceId?.(g.id);
               onStartEdit?.(g);
             },
           };

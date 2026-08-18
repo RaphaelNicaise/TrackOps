@@ -256,7 +256,12 @@ export default function GeocercasPage() {
   };
 
   const handleSelectGeofence = (id: number) => {
-    setFocusedGeofenceId((prev) => (prev === id ? null : id));
+    const target = geofences.find((g) => g.id === id);
+    if (target) {
+      handleStartEdit(target);
+    } else {
+      setFocusedGeofenceId(id);
+    }
   };
 
   return (
