@@ -56,6 +56,7 @@ export interface GeofenceMapProps {
   drawingMode?: DrawingMode;
   setDrawingMode?: (mode: DrawingMode) => void;
   onSelectGeofence?: (id: number) => void;
+  onStartEdit?: (geofence: Geofence) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -167,41 +168,22 @@ function MapBounds({
   geofences,
   isListOpen,
   focusedGeofenceId,
-  isEditing,
-  draftGeofence,
 }: {
   geofences: Geofence[];
   isListOpen: boolean;
   focusedGeofenceId: number | null;
-  isEditing?: boolean;
-  draftGeofence?: GeofenceFormData | null;
 }) {
   const map = useMap();
+  const lastFocusedIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Avoid jarring auto-fits while actively drawing/editing
-    if (isEditing) {
-      if (focusedGeofenceId && draftGeofence) {
-        let bounds: L.LatLngBounds | undefined;
-        if (draftGeofence.tipo === "Polígono" && draftGeofence.coordenadas && draftGeofence.coordenadas.length >= 3) {
-          bounds = L.latLngBounds(draftGeofence.coordenadas);
-        } else if (draftGeofence.tipo === "Círculo" && draftGeofence.centro && draftGeofence.radio) {
-          bounds = getCircleBounds(draftGeofence.centro, draftGeofence.radio);
-        }
-        if (bounds) {
-          map.fitBounds(bounds, {
-            paddingTopLeft: [isListOpen ? 380 : 50, 50],
-            paddingBottomRight: [50, 50],
-            maxZoom: 16,
-            animate: true,
-            duration: 1,
-          });
-        }
-      }
+    if (!geofences || geofences.length === 0) return;
+
+    // Only fit bounds if focusedGeofenceId changed or initial load
+    if (focusedGeofenceId === lastFocusedIdRef.current && lastFocusedIdRef.current !== null) {
       return;
     }
-
-    if (!geofences || geofences.length === 0) return;
+    lastFocusedIdRef.current = focusedGeofenceId;
 
     const timer = setTimeout(() => {
       map.invalidateSize();
@@ -242,13 +224,13 @@ function MapBounds({
           paddingBottomRight: [50, 50],
           maxZoom: 16,
           animate: true,
-          duration: 1.2,
+          duration: 0.8,
         });
       }
-    }, 200);
+    }, 150);
 
     return () => clearTimeout(timer);
-  }, [geofences, map, isListOpen, focusedGeofenceId, isEditing, draftGeofence]);
+  }, [geofences, map, isListOpen, focusedGeofenceId]);
 
   return null;
 }
@@ -361,34 +343,61 @@ export default function GeofenceMap({
   drawingMode = "none",
   setDrawingMode,
   onSelectGeofence,
+  onStartEdit,
 }: GeofenceMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mousePos, setMousePos] = useState<[number, number] | null>(null);
   const centroidDragRef = useRef<{ startPos: L.LatLng; startCoords: [number, number][] } | null>(null);
+  const dragRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    return () => {
+      if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
+    };
   }, []);
+
+  // RAF throttled draft update for 60fps buttery smooth dragging
+  const updateDraftSmooth = useCallback(
+    (updated: GeofenceFormData) => {
+      if (dragRafRef.current) cancelAnimationFrame(dragRafRef.current);
+      dragRafRef.current = requestAnimationFrame(() => {
+        onDraftChange?.(updated);
+      });
+    },
+    [onDraftChange]
+  );
+
+  const updateDraftFinal = useCallback(
+    (updated: GeofenceFormData) => {
+      if (dragRafRef.current) {
+        cancelAnimationFrame(dragRafRef.current);
+        dragRafRef.current = null;
+      }
+      onDraftChange?.(updated);
+    },
+    [onDraftChange]
+  );
 
   // Handlers for Toolbar actions
   const handleUndoPoint = useCallback(() => {
     if (!draftGeofence?.coordenadas || draftGeofence.coordenadas.length === 0) return;
     const newCoords = draftGeofence.coordenadas.slice(0, -1);
-    onDraftChange?.({
+    updateDraftFinal({
       ...draftGeofence,
       coordenadas: newCoords,
     });
-  }, [draftGeofence, onDraftChange]);
+  }, [draftGeofence, updateDraftFinal]);
 
   const handleClear = useCallback(() => {
     if (!draftGeofence) return;
-    onDraftChange?.({
+    updateDraftFinal({
       ...draftGeofence,
       coordenadas: [],
       centro: undefined,
       radio: 300,
     });
-  }, [draftGeofence, onDraftChange]);
+  }, [draftGeofence, updateDraftFinal]);
 
   // Polygon centroid translation
   const polygonCentroid = useMemo(() => {
@@ -426,7 +435,7 @@ export default function GeofenceMap({
               onClick={() => {
                 setDrawingMode?.("draw_polygon");
                 if (draftGeofence && draftGeofence.tipo !== "Polígono") {
-                  onDraftChange?.({
+                  updateDraftFinal({
                     ...draftGeofence,
                     tipo: "Polígono",
                     coordenadas: [],
@@ -450,7 +459,7 @@ export default function GeofenceMap({
               onClick={() => {
                 setDrawingMode?.("draw_circle");
                 if (draftGeofence && draftGeofence.tipo !== "Círculo") {
-                  onDraftChange?.({
+                  updateDraftFinal({
                     ...draftGeofence,
                     tipo: "Círculo",
                     centro: undefined,
@@ -538,7 +547,7 @@ export default function GeofenceMap({
             )}
             {currentMode === "draw_circle" && <span>Click en el mapa para posicionar el centro del círculo</span>}
             {currentMode === "edit_vertices" && draftGeofence?.tipo === "Polígono" && (
-              <span>Arrastrá los vértices o el centro • Click en (+) para insertar vértice</span>
+              <span>Arrastrá los vértices o el centro • Click o arrastrá (+) para insertar vértice</span>
             )}
             {currentMode === "edit_vertices" && draftGeofence?.tipo === "Círculo" && (
               <span>Arrastrá el centro para mover • Arrastrá el borde este para regular el radio</span>
@@ -563,13 +572,11 @@ export default function GeofenceMap({
         />
         <ZoomControl position="bottomright" />
 
-        {/* Map Viewport auto-fit */}
+        {/* Map Viewport auto-fit (independent of drag ticks) */}
         <MapBounds
           geofences={geofences}
           isListOpen={isListOpen}
           focusedGeofenceId={focusedGeofenceId}
-          isEditing={isEditing}
-          draftGeofence={draftGeofence}
         />
 
         {/* Drawing & Mouse Listeners */}
@@ -577,7 +584,7 @@ export default function GeofenceMap({
           drawingMode={drawingMode}
           setDrawingMode={setDrawingMode}
           draftGeofence={draftGeofence}
-          onDraftChange={onDraftChange}
+          onDraftChange={updateDraftFinal}
           mousePos={mousePos}
           setMousePos={setMousePos}
         />
@@ -590,10 +597,11 @@ export default function GeofenceMap({
             {/* --- Polygon Draft Mode --- */}
             {draftGeofence.tipo === "Polígono" && draftGeofence.coordenadas && (
               <>
-                {/* Active Polygon Surface */}
+                {/* Active Polygon Surface (interactive=false so pointer events pass straight to handles) */}
                 {draftGeofence.coordenadas.length >= 3 && (
                   <Polygon
                     positions={draftGeofence.coordenadas}
+                    interactive={false}
                     pathOptions={{
                       color: draftColor,
                       fillColor: draftColor,
@@ -608,6 +616,7 @@ export default function GeofenceMap({
                 {draftGeofence.coordenadas.length >= 2 && draftGeofence.coordenadas.length < 3 && (
                   <Polyline
                     positions={draftGeofence.coordenadas}
+                    interactive={false}
                     pathOptions={{ color: draftColor, weight: 3, dashArray: "4, 4" }}
                   />
                 )}
@@ -622,21 +631,23 @@ export default function GeofenceMap({
                           draftGeofence.coordenadas[draftGeofence.coordenadas.length - 1],
                           mousePos,
                         ]}
+                        interactive={false}
                         pathOptions={{ color: draftColor, weight: 2, dashArray: "5, 5", opacity: 0.8 }}
                       />
                       {draftGeofence.coordenadas.length >= 2 && (
                         <Polyline
                           positions={[mousePos, draftGeofence.coordenadas[0]]}
+                          interactive={false}
                           pathOptions={{ color: draftColor, weight: 1.5, dashArray: "3, 6", opacity: 0.5 }}
                         />
                       )}
                     </>
                   )}
 
-                {/* Draggable Polygon Vertices */}
+                {/* Draggable Polygon Vertices (stable key to prevent unmount on drag) */}
                 {draftGeofence.coordenadas.map((coord, idx) => (
                   <Marker
-                    key={`vertex-${idx}-${draftGeofence.coordenadas?.length}`}
+                    key={`vertex-${idx}`}
                     position={coord}
                     draggable={drawingMode === "edit_vertices" || drawingMode === "draw_polygon"}
                     icon={createVertexIcon(draftColor, idx)}
@@ -646,7 +657,7 @@ export default function GeofenceMap({
                         const pos = marker.getLatLng();
                         const newCoords = [...(draftGeofence.coordenadas || [])];
                         newCoords[idx] = [pos.lat, pos.lng];
-                        onDraftChange?.({
+                        updateDraftSmooth({
                           ...draftGeofence,
                           coordenadas: newCoords,
                         });
@@ -656,7 +667,7 @@ export default function GeofenceMap({
                         const pos = marker.getLatLng();
                         const newCoords = [...(draftGeofence.coordenadas || [])];
                         newCoords[idx] = [pos.lat, pos.lng];
-                        onDraftChange?.({
+                        updateDraftFinal({
                           ...draftGeofence,
                           coordenadas: newCoords,
                         });
@@ -666,7 +677,7 @@ export default function GeofenceMap({
                         const coords = draftGeofence.coordenadas || [];
                         if (coords.length > 3) {
                           const newCoords = coords.filter((_, i) => i !== idx);
-                          onDraftChange?.({
+                          updateDraftFinal({
                             ...draftGeofence,
                             coordenadas: newCoords,
                           });
@@ -697,7 +708,7 @@ export default function GeofenceMap({
                             L.DomEvent.stopPropagation(e);
                             const newCoords = [...coords];
                             newCoords.splice(idx + 1, 0, midPos);
-                            onDraftChange?.({
+                            updateDraftFinal({
                               ...draftGeofence,
                               coordenadas: newCoords,
                             });
@@ -707,7 +718,7 @@ export default function GeofenceMap({
                             const pos = marker.getLatLng();
                             const newCoords = [...coords];
                             newCoords.splice(idx + 1, 0, [pos.lat, pos.lng]);
-                            onDraftChange?.({
+                            updateDraftSmooth({
                               ...draftGeofence,
                               coordenadas: newCoords,
                             });
@@ -717,7 +728,7 @@ export default function GeofenceMap({
                             const pos = marker.getLatLng();
                             const newCoords = [...coords];
                             newCoords.splice(idx + 1, 0, [pos.lat, pos.lng]);
-                            onDraftChange?.({
+                            updateDraftFinal({
                               ...draftGeofence,
                               coordenadas: newCoords,
                             });
@@ -732,6 +743,7 @@ export default function GeofenceMap({
                   polygonCentroid &&
                   draftGeofence.coordenadas.length >= 3 && (
                     <Marker
+                      key="centroid-marker"
                       position={polygonCentroid}
                       draggable={true}
                       icon={createCenterIcon(draftColor)}
@@ -752,7 +764,7 @@ export default function GeofenceMap({
                           const newCoords = centroidDragRef.current.startCoords.map(
                             ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
                           );
-                          onDraftChange?.({
+                          updateDraftSmooth({
                             ...draftGeofence,
                             coordenadas: newCoords,
                           });
@@ -767,7 +779,7 @@ export default function GeofenceMap({
                             ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
                           );
                           centroidDragRef.current = null;
-                          onDraftChange?.({
+                          updateDraftFinal({
                             ...draftGeofence,
                             coordenadas: newCoords,
                           });
@@ -781,10 +793,11 @@ export default function GeofenceMap({
             {/* --- Circle Draft Mode --- */}
             {draftGeofence.tipo === "Círculo" && draftGeofence.centro && draftGeofence.radio && (
               <>
-                {/* Active Circle Surface */}
+                {/* Active Circle Surface (interactive=false) */}
                 <Circle
                   center={draftGeofence.centro}
                   radius={draftGeofence.radio}
+                  interactive={false}
                   pathOptions={{
                     color: draftColor,
                     fillColor: draftColor,
@@ -795,6 +808,7 @@ export default function GeofenceMap({
 
                 {/* Center Translation Handle */}
                 <Marker
+                  key="circle-center"
                   position={draftGeofence.centro}
                   draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
                   icon={createCenterIcon(draftColor)}
@@ -802,7 +816,7 @@ export default function GeofenceMap({
                     drag: (e) => {
                       const marker = e.target;
                       const pos = marker.getLatLng();
-                      onDraftChange?.({
+                      updateDraftSmooth({
                         ...draftGeofence,
                         centro: [pos.lat, pos.lng],
                       });
@@ -810,7 +824,7 @@ export default function GeofenceMap({
                     dragend: (e) => {
                       const marker = e.target;
                       const pos = marker.getLatLng();
-                      onDraftChange?.({
+                      updateDraftFinal({
                         ...draftGeofence,
                         centro: [pos.lat, pos.lng],
                       });
@@ -820,6 +834,7 @@ export default function GeofenceMap({
 
                 {/* Radius Resizing Handle */}
                 <Marker
+                  key="circle-radius"
                   position={getRadiusHandlePosition(draftGeofence.centro, draftGeofence.radio)}
                   draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
                   icon={createRadiusIcon(draftColor)}
@@ -830,7 +845,7 @@ export default function GeofenceMap({
                       const pos = marker.getLatLng();
                       const centerLatLng = L.latLng(draftGeofence.centro[0], draftGeofence.centro[1]);
                       const newDistance = centerLatLng.distanceTo(pos);
-                      onDraftChange?.({
+                      updateDraftSmooth({
                         ...draftGeofence,
                         radio: Math.max(10, Math.round(newDistance)),
                       });
@@ -841,7 +856,7 @@ export default function GeofenceMap({
                       const pos = marker.getLatLng();
                       const centerLatLng = L.latLng(draftGeofence.centro[0], draftGeofence.centro[1]);
                       const newDistance = centerLatLng.distanceTo(pos);
-                      onDraftChange?.({
+                      updateDraftFinal({
                         ...draftGeofence,
                         radio: Math.max(10, Math.round(newDistance)),
                       });
@@ -871,6 +886,10 @@ export default function GeofenceMap({
             click: () => {
               setFocusedGeofenceId?.(g.id);
               onSelectGeofence?.(g.id);
+            },
+            dblclick: (e: L.LeafletMouseEvent) => {
+              L.DomEvent.stopPropagation(e);
+              onStartEdit?.(g);
             },
           };
 
@@ -929,14 +948,24 @@ export default function GeofenceMap({
                   )}
                 </div>
 
-                <div className="mt-2.5 pt-1.5 flex justify-end">
+                <div className="mt-2.5 pt-1.5 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onStartEdit?.(g);
+                    }}
+                    className="text-xs font-semibold px-2.5 py-1 rounded bg-muted hover:bg-muted/80 text-foreground transition-colors flex items-center gap-1"
+                  >
+                    <Edit3 className="h-3 w-3" /> Editar
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
                       setFocusedGeofenceId?.(g.id);
                       onSelectGeofence?.(g.id);
                     }}
-                    className="text-xs font-semibold px-2 py-1 rounded bg-amber-500 hover:bg-amber-600 text-slate-950 transition-colors"
+                    className="text-xs font-semibold px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-600 text-slate-950 transition-colors"
                   >
                     Centrar
                   </button>

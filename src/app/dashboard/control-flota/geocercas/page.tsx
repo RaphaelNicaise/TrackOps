@@ -274,6 +274,7 @@ export default function GeocercasPage() {
           drawingMode={drawingMode}
           setDrawingMode={setDrawingMode}
           onSelectGeofence={handleSelectGeofence}
+          onStartEdit={handleStartEdit}
         />
       </div>
 
