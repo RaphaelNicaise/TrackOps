@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { CreateVehicleDialog } from "./vehicle-dialogs";
 
 export type VehiculoRow = {
   id: number;
@@ -120,11 +121,14 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">Vehículos</h1>
-        <p className="text-sm text-muted-foreground">
-          {filtered.length} de {vehicles.length} vehículos en la flota
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold tracking-tight">Vehículos</h1>
+          <p className="text-sm text-muted-foreground">
+            {filtered.length} de {vehicles.length} vehículos en la flota
+          </p>
+        </div>
+        <CreateVehicleDialog />
       </div>
 
       <Card className="overflow-hidden">
