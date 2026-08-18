@@ -190,6 +190,10 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
         center={[defaultCenter.lat, defaultCenter.lng]} 
         zoom={12} 
         scrollWheelZoom={true} 
+        zoomSnap={0.25}
+        zoomDelta={0.5}
+        wheelPxPerZoomLevel={120}
+        wheelDebounceTime={40}
         className="h-full w-full z-0"
         zoomControl={false}
       >

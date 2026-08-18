@@ -901,6 +901,10 @@ export default function GeofenceMap({
         center={[-38.7183, -62.2663]}
         zoom={13}
         scrollWheelZoom={true}
+        zoomSnap={0.25}
+        zoomDelta={0.5}
+        wheelPxPerZoomLevel={120}
+        wheelDebounceTime={40}
         doubleClickZoom={drawingMode === "none"}
         className="h-full w-full z-0"
         zoomControl={false}
