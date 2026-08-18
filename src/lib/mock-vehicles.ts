@@ -156,3 +156,31 @@ export function deleteMockVehiculo(id: number): boolean {
   mockVehiculos.splice(idx, 1);
   return true;
 }
+
+export function addMockVehiculo(data: MockVehiculoPatch): MockVehiculo {
+  const nextId = mockVehiculos.length > 0 ? Math.max(...mockVehiculos.map((v) => v.id)) + 1 : 1;
+  const newVehiculo: MockVehiculo = {
+    id: nextId,
+    patente: (data.patente ?? "").toUpperCase(),
+    marca: data.marca ?? "",
+    modelo: data.modelo ?? "",
+    anio: data.anio ?? null,
+    tipo: data.tipo ?? "Camión",
+    chasis: data.chasis ?? "",
+    kilometrajeActual: data.kilometrajeActual ?? 0,
+    rto: data.rto ?? null,
+    docCount: 0,
+    estado: "Detenido",
+    velocidad: "0 km/h",
+    ultimaActualizacion: "Recién",
+    online: true,
+    hasAlert: false,
+    lat: -38.715,
+    lng: -62.265,
+    kilometraje: `${(data.kilometrajeActual ?? 0).toLocaleString("es-AR")} km`,
+    alertasCount: 0,
+  };
+  mockVehiculos.unshift(newVehiculo);
+  return newVehiculo;
+}
+
