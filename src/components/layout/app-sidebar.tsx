@@ -28,7 +28,13 @@ import {
   ChevronLeft,
   Bell,
   Map,
-  ChevronRight
+  ChevronRight,
+  Building2,
+  UserPlus,
+  BarChart3,
+  Database,
+  Container,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -37,18 +43,46 @@ import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-type NavItem = {
+export type NavItem = {
   title: string;
   url: string;
   icon?: any;
+  external?: boolean;
 };
 
-type NavGroup = {
+export type NavGroup = {
   label?: string;
   items: NavItem[];
 };
 
-const adminNav: NavGroup[] = [
+export const superAdminNav: NavGroup[] = [
+  {
+    label: "Monitoreo SaaS",
+    items: [
+      { title: "Dashboard Global", url: "/dashboard/superadmin/dashboard", icon: LayoutDashboard },
+      { title: "Alertas & Salud", url: "/dashboard/superadmin/alertas", icon: Bell },
+    ],
+  },
+  {
+    label: "Gestión de Plataforma",
+    items: [
+      { title: "Empresas Clientes", url: "/dashboard/superadmin/clientes", icon: Building2 },
+      { title: "Prospectos (Leads)", url: "/dashboard/superadmin/prospectos", icon: UserPlus },
+      { title: "Cobros & Planes", url: "/dashboard/superadmin/facturacion", icon: CreditCard },
+    ],
+  },
+  {
+    label: "Dev & Operaciones",
+    items: [
+      { title: "Configuración Sistema", url: "/dashboard/superadmin/dev/config", icon: Settings },
+      { title: "Umami Analytics", url: "http://localhost:3002", icon: BarChart3, external: true },
+      { title: "pgAdmin Database", url: "http://localhost:5050", icon: Database, external: true },
+      { title: "Portainer Docker", url: "http://localhost:9000", icon: Container, external: true },
+    ],
+  },
+];
+
+export const adminNav: NavGroup[] = [
   {
     items: [
       { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
@@ -89,8 +123,8 @@ const adminNav: NavGroup[] = [
   }
 ];
 
-const navByRole: Record<string, NavGroup[]> = {
-  SUPER_ADMIN: adminNav,
+export const navByRole: Record<string, NavGroup[]> = {
+  SUPER_ADMIN: superAdminNav,
   ADMIN_EMPRESA: adminNav,
   CHOFER: [
     {
@@ -161,23 +195,39 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
                       <SidebarMenu className="gap-1.5">
                         {group.items.map((item, itemIdx) => {
                           const Icon = item.icon;
+                          const isActive = !item.external && (pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/")));
                           return (
                             <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
                               <SidebarMenuButton
                                 asChild
-                                isActive={pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))}
+                                isActive={isActive}
                                 tooltip={item.title}
                                 className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
                               >
-                                <Link
-                                  href={item.url}
-                                  className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
-                                >
-                                  {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                                  <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-                                    {item.title}
-                                  </span>
-                                </Link>
+                                {item.external ? (
+                                  <a
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                                  >
+                                    {Icon && <Icon className="h-5 w-5 shrink-0" />}
+                                    <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0 flex-1 text-left">
+                                      {item.title}
+                                    </span>
+                                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground ml-auto group-data-[collapsible=icon]:hidden" />
+                                  </a>
+                                ) : (
+                                  <Link
+                                    href={item.url}
+                                    className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                                  >
+                                    {Icon && <Icon className="h-5 w-5 shrink-0" />}
+                                    <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+                                      {item.title}
+                                    </span>
+                                  </Link>
+                                )}
                               </SidebarMenuButton>
                             </SidebarMenuItem>
                           );
@@ -196,23 +246,39 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
                 <SidebarMenu className="gap-1.5">
                   {group.items.map((item, itemIdx) => {
                     const Icon = item.icon;
+                    const isActive = !item.external && (pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/")));
                     return (
                       <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
                         <SidebarMenuButton
                           asChild
-                          isActive={pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/"))}
+                          isActive={isActive}
                           tooltip={item.title}
                           className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
                         >
-                          <Link
-                            href={item.url}
-                            className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
-                          >
-                            {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                            <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-                              {item.title}
-                            </span>
-                          </Link>
+                          {item.external ? (
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                            >
+                              {Icon && <Icon className="h-5 w-5 shrink-0" />}
+                              <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0 flex-1 text-left">
+                                {item.title}
+                              </span>
+                              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground ml-auto group-data-[collapsible=icon]:hidden" />
+                            </a>
+                          ) : (
+                            <Link
+                              href={item.url}
+                              className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
+                            >
+                              {Icon && <Icon className="h-5 w-5 shrink-0" />}
+                              <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+                                {item.title}
+                              </span>
+                            </Link>
+                          )}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
