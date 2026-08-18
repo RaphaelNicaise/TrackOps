@@ -21,13 +21,35 @@ export async function createEmpresa(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
 
+  const nombre = formData.get("nombre") as string;
+  const cuit = (formData.get("cuit") as string) || null;
+  const planIdStr = formData.get("planId") as string | null;
+
+  if (!nombre || nombre.trim() === "") {
+    throw new Error("El nombre de la empresa es requerido");
+  }
+
   const [empresa] = await db.insert(empresas).values({
-    nombre: formData.get("nombre") as string,
-    cuit: formData.get("cuit") as string,
+    nombre: nombre.trim(),
+    cuit: cuit ? cuit.trim() : null,
   }).returning();
 
-  await logAudit("CREATE", "empresa", empresa.id, { nombre: empresa.nombre });
+  if (planIdStr) {
+    const planId = parseInt(planIdStr);
+    if (!isNaN(planId) && planId > 0) {
+      await db.insert(empresaSubscriptions).values({
+        empresaId: empresa.id,
+        planId,
+        estado: "activa",
+        metodoPago: "transferencia",
+      });
+    }
+  }
+
+  await logAudit("CREATE", "empresa", empresa.id, { nombre: empresa.nombre, cuit });
+  revalidatePath("/dashboard/superadmin/clientes");
   revalidatePath("/dashboard");
+  return { success: true, empresa };
 }
 
 export async function updateEmpresa(formData: FormData) {
@@ -35,13 +57,107 @@ export async function updateEmpresa(formData: FormData) {
   if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
 
   const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) throw new Error("ID de empresa inválido");
+
+  const nombre = formData.get("nombre") as string;
+  const cuit = (formData.get("cuit") as string) || null;
+  const planIdStr = formData.get("planId") as string | null;
+  const estado = formData.get("estado") as string | null;
+
   await db.update(empresas).set({
-    nombre: formData.get("nombre") as string,
-    cuit: formData.get("cuit") as string,
+    nombre: nombre.trim(),
+    cuit: cuit ? cuit.trim() : null,
   }).where(eq(empresas.id, id));
 
-  await logAudit("UPDATE", "empresa", id, { nombre: formData.get("nombre") });
+  if (planIdStr) {
+    const planId = parseInt(planIdStr);
+    if (!isNaN(planId) && planId > 0) {
+      const existingSub = await db
+        .select()
+        .from(empresaSubscriptions)
+        .where(eq(empresaSubscriptions.empresaId, id));
+
+      if (existingSub.length > 0) {
+        await db.update(empresaSubscriptions).set({
+          planId,
+          estado: estado || existingSub[0].estado,
+        }).where(eq(empresaSubscriptions.id, existingSub[0].id));
+      } else {
+        await db.insert(empresaSubscriptions).values({
+          empresaId: id,
+          planId,
+          estado: estado || "activa",
+          metodoPago: "transferencia",
+        });
+      }
+    }
+  }
+
+  await logAudit("UPDATE", "empresa", id, { nombre, cuit });
+  revalidatePath("/dashboard/superadmin/clientes");
   revalidatePath("/dashboard");
+  return { success: true };
+}
+
+export async function toggleEmpresaStatus(formData: FormData) {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
+
+  const empresaId = parseInt(formData.get("empresaId") as string);
+  const nuevoEstado = formData.get("estado") as "activa" | "suspendida" | "cancelada";
+
+  if (isNaN(empresaId) || !nuevoEstado) {
+    throw new Error("Parámetros inválidos para cambiar estado");
+  }
+
+  const existingSub = await db
+    .select()
+    .from(empresaSubscriptions)
+    .where(eq(empresaSubscriptions.empresaId, empresaId));
+
+  if (existingSub.length > 0) {
+    await db.update(empresaSubscriptions).set({
+      estado: nuevoEstado,
+    }).where(eq(empresaSubscriptions.id, existingSub[0].id));
+  } else {
+    // Si no tenía suscripción registrada, asignar plan por defecto y estado
+    const [defaultPlan] = await db.select().from(subscriptionPlans).limit(1);
+    const planId = defaultPlan?.id || 1;
+    await db.insert(empresaSubscriptions).values({
+      empresaId,
+      planId,
+      estado: nuevoEstado,
+      metodoPago: "transferencia",
+    });
+  }
+
+  await logAudit("UPDATE", "empresa_status", empresaId, { estado: nuevoEstado });
+  revalidatePath("/dashboard/superadmin/clientes");
+  revalidatePath("/dashboard");
+  return { success: true, estado: nuevoEstado };
+}
+
+export async function superpoderesAccessTenant(empresaId: number) {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
+
+  const [empresa] = await db
+    .select()
+    .from(empresas)
+    .where(eq(empresas.id, empresaId));
+
+  await logAudit("IMPERSONATE", "empresa", empresaId, {
+    action: "superpoderes_access",
+    empresaNombre: empresa?.nombre || "Empresa Desconocida",
+    superadminEmail: session.user.email,
+  });
+
+  return {
+    success: true,
+    empresaId,
+    empresaNombre: empresa?.nombre || `Empresa #${empresaId}`,
+    message: `Sesión de soporte iniciada como administrador para ${empresa?.nombre || `Empresa #${empresaId}`}`,
+  };
 }
 
 // ═══════════ SUSCRIPCIONES ═══════════
