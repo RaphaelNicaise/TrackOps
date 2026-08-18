@@ -141,3 +141,21 @@ export async function endShift(formData: FormData) {
   await logAudit("UPDATE", "shiftLog", shiftId, { endKm });
   revalidatePath("/dashboard/chofer");
 }
+
+export async function createFine(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.empresaId) throw new Error("No empresa ID");
+
+  const vId = parseInt(formData.get("vehicleId") as string);
+  const estado = (formData.get("estado") as string) || "pendiente";
+
+  await (db as any).insert({}).values({
+    vehicleId: vId,
+    fecha: formData.get("fecha") as string,
+    jurisdiccion: formData.get("jurisdiccion") as string,
+    motivo: formData.get("motivo") as string,
+    monto: parseFloat(formData.get("monto") as string),
+    estado,
+  });
+}
+
