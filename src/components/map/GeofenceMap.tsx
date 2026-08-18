@@ -93,14 +93,14 @@ function createVertexIcon(color: string, index: number): L.DivIcon {
   return L.divIcon({
     className: "leaflet-custom-div-icon",
     html: `
-      <div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); cursor: grab;">
-        <div style="width: 14px; height: 14px; border-radius: 50%; background-color: #ffffff; border: 2.5px solid ${color}; box-shadow: 0 2px 6px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; transition: transform 0.15s ease;">
+      <div style="width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; cursor: grab;">
+        <div style="width: 12px; height: 12px; border-radius: 50%; background-color: #ffffff; border: 2px solid ${color}; box-shadow: 0 1px 4px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
           <div style="width: 4px; height: 4px; border-radius: 50%; background-color: ${color};"></div>
         </div>
       </div>
     `,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
   });
 }
 
@@ -108,8 +108,8 @@ function createMidpointIcon(color: string): L.DivIcon {
   return L.divIcon({
     className: "leaflet-custom-div-icon",
     html: `
-      <div style="width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); cursor: pointer;">
-        <div style="width: 14px; height: 14px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.95); border: 1.5px solid ${color}; box-shadow: 0 1px 4px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: ${color}; line-height: 1; transition: all 0.15s ease;">
+      <div style="width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div style="width: 13px; height: 13px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.95); border: 1.5px solid ${color}; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: ${color}; line-height: 1;">
           +
         </div>
       </div>
@@ -123,9 +123,9 @@ function createCenterIcon(color: string): L.DivIcon {
   return L.divIcon({
     className: "leaflet-custom-div-icon",
     html: `
-      <div style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); cursor: move;">
-        <div style="width: 22px; height: 22px; border-radius: 50%; background-color: #0f172a; border: 2px solid ${color}; box-shadow: 0 3px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: ${color};">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: move;">
+        <div style="width: 20px; height: 20px; border-radius: 50%; background-color: #0f172a; border: 2px solid ${color}; box-shadow: 0 2px 6px rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; color: ${color};">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="5 9 2 12 5 15"></polyline>
             <polyline points="9 5 12 2 15 5"></polyline>
             <polyline points="15 19 12 22 9 19"></polyline>
@@ -136,8 +136,8 @@ function createCenterIcon(color: string): L.DivIcon {
         </div>
       </div>
     `,
-    iconSize: [26, 26],
-    iconAnchor: [13, 13],
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 }
 
@@ -145,17 +145,17 @@ function createRadiusIcon(color: string): L.DivIcon {
   return L.divIcon({
     className: "leaflet-custom-div-icon",
     html: `
-      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); cursor: ew-resize;">
-        <div style="width: 20px; height: 20px; border-radius: 50%; background-color: #ffffff; border: 2px solid ${color}; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: ${color};">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <div style="width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: ew-resize;">
+        <div style="width: 18px; height: 18px; border-radius: 50%; background-color: #ffffff; border: 2px solid ${color}; box-shadow: 0 2px 5px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: ${color};">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="m18 8 4 4-4 4"></path>
             <path d="M2 12h20"></path>
           </svg>
         </div>
       </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
   });
 }
 
@@ -364,6 +364,7 @@ export default function GeofenceMap({
 }: GeofenceMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mousePos, setMousePos] = useState<[number, number] | null>(null);
+  const centroidDragRef = useRef<{ startPos: L.LatLng; startCoords: [number, number][] } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -640,6 +641,16 @@ export default function GeofenceMap({
                     draggable={drawingMode === "edit_vertices" || drawingMode === "draw_polygon"}
                     icon={createVertexIcon(draftColor, idx)}
                     eventHandlers={{
+                      drag: (e) => {
+                        const marker = e.target;
+                        const pos = marker.getLatLng();
+                        const newCoords = [...(draftGeofence.coordenadas || [])];
+                        newCoords[idx] = [pos.lat, pos.lng];
+                        onDraftChange?.({
+                          ...draftGeofence,
+                          coordenadas: newCoords,
+                        });
+                      },
                       dragend: (e) => {
                         const marker = e.target;
                         const pos = marker.getLatLng();
@@ -691,6 +702,16 @@ export default function GeofenceMap({
                               coordenadas: newCoords,
                             });
                           },
+                          drag: (e) => {
+                            const marker = e.target;
+                            const pos = marker.getLatLng();
+                            const newCoords = [...coords];
+                            newCoords.splice(idx + 1, 0, [pos.lat, pos.lng]);
+                            onDraftChange?.({
+                              ...draftGeofence,
+                              coordenadas: newCoords,
+                            });
+                          },
                           dragend: (e) => {
                             const marker = e.target;
                             const pos = marker.getLatLng();
@@ -715,14 +736,37 @@ export default function GeofenceMap({
                       draggable={true}
                       icon={createCenterIcon(draftColor)}
                       eventHandlers={{
-                        dragend: (e) => {
+                        dragstart: (e) => {
+                          const marker = e.target;
+                          centroidDragRef.current = {
+                            startPos: marker.getLatLng(),
+                            startCoords: [...(draftGeofence.coordenadas || [])],
+                          };
+                        },
+                        drag: (e) => {
+                          if (!centroidDragRef.current) return;
                           const marker = e.target;
                           const pos = marker.getLatLng();
-                          const deltaLat = pos.lat - polygonCentroid[0];
-                          const deltaLng = pos.lng - polygonCentroid[1];
-                          const newCoords = (draftGeofence.coordenadas || []).map(
+                          const deltaLat = pos.lat - centroidDragRef.current.startPos.lat;
+                          const deltaLng = pos.lng - centroidDragRef.current.startPos.lng;
+                          const newCoords = centroidDragRef.current.startCoords.map(
                             ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
                           );
+                          onDraftChange?.({
+                            ...draftGeofence,
+                            coordenadas: newCoords,
+                          });
+                        },
+                        dragend: (e) => {
+                          if (!centroidDragRef.current) return;
+                          const marker = e.target;
+                          const pos = marker.getLatLng();
+                          const deltaLat = pos.lat - centroidDragRef.current.startPos.lat;
+                          const deltaLng = pos.lng - centroidDragRef.current.startPos.lng;
+                          const newCoords = centroidDragRef.current.startCoords.map(
+                            ([lat, lng]) => [lat + deltaLat, lng + deltaLng] as [number, number]
+                          );
+                          centroidDragRef.current = null;
                           onDraftChange?.({
                             ...draftGeofence,
                             coordenadas: newCoords,
@@ -755,6 +799,14 @@ export default function GeofenceMap({
                   draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
                   icon={createCenterIcon(draftColor)}
                   eventHandlers={{
+                    drag: (e) => {
+                      const marker = e.target;
+                      const pos = marker.getLatLng();
+                      onDraftChange?.({
+                        ...draftGeofence,
+                        centro: [pos.lat, pos.lng],
+                      });
+                    },
                     dragend: (e) => {
                       const marker = e.target;
                       const pos = marker.getLatLng();
@@ -772,10 +824,22 @@ export default function GeofenceMap({
                   draggable={drawingMode === "edit_vertices" || drawingMode === "draw_circle"}
                   icon={createRadiusIcon(draftColor)}
                   eventHandlers={{
-                    dragend: (e) => {
+                    drag: (e) => {
+                      if (!draftGeofence.centro) return;
                       const marker = e.target;
                       const pos = marker.getLatLng();
-                      const centerLatLng = L.latLng(draftGeofence.centro![0], draftGeofence.centro![1]);
+                      const centerLatLng = L.latLng(draftGeofence.centro[0], draftGeofence.centro[1]);
+                      const newDistance = centerLatLng.distanceTo(pos);
+                      onDraftChange?.({
+                        ...draftGeofence,
+                        radio: Math.max(10, Math.round(newDistance)),
+                      });
+                    },
+                    dragend: (e) => {
+                      if (!draftGeofence.centro) return;
+                      const marker = e.target;
+                      const pos = marker.getLatLng();
+                      const centerLatLng = L.latLng(draftGeofence.centro[0], draftGeofence.centro[1]);
                       const newDistance = centerLatLng.distanceTo(pos);
                       onDraftChange?.({
                         ...draftGeofence,
