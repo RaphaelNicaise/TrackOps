@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, ZoomControl, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, ZoomControl, useMap, Polygon, Circle, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
 import "leaflet.markercluster";
 import { renderToString } from "react-dom/server";
-import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, ArrowUpRight, Route, Gauge, Clock } from "lucide-react";
+import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, ArrowUpRight, Route, Gauge, Clock, Shield } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Geofence } from "@/types/geofence";
 
 // Fix Leaflet's default icon path issues with Webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -32,9 +33,177 @@ const defaultCenter = { lat: -38.7183, lng: -62.2663 }; // Bahia Blanca
 
 interface FleetMapProps {
   vehiculos?: any[];
+  geofences?: Geofence[];
+  showGeofences?: boolean;
   isListOpen?: boolean;
   focusedVehicleId?: number | null;
   setFocusedVehicleId?: (id: number | null) => void;
+  isFullscreen?: boolean;
+}
+
+function MapFullscreenHandler({ isFullscreen }: { isFullscreen?: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isFullscreen, map]);
+  return null;
+}
+
+function GeofencesGroup({
+  geofences = [],
+  showGeofences = true,
+}: {
+  geofences: Geofence[];
+  showGeofences: boolean;
+}) {
+  if (!showGeofences || !geofences || geofences.length === 0) return null;
+
+  return (
+    <>
+      {geofences.map((g) => {
+        const color = g.color || "#3b82f6";
+        const opacity = g.opacidad ?? 0.25;
+
+        if (g.tipo === "Polígono" && g.coordenadas && g.coordenadas.length >= 3) {
+          return (
+            <Polygon
+              key={`geofence-${g.id}`}
+              positions={g.coordenadas}
+              pathOptions={{
+                color: color,
+                fillColor: color,
+                fillOpacity: opacity,
+                weight: 2,
+                dashArray: g.activa ? undefined : "5, 5",
+              }}
+            >
+              <Popup closeButton={false}>
+                <div className="p-1 min-w-[190px] text-slate-900 dark:text-slate-100 font-sans">
+                  <div className="flex items-center justify-between gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 font-bold text-xs truncate">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-sm"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="truncate">{g.nombre}</span>
+                    </div>
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                        g.activa
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                          : "bg-slate-500/15 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      {g.activa ? "Activa" : "Inactiva"}
+                    </span>
+                  </div>
+                  {g.descripcion && (
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 mb-1.5">
+                      {g.descripcion}
+                    </p>
+                  )}
+                  <div className="space-y-0.5 text-[11px]">
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Tipo:</span>
+                      <span className="font-semibold text-foreground">{g.tipo}</span>
+                    </div>
+                    {g.speedLimit && (
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Límite vel:</span>
+                        <span className="font-semibold text-amber-600 dark:text-amber-400">
+                          {g.speedLimit} km/h
+                        </span>
+                      </div>
+                    )}
+                    {g.targetType && (
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Asignación:</span>
+                        <span className="font-semibold text-foreground">
+                          {g.targetType === "ALL" ? "Toda la flota" : g.targetType}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Popup>
+            </Polygon>
+          );
+        }
+
+        if (g.tipo === "Círculo" && g.centro && g.radio) {
+          return (
+            <Circle
+              key={`geofence-${g.id}`}
+              center={g.centro}
+              radius={g.radio}
+              pathOptions={{
+                color: color,
+                fillColor: color,
+                fillOpacity: opacity,
+                weight: 2,
+                dashArray: g.activa ? undefined : "5, 5",
+              }}
+            >
+              <Popup closeButton={false}>
+                <div className="p-1 min-w-[190px] text-slate-900 dark:text-slate-100 font-sans">
+                  <div className="flex items-center justify-between gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 font-bold text-xs truncate">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-sm"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="truncate">{g.nombre}</span>
+                    </div>
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                        g.activa
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                          : "bg-slate-500/15 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      {g.activa ? "Activa" : "Inactiva"}
+                    </span>
+                  </div>
+                  {g.descripcion && (
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 mb-1.5">
+                      {g.descripcion}
+                    </p>
+                  )}
+                  <div className="space-y-0.5 text-[11px]">
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Radio:</span>
+                      <span className="font-semibold text-foreground">{g.radio}m</span>
+                    </div>
+                    {g.speedLimit && (
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Límite vel:</span>
+                        <span className="font-semibold text-amber-600 dark:text-amber-400">
+                          {g.speedLimit} km/h
+                        </span>
+                      </div>
+                    )}
+                    {g.targetType && (
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Asignación:</span>
+                        <span className="font-semibold text-foreground">
+                          {g.targetType === "ALL" ? "Toda la flota" : g.targetType}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Popup>
+            </Circle>
+          );
+        }
+
+        return null;
+      })}
+    </>
+  );
 }
 
 function VehicleClusterGroup({
@@ -172,7 +341,15 @@ function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any
   return null;
 }
 
-export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVehicleId = null, setFocusedVehicleId }: FleetMapProps) {
+export default function FleetMap({
+  vehiculos = [],
+  geofences = [],
+  showGeofences = true,
+  isListOpen = true,
+  focusedVehicleId = null,
+  setFocusedVehicleId,
+  isFullscreen = false,
+}: FleetMapProps) {
   const router = useRouter();
   const focusedVehicle = focusedVehicleId ? vehiculos.find(v => v.id === focusedVehicleId) : null;
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -202,7 +379,9 @@ export default function FleetMap({ vehiculos = [], isListOpen = true, focusedVeh
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <ZoomControl position="bottomright" />
+        <MapFullscreenHandler isFullscreen={isFullscreen} />
         <MapBounds vehiculos={vehiculos} isListOpen={isListOpen} focusedVehicleId={focusedVehicleId} />
+        <GeofencesGroup geofences={geofences} showGeofences={showGeofences} />
         <VehicleClusterGroup vehiculos={vehiculos} setFocusedVehicleId={setFocusedVehicleId} />
       </MapContainer>
 

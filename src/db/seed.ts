@@ -108,6 +108,33 @@ async function createTablesIfNotExist() {
         created_at timestamp DEFAULT now() NOT NULL
       );
     `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS geofences (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id),
+        nombre text NOT NULL,
+        descripcion text,
+        tipo varchar(20) DEFAULT 'Polígono' NOT NULL,
+        color varchar(30) DEFAULT '#3b82f6' NOT NULL,
+        opacidad double precision DEFAULT 0.25 NOT NULL,
+        coordenadas text,
+        centro_lat double precision,
+        centro_lng double precision,
+        radio double precision,
+        activa integer DEFAULT 1 NOT NULL,
+        target_type varchar(30) DEFAULT 'ALL' NOT NULL,
+        target_vehicles text,
+        target_categories text,
+        target_groups text,
+        alert_events text,
+        speed_limit integer,
+        action_types text,
+        email_recipients text,
+        created_at timestamp DEFAULT now() NOT NULL,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
     console.log("✓ Database tables verified/created successfully.");
   } finally {
     await sql.end();

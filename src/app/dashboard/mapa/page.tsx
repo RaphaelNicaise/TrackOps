@@ -1,11 +1,31 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import { Search, Car, Truck, PanelLeftClose, PanelLeftOpen, Activity, Pause, Navigation, Clock, Wifi, Filter, ChevronDown, ChevronRight, Gauge, AlertTriangle } from "lucide-react";
+import {
+  Search,
+  Car,
+  Truck,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Activity,
+  Pause,
+  Navigation,
+  Clock,
+  Wifi,
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  Gauge,
+  AlertTriangle,
+  Maximize2,
+  Minimize2,
+  Shield,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { mockVehiculos } from "@/lib/mock-vehicles";
+import { Geofence } from "@/types/geofence";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,10 +56,55 @@ const getStateIcon = (estado: string) => {
 };
 
 export default function MapaPage() {
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [isListOpen, setIsListOpen] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<VehicleType | "Todos">("Todos");
   const [focusedVehicleId, setFocusedVehicleId] = useState<number | null>(null);
+  const [geofences, setGeofences] = useState<Geofence[]>([]);
+  const [showGeofences, setShowGeofences] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Fetch real geofences from DB on mount
+  useEffect(() => {
+    fetch("/api/geofences")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setGeofences(data);
+        }
+      })
+      .catch((err) => console.error("Error fetching geofences:", err));
+  }, []);
+
+  // Listen to fullscreen changes (e.g. Esc key pressed)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      if (mapContainerRef.current?.requestFullscreen) {
+        mapContainerRef.current.requestFullscreen().catch((err) => {
+          console.warn("Fullscreen request error:", err);
+        });
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch((err) => {
+          console.warn("Fullscreen exit error:", err);
+        });
+      }
+    }
+  };
 
   const filteredVehiculos = useMemo(() => {
     return mockVehiculos.filter((v) => {
@@ -55,15 +120,55 @@ export default function MapaPage() {
   }, [search, typeFilter]);
 
   return (
-    <div className="absolute inset-0 flex">
+    <div ref={mapContainerRef} className="absolute inset-0 flex bg-background">
       {/* Absolute Map Background */}
       <div className="absolute inset-0 z-0">
         <FleetMap 
           vehiculos={filteredVehiculos} 
+          geofences={geofences}
+          showGeofences={showGeofences}
           isListOpen={isListOpen} 
           focusedVehicleId={focusedVehicleId} 
           setFocusedVehicleId={setFocusedVehicleId} 
+          isFullscreen={isFullscreen}
         />
+      </div>
+
+      {/* Top Right Controls: Fullscreen (Top) & Geocercas Shield (Bottom) */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col items-center gap-2">
+        {/* Fullscreen Button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 rounded-xl shadow-lg transition-all bg-background/95 backdrop-blur-md border-border hover:bg-muted hover:scale-105 text-foreground select-none"
+          onClick={toggleFullscreen}
+          title={isFullscreen ? "Salir de pantalla completa (Esc)" : "Pantalla completa"}
+        >
+          {isFullscreen ? (
+            <Minimize2 className="w-4 h-4" />
+          ) : (
+            <Maximize2 className="w-4 h-4" />
+          )}
+        </Button>
+
+        {/* Toggle Geofences Shield Button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className={`h-10 w-10 rounded-xl shadow-lg transition-all backdrop-blur-md select-none hover:scale-105 ${
+            showGeofences
+              ? "bg-background/95 border-amber-500/50 text-amber-500 ring-1 ring-amber-500/25 hover:bg-amber-500/10"
+              : "bg-background/90 border-border text-muted-foreground/60 hover:text-foreground hover:bg-muted"
+          }`}
+          onClick={() => setShowGeofences((prev) => !prev)}
+          title={showGeofences ? "Ocultar geocercas en el mapa" : "Mostrar geocercas en el mapa"}
+        >
+          <Shield
+            className={`w-4 h-4 transition-colors ${
+              showGeofences ? "text-amber-500 fill-amber-500/20" : "text-muted-foreground"
+            }`}
+          />
+        </Button>
       </div>
 
       {/* Floating Toggle Button (if closed) */}

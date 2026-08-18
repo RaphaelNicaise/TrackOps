@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { geofences } from "@/db/schema";
+import { geofences, empresas } from "@/db/schema";
 import {
   getMockGeofences,
   createMockGeofence,
@@ -27,9 +27,12 @@ export async function GET() {
         query = query.where(eq(geofences.empresaId, session.user.empresaId)) as any;
       }
       const rows = await query;
-      if (rows && rows.length > 0) {
+      if (Array.isArray(rows) && rows.length > 0) {
         const parsed = rows.map(dbRowToGeofence);
         return NextResponse.json(parsed);
+      }
+      if (Array.isArray(rows) && rows.length === 0) {
+        return NextResponse.json([]);
       }
     } catch (dbError) {
       console.warn("DB query failed, using mock geofences fallback:", dbError);
@@ -38,6 +41,7 @@ export async function GET() {
     const mocks = getMockGeofences();
     return NextResponse.json(mocks);
   } catch (error: any) {
+    console.error("Error al obtener geocercas:", error);
     return NextResponse.json(
       { error: error.message || "Error al obtener geocercas" },
       { status: 500 }
@@ -63,7 +67,15 @@ export async function POST(request: Request) {
       // Auth lookup fallback
     }
 
-    const empresaId = body.empresaId || session?.user?.empresaId || 1;
+    let empresaId = body.empresaId || session?.user?.empresaId;
+    if (!empresaId) {
+      try {
+        const [firstEmpresa] = await db.select({ id: empresas.id }).from(empresas).limit(1);
+        empresaId = firstEmpresa?.id || 1;
+      } catch {
+        empresaId = 1;
+      }
+    }
 
     try {
       const dbValues = {
@@ -86,9 +98,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newGeofence, { status: 201 });
   } catch (error: any) {
+    console.error("Error al crear geocerca:", error);
     return NextResponse.json(
       { error: error.message || "Error al procesar la solicitud" },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }

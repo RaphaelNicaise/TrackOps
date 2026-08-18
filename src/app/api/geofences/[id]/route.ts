@@ -36,7 +36,7 @@ export async function PUT(
         return NextResponse.json(dbRowToGeofence(updated));
       }
     } catch (dbError) {
-      console.warn("DB update failed, attempting mock update fallback:", dbError);
+      console.warn("DB update failed, using mock update fallback:", dbError);
     }
 
     const updatedMock = updateMockGeofence(id, body);
@@ -46,6 +46,7 @@ export async function PUT(
 
     return NextResponse.json(updatedMock);
   } catch (error: any) {
+    console.error("Error al actualizar geocerca:", error);
     return NextResponse.json(
       { error: error.message || "Error al actualizar la geocerca" },
       { status: 500 }
@@ -71,10 +72,11 @@ export async function DELETE(
         .returning();
 
       if (deletedRows && deletedRows.length > 0) {
+        deleteMockGeofence(id);
         return NextResponse.json({ success: true });
       }
     } catch (dbError) {
-      console.warn("DB delete failed, attempting mock delete fallback:", dbError);
+      console.warn("DB delete failed, using mock delete fallback:", dbError);
     }
 
     const success = deleteMockGeofence(id);
@@ -84,9 +86,11 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error("Error al eliminar geocerca:", error);
     return NextResponse.json(
       { error: error.message || "Error al eliminar la geocerca" },
       { status: 500 }
     );
   }
 }
+

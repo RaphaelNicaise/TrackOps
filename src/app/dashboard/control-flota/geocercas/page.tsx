@@ -62,15 +62,13 @@ export default function GeocercasPage() {
       const res = await fetch("/api/geofences");
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setGeofences(data);
           return;
         }
       }
-      setGeofences(INITIAL_MOCK_GEOFENCES);
     } catch (error) {
-      console.warn("Could not fetch geofences from API, falling back to mock dataset:", error);
-      setGeofences(INITIAL_MOCK_GEOFENCES);
+      console.error("Could not fetch geofences from API:", error);
     }
   }, []);
 
