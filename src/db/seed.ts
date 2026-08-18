@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { users, empresas, vehicles, maintenanceLogs, documentCategories, vehicleDocuments } from "./schema";
+import { users, empresas, vehicles, maintenanceLogs, documentCategories, vehicleDocuments, prospectos } from "./schema";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 import bcryptjs from "bcryptjs";
@@ -90,6 +90,21 @@ async function createTablesIfNotExist() {
         costo double precision DEFAULT 0,
         taller text,
         descripcion text,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS prospectos (
+        id serial PRIMARY KEY,
+        nombre text NOT NULL,
+        email text NOT NULL,
+        telefono varchar(50),
+        empresa text,
+        flota_estimada integer,
+        mensaje text,
+        estado varchar(30) DEFAULT 'nuevo' NOT NULL,
+        notas text,
         created_at timestamp DEFAULT now() NOT NULL
       );
     `;
@@ -340,6 +355,65 @@ async function main() {
     } catch (err) {
       console.warn("Vehicle seed notice:", err);
     }
+  }
+
+  // 6. Crear Prospectos (Leads CRM)
+  console.log("Seeding prospectos...");
+  const existingProspectos = await db.select().from(prospectos);
+  if (existingProspectos.length === 0) {
+    await db.insert(prospectos).values([
+      {
+        nombre: "Martín Palermo",
+        email: "mpalermo@transpalermo.com",
+        telefono: "+54 9 11 4455-6677",
+        empresa: "Transportes Palermo S.R.L.",
+        flotaEstimada: 18,
+        mensaje: "Hola, nos interesa el módulo de control de combustible y geocercas para 18 camiones en Buenos Aires.",
+        estado: "nuevo",
+        notas: "Lead originado desde formulario web de landing page.",
+      },
+      {
+        nombre: "Laura Fernández",
+        email: "lfernandez@delsurlog.com.ar",
+        telefono: "+54 9 299 512-3456",
+        empresa: "Distribuidora del Sur",
+        flotaEstimada: 8,
+        mensaje: "Buscamos controlar los vencimientos de RTO y seguros de utilitarios con alertas WhatsApp.",
+        estado: "contactado",
+        notas: "Primer contacto telefónico realizado. Se envió folleto comercial.",
+      },
+      {
+        nombre: "Esteban Quito",
+        email: "esteban@quitoexpress.com",
+        telefono: "+54 9 351 678-9012",
+        empresa: "Quito Logistics & Courier",
+        flotaEstimada: 35,
+        mensaje: "Queremos agendar una demo técnica para integración de GPS con nuestra flota en Córdoba.",
+        estado: "demo_agendada",
+        notas: "Demo agendada para el viernes a las 11:00 hs con el equipo de operaciones.",
+      },
+      {
+        nombre: "Sofía Martínez",
+        email: "smartinez@fletesexpress.com",
+        telefono: "+54 9 11 9876-5432",
+        empresa: "Fletes Express Rosario",
+        flotaEstimada: 5,
+        mensaje: "Queremos probar el sistema para 5 camionetas de reparto urbano.",
+        estado: "convertido",
+        notas: "Cliente convertido al plan Starter. Crearon cuenta exitosamente.",
+      },
+      {
+        nombre: "Diego Rodríguez",
+        email: "diego@transcuyo.com",
+        telefono: "+54 9 261 333-4455",
+        empresa: "Expreso Cuyo S.A.",
+        flotaEstimada: 50,
+        mensaje: "Consulta sobre precios por volumen para más de 50 unidades de larga distancia.",
+        estado: "descartado",
+        notas: "Por el momento decidieron continuar con su proveedor actual de telemetría.",
+      },
+    ]);
+    console.log("✓ Prospectos seeded successfully.");
   }
 
   console.log("✅ Seeding completed successfully!");

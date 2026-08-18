@@ -275,3 +275,17 @@ export const geofences = pgTable("geofences", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const prospectos = pgTable("prospectos", {
+  id: serial("id").primaryKey(),
+  nombre: text("nombre").notNull(),
+  email: text("email").notNull(),
+  telefono: varchar("telefono", { length: 50 }),
+  empresa: text("empresa"),
+  flotaEstimada: integer("flota_estimada"),
+  mensaje: text("mensaje"),
+  estado: varchar("estado", { length: 30 }).default("nuevo").notNull(), // nuevo, contactado, demo_agendada, convertido, descartado
+  notas: text("notas"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
