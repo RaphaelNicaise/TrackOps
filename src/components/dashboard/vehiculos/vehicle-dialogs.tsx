@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateVehicle, deleteVehicle } from "@/lib/vehicle-actions";
+import { updateVehicle, deleteVehicle, createVehicle } from "@/lib/vehicle-actions";
 
 export type VehiculoEditable = {
   id: number;
@@ -166,6 +166,103 @@ export function DeleteVehicleButton({ id, patente }: { id: number; patente: stri
             {isPending ? "Eliminando..." : "Eliminar"}
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function CreateVehicleDialog() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    startTransition(async () => {
+      await createVehicle(fd);
+      setOpen(false);
+      router.refresh();
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-2">
+          <Plus className="h-4 w-4" />
+          Agregar Vehículo
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Agregar nuevo vehículo</DialogTitle>
+          <DialogDescription>
+            Completá los datos del vehículo para incorporarlo a la flota.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="grid gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="create-patente">Patente</Label>
+              <Input
+                id="create-patente"
+                name="patente"
+                placeholder="AA 123 CD"
+                required
+                className="font-mono uppercase"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-tipo">Tipo</Label>
+              <select
+                id="create-tipo"
+                name="tipo"
+                defaultValue="Camión"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+              >
+                <option value="">—</option>
+                {TIPOS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-marca">Marca</Label>
+              <Input id="create-marca" name="marca" placeholder="Ej: Mercedes-Benz, Scania" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-modelo">Modelo</Label>
+              <Input id="create-modelo" name="modelo" placeholder="Ej: Actros 2045" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-anio">Año</Label>
+              <Input id="create-anio" name="anio" type="number" placeholder="Ej: 2024" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-chasis">Chasis</Label>
+              <Input id="create-chasis" name="chasis" placeholder="N° de Chasis / VIN" className="font-mono" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-kilometrajeActual">Km actual</Label>
+              <Input id="create-kilometrajeActual" name="kilometrajeActual" type="number" defaultValue="0" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-rto">RTO (vencimiento)</Label>
+              <Input id="create-rto" name="rto" type="date" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Guardando..." : "Guardar Vehículo"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
