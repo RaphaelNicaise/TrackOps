@@ -9,15 +9,27 @@ import {
 
 export const BUCKET_NAME = process.env.MINIO_BUCKET || "trackops";
 
-const minioEndpoint = process.env.MINIO_ENDPOINT || "localhost";
-const minioPort = process.env.MINIO_PORT || "9002";
-const useSSL = process.env.MINIO_USE_SSL === "true";
+function resolveMinioEndpoint(): string {
+  if (process.env.NODE_ENV === "production" && process.env.S3_ENDPOINT) {
+    return process.env.S3_ENDPOINT;
+  }
+  let endpoint = process.env.MINIO_ENDPOINT || "localhost";
+  // Si en .env dice "minio" pero estamos en desarrollo en host local (Node en Windows), usar localhost
+  if (endpoint === "minio") {
+    const isInsideContainer =
+      process.env.IS_CONTAINER === "true" ||
+      process.env.HOSTNAME === "trackops-app-dev";
+    if (!isInsideContainer) {
+      endpoint = "localhost";
+    }
+  }
+  const minioPort = process.env.MINIO_PORT || "9002";
+  const useSSL = process.env.MINIO_USE_SSL === "true";
+  return `${useSSL ? "https" : "http"}://${endpoint}:${minioPort}`;
+}
 
 export const s3Client = new S3Client({
-  endpoint:
-    process.env.NODE_ENV === "production" && process.env.S3_ENDPOINT
-      ? process.env.S3_ENDPOINT
-      : `${useSSL ? "https" : "http"}://${minioEndpoint}:${minioPort}`,
+  endpoint: resolveMinioEndpoint(),
   region: process.env.AWS_REGION || "us-east-1",
   credentials: {
     accessKeyId:

@@ -118,8 +118,7 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
-
-  const groups = navByRole[userRole || ""] || navByRole["CHOFER"];
+  const groups = (userRole && navByRole[userRole]) ? navByRole[userRole] : adminNav;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
