@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { UploadCloud, Loader2, AlertCircle, FileUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { UploadCloud, Loader2, FileUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { appAlert } from "@/lib/alerts";
 
 export interface UploadDropzoneProps {
   onUpload: (files: File[]) => Promise<void> | void;
@@ -25,10 +25,8 @@ export function UploadDropzone({
 }: UploadDropzoneProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const validateAndUpload = async (fileList: FileList | File[]) => {
-    setErrorMsg(null);
     const files = Array.from(fileList);
     if (!files.length) return;
 
@@ -36,8 +34,9 @@ export function UploadDropzone({
     const oversized = files.filter((f) => f.size > maxBytes);
 
     if (oversized.length > 0) {
-      setErrorMsg(
-        `El archivo "${oversized[0].name}" excede el límite máximo de ${maxSizeMB}MB.`
+      appAlert.error(
+        `El archivo "${oversized[0].name}" excede el límite máximo de ${maxSizeMB}MB.`,
+        "Archivo demasiado grande"
       );
       return;
     }
@@ -49,7 +48,7 @@ export function UploadDropzone({
         err instanceof Error
           ? err.message
           : "Ocurrió un error al subir los archivos.";
-      setErrorMsg(msg);
+      appAlert.error(msg, "Error al subir");
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -110,11 +109,11 @@ export function UploadDropzone({
           }
         }}
         className={cn(
-          "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200 cursor-pointer select-none",
-          "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5",
-          isDragOver &&
-            "border-primary bg-primary/10 ring-4 ring-primary/20 scale-[1.01]",
-          isUploading && "pointer-events-none opacity-60 bg-muted/30"
+          "group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200 cursor-pointer select-none",
+          isDragOver
+            ? "border-primary bg-primary/10 scale-[1.01] shadow-md ring-2 ring-primary/20"
+            : "border-muted-foreground/25 bg-muted/20 hover:border-primary/50 hover:bg-muted/40",
+          isUploading && "pointer-events-none opacity-60 cursor-not-allowed"
         )}
       >
         <input
@@ -122,35 +121,37 @@ export function UploadDropzone({
           type="file"
           multiple
           accept={accept}
-          className="hidden"
           onChange={handleFileChange}
+          className="hidden"
           disabled={isUploading}
         />
 
         {isUploading ? (
-          <div className="flex flex-col items-center gap-3 py-2">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <div className="flex flex-col items-center gap-2.5 py-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-foreground">
-                Subiendo documentos...
+              <p className="text-sm font-medium text-foreground">
+                Subiendo y procesando documentos...
               </p>
               <p className="text-xs text-muted-foreground">
-                Almacenando de forma segura en MinIO
+                Guardando en el almacenamiento seguro de la flota
               </p>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-3 py-2">
+          <div className="flex flex-col items-center gap-3">
             <div
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-200",
+                "flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-200",
                 isDragOver
-                  ? "scale-110 bg-primary text-primary-foreground"
-                  : "group-hover:scale-105"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
               )}
             >
               {isDragOver ? (
-                <FileUp className="h-6 w-6" />
+                <FileUp className="h-6 w-6 animate-bounce" />
               ) : (
                 <UploadCloud className="h-6 w-6" />
               )}
@@ -178,22 +179,6 @@ export function UploadDropzone({
           </div>
         )}
       </div>
-
-      {errorMsg && (
-        <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span className="flex-1">{errorMsg}</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-5 px-1.5 text-xs text-destructive hover:bg-destructive/20"
-            onClick={() => setErrorMsg(null)}
-          >
-            Cerrar
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

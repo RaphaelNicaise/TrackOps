@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Plataforma de gestión de flota, bitácora de mantenimiento, tracking GPS y analíticas.",
 };
 
+import { AppAlertProvider } from "@/components/ui/app-alert-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,6 +38,7 @@ export default function RootLayout({
       <body className="overflow-x-hidden w-full max-w-full font-sans">
         <ThemeProvider>
           {children}
+          <AppAlertProvider />
         </ThemeProvider>
         <UmamiAnalytics />
       </body>

@@ -8,18 +8,17 @@ import {
   Files,
   CalendarClock,
   FolderTree,
-  AlertCircle,
-  CheckCircle2,
   X,
   Sparkles,
 } from "lucide-react";
 import { isBefore, addDays } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { appAlert } from "@/lib/alerts";
 import {
   DocumentCategory,
   VehicleDocumentItem,
@@ -46,19 +45,6 @@ export function VehiculoDocumentos({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-
-  // Auto-clear notification after 4 seconds
-  useEffect(() => {
-    if (!notification) return;
-    const timer = setTimeout(() => {
-      setNotification(null);
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [notification]);
 
   // Load documents and categories
   const fetchData = useCallback(
@@ -97,6 +83,7 @@ export function VehiculoDocumentos({
             ? err.message
             : "Ocurrió un error al cargar la información documental.";
         setError(msg);
+        appAlert.error(msg, "Error al cargar documentos");
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
@@ -138,12 +125,11 @@ export function VehiculoDocumentos({
       }
 
       const targetCat = categories.find((c) => c.id === targetCategoryId);
-      setNotification({
-        type: "success",
-        message: targetCat
+      appAlert.success(
+        targetCat
           ? `Documento asignado a "${targetCat.nombre}".`
-          : "Documento movido a Sin categoría.",
-      });
+          : "Documento movido a Sin categoría."
+      );
     } catch (err: unknown) {
       console.error("Error moving document category:", err);
       setDocuments(previousDocuments);
@@ -151,7 +137,7 @@ export function VehiculoDocumentos({
         err instanceof Error
           ? err.message
           : "Error al actualizar la categoría del documento.";
-      setNotification({ type: "error", message: msg });
+      appAlert.error(msg);
     }
   };
 
@@ -180,58 +166,60 @@ export function VehiculoDocumentos({
       const createdDocs: VehicleDocumentItem[] = await res.json();
       setDocuments((prev) => [...createdDocs, ...prev]);
 
-      setNotification({
-        type: "success",
-        message:
-          files.length === 1
-            ? "1 documento subido exitosamente."
-            : `${files.length} documentos subidos exitosamente.`,
-      });
+      appAlert.success(
+        files.length === 1
+          ? "1 documento subido exitosamente."
+          : `${files.length} documentos subidos exitosamente.`
+      );
     } catch (err: unknown) {
       console.error("Error uploading documents:", err);
       const msg =
         err instanceof Error
           ? err.message
           : "Ocurrió un error al subir los archivos.";
-      setNotification({ type: "error", message: msg });
+      appAlert.error(msg);
       throw err;
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Delete document (Optimistic)
-  const handleDeleteDoc = async (docId: number) => {
-    const previousDocuments = [...documents];
+  // Delete document (with Modal Confirmation)
+  const handleDeleteDoc = (docId: number) => {
+    const docToDelete = documents.find((d) => d.id === docId);
+    const docTitle = docToDelete?.title || docToDelete?.fileName || "este documento";
 
-    // Optimistic delete
-    setDocuments((prev) => prev.filter((d) => d.id !== docId));
+    appAlert.confirm(
+      `¿Estás seguro de que deseás eliminar "${docTitle}"?\nEsta acción eliminará el archivo del almacenamiento de forma permanente.`,
+      async () => {
+        const previousDocuments = [...documents];
+        setDocuments((prev) => prev.filter((d) => d.id !== docId));
 
-    try {
-      const res = await fetch(`/api/documents/${docId}`, {
-        method: "DELETE",
-      });
+        try {
+          const res = await fetch(`/api/documents/${docId}`, {
+            method: "DELETE",
+          });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(
-          errData.error || "No se pudo eliminar el documento de almacenamiento."
-        );
-      }
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(
+              errData.error || "No se pudo eliminar el documento de almacenamiento."
+            );
+          }
 
-      setNotification({
-        type: "success",
-        message: "Documento eliminado correctamente.",
-      });
-    } catch (err: unknown) {
-      console.error("Error deleting document:", err);
-      setDocuments(previousDocuments);
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Error al eliminar el documento.";
-      setNotification({ type: "error", message: msg });
-    }
+          appAlert.success("Documento eliminado correctamente.");
+        } catch (err: unknown) {
+          console.error("Error deleting document:", err);
+          setDocuments(previousDocuments);
+          const msg =
+            err instanceof Error
+              ? err.message
+              : "Error al eliminar el documento.";
+          appAlert.error(msg);
+        }
+      },
+      "Eliminar documento"
+    );
   };
 
   // Create new category handler
@@ -251,10 +239,7 @@ export function VehiculoDocumentos({
 
     const createdCat: DocumentCategory = await res.json();
     setCategories((prev) => [...prev, createdCat]);
-    setNotification({
-      type: "success",
-      message: `Categoría "${nombre}" creada correctamente.`,
-    });
+    appAlert.success(`Categoría "${nombre}" creada correctamente.`);
   };
 
   // Filter documents by search query
@@ -418,58 +403,6 @@ export function VehiculoDocumentos({
           </Button>
         </div>
       </div>
-
-      {/* Inline Feedback Notification */}
-      <AnimatePresence>
-        {notification && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className={cn(
-              "flex items-center justify-between rounded-lg border p-3 text-sm shadow-xs",
-              notification.type === "success"
-                ? "border-emerald-200 bg-emerald-50/90 text-emerald-800 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-300"
-                : "border-destructive/30 bg-destructive/10 text-destructive dark:border-destructive/50"
-            )}
-          >
-            <div className="flex items-center gap-2">
-              {notification.type === "success" ? (
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <AlertCircle className="h-4 w-4 shrink-0" />
-              )}
-              <span>{notification.message}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setNotification(null)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Cerrar notificación</span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Global Error Banner if initial fetch or general state failed */}
-      {error && (
-        <div className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <span>{error}</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchData()}
-            className="h-8 border-destructive/30 text-xs text-destructive hover:bg-destructive/10"
-          >
-            Reintentar
-          </Button>
-        </div>
-      )}
 
       {/* Search Filter No-Results Feedback */}
       {searchQuery && filteredDocuments.length === 0 && (
