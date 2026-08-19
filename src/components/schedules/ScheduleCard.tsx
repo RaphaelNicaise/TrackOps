@@ -180,13 +180,7 @@ export function ScheduleCard({
             : "bg-card border-border/80 hover:border-border hover:bg-card/90"
         }`}
       >
-        {/* Left Color Accent Bar */}
-        <div
-          className="absolute left-0 top-3 bottom-3 w-1.5 rounded-r-full transition-all duration-200"
-          style={{ backgroundColor: schedule.color || "#F2B705" }}
-        />
-
-        <div className="pl-2 space-y-3">
+        <div className="space-y-3">
           {/* Top Row: Title + Status + Switch */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">

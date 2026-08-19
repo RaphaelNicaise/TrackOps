@@ -94,12 +94,6 @@ export function VehicleGroupCard({
   return (
     <>
       <div className="group relative flex flex-col justify-between rounded-2xl border border-border/70 bg-card p-5 transition-all duration-200 hover:border-border hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20">
-        {/* Color accent left bar */}
-        <div
-          className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full transition-all duration-200 group-hover:w-1.5"
-          style={{ backgroundColor: groupColor }}
-        />
-
         {/* Top section: Icon + Title + Count badge */}
         <div>
           <div className="flex items-start justify-between gap-3">
