@@ -35,6 +35,7 @@ import {
   Database,
   Container,
   ExternalLink,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -105,6 +106,7 @@ export const adminNav: NavGroup[] = [
       { title: "Sitios", url: "/dashboard/control-flota/sitios", icon: MapPin },
       { title: "Geocercas", url: "/dashboard/control-flota/geocercas", icon: Map },
       { title: "Grupos de vehículos", url: "/dashboard/control-flota/grupos", icon: Users },
+      { title: "Horarios de uso", url: "/dashboard/control-flota/horarios", icon: Clock },
     ]
   },
   {
