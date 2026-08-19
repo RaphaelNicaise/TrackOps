@@ -72,7 +72,7 @@ Umami Analytics
 PostgreSQL (PostGIS ?)
 PGAdmin
 Redis?
-Prisma ORM (o Drizzle ORM, mas rapido)
+Drizzle ORM
 Portainer
 
 Cloudflare R2
