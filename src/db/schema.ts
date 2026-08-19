@@ -289,3 +289,58 @@ export const prospectos = pgTable("prospectos", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const vehicleGroups = pgTable("vehicle_groups", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
+  nombre: text("nombre").notNull(),
+  descripcion: text("descripcion"),
+  color: varchar("color", { length: 30 }).default("#3b82f6").notNull(),
+  icono: varchar("icono", { length: 50 }).default("truck").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const vehicleGroupMembers = pgTable("vehicle_group_members", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").references(() => vehicleGroups.id, { onDelete: "cascade" }).notNull(),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const schedules = pgTable("schedules", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
+  nombre: text("nombre").notNull(),
+  descripcion: text("descripcion"),
+  color: varchar("color", { length: 30 }).default("#F2B705").notNull(),
+  activo: integer("activo").default(1).notNull(),
+  diasConfig: text("dias_config").notNull(),
+  toleranciaMinutos: integer("tolerancia_minutos").default(5).notNull(),
+  targetType: varchar("target_type", { length: 30 }).default("ALL").notNull(),
+  targetVehicles: text("target_vehicles"),
+  targetCategories: text("target_categories"),
+  targetGroups: text("target_groups"),
+  alertChannels: text("alert_channels").default('["UI"]').notNull(),
+  emailRecipients: text("email_recipients"),
+  whatsappRecipients: text("whatsapp_recipients"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const scheduleViolations = pgTable("schedule_violations", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
+  scheduleId: integer("schedule_id").references(() => schedules.id, { onDelete: "set null" }),
+  vehicleId: integer("vehicle_id").references(() => vehicles.id, { onDelete: "cascade" }).notNull(),
+  patente: varchar("patente", { length: 20 }).notNull(),
+  fechaInicio: timestamp("fecha_inicio").notNull(),
+  fechaFin: timestamp("fecha_fin"),
+  duracionMinutos: integer("duracion_minutos").default(0).notNull(),
+  velocidadMaxima: doublePrecision("velocidad_maxima").default(0).notNull(),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
+  notificadoEmail: integer("notificado_email").default(0).notNull(),
+  notificadoWhatsapp: integer("notificado_whatsapp").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+
