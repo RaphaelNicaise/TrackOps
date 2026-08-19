@@ -44,6 +44,32 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png").default,
 });
 
+// Guard against Leaflet _leaflet_pos unmount transition errors
+if (typeof window !== "undefined" && L) {
+  if (L.DomUtil) {
+    const origGetPosition = L.DomUtil.getPosition;
+    L.DomUtil.getPosition = function (el: any) {
+      if (!el) return new L.Point(0, 0);
+      try {
+        return origGetPosition(el);
+      } catch {
+        return new L.Point(0, 0);
+      }
+    };
+  }
+  if ((L.Map as any)?.prototype?._getMapPanePos) {
+    const origGetMapPanePos = (L.Map as any).prototype._getMapPanePos;
+    (L.Map as any).prototype._getMapPanePos = function () {
+      if (!this._mapPane) return new L.Point(0, 0);
+      try {
+        return origGetMapPanePos.call(this);
+      } catch {
+        return new L.Point(0, 0);
+      }
+    };
+  }
+}
+
 export interface GeofenceMapProps {
   geofences?: Geofence[];
   isListOpen?: boolean;
@@ -186,7 +212,10 @@ function MapBounds({
     lastFocusedIdRef.current = focusedGeofenceId;
 
     const timer = setTimeout(() => {
-      map.invalidateSize();
+      if (!map || !(map as any)._loaded || !(map as any)._mapPane) return;
+      try {
+        map.invalidateSize();
+      } catch {}
 
       let bounds: L.LatLngBounds | undefined;
 
@@ -219,17 +248,24 @@ function MapBounds({
 
       if (bounds) {
         const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-        map.fitBounds(bounds, {
-          paddingTopLeft: [isListOpen && !isMobile ? 380 : 50, 50],
-          paddingBottomRight: [50, 50],
-          maxZoom: 16,
-          animate: true,
-          duration: 0.8,
-        });
+        try {
+          map.fitBounds(bounds, {
+            paddingTopLeft: [isListOpen && !isMobile ? 380 : 50, 50],
+            paddingBottomRight: [50, 50],
+            maxZoom: 16,
+            animate: true,
+            duration: 0.8,
+          });
+        } catch {}
       }
     }, 150);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      try {
+        map.stop();
+      } catch {}
+    };
   }, [geofences, map, isListOpen, focusedGeofenceId]);
 
   return null;

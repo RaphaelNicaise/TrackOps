@@ -27,6 +27,32 @@ if (typeof window !== "undefined") {
   try {
     require("leaflet.markercluster");
   } catch {}
+
+  // Guard against Leaflet _leaflet_pos unmount transition errors
+  if (L) {
+    if (L.DomUtil) {
+      const origGetPosition = L.DomUtil.getPosition;
+      L.DomUtil.getPosition = function (el: any) {
+        if (!el) return new L.Point(0, 0);
+        try {
+          return origGetPosition(el);
+        } catch {
+          return new L.Point(0, 0);
+        }
+      };
+    }
+    if ((L.Map as any)?.prototype?._getMapPanePos) {
+      const origGetMapPanePos = (L.Map as any).prototype._getMapPanePos;
+      (L.Map as any).prototype._getMapPanePos = function () {
+        if (!this._mapPane) return new L.Point(0, 0);
+        try {
+          return origGetMapPanePos.call(this);
+        } catch {
+          return new L.Point(0, 0);
+        }
+      };
+    }
+  }
 }
 
 const defaultCenter = { lat: -38.7183, lng: -62.2663 }; // Bahia Blanca
@@ -306,7 +332,10 @@ function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any
     if (!vehiculos || vehiculos.length === 0) return;
     
     const timer = setTimeout(() => {
-      map.invalidateSize();
+      if (!map || !(map as any)._loaded || !(map as any)._mapPane) return;
+      try {
+        map.invalidateSize();
+      } catch {}
 
       let bounds;
       
@@ -326,16 +355,23 @@ function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any
       
       // Fit bounds, adding extra padding on the left if the sidebar is open on desktop
       // so the vehicles are centered in the VISIBLE portion of the map.
-      map.fitBounds(bounds, {
-        paddingTopLeft: [isListOpen && !isMobile ? 380 : 50, 50],
-        paddingBottomRight: [50, 50],
-        maxZoom: focusedVehicleId ? 16 : 15,
-        animate: true,
-        duration: 1.5
-      });
+      try {
+        map.fitBounds(bounds, {
+          paddingTopLeft: [isListOpen && !isMobile ? 380 : 50, 50],
+          paddingBottomRight: [50, 50],
+          maxZoom: focusedVehicleId ? 16 : 15,
+          animate: true,
+          duration: 1.5
+        });
+      } catch {}
     }, 200);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      try {
+        map.stop();
+      } catch {}
+    };
   }, [vehiculos, map, isListOpen, focusedVehicleId]);
 
   return null;
