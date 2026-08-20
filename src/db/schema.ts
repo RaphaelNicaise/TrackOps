@@ -212,9 +212,33 @@ export const alertConfigs = pgTable("alert_configs", {
   telefonoWhatsapp: varchar("telefono_whatsapp", { length: 20 }),
   toleranciaKm: integer("tolerancia_km").default(500),
   toleranciaDias: integer("tolerancia_dias").default(15),
+  modulosHabilitados: text("modulos_habilitados").default('["MANTENIMIENTO","DOCUMENTACION","GEOCERCAS","HORARIOS"]').notNull(),
   activo: integer("activo").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const alertLogs = pgTable("alert_logs", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
+  modulo: varchar("modulo", { length: 50 }).notNull(), // MANTENIMIENTO, DOCUMENTACION, GEOCERCAS, HORARIOS, SISTEMA
+  tipo: varchar("tipo", { length: 50 }).notNull(),
+  severidad: varchar("severidad", { length: 20 }).default("MEDIA").notNull(),
+  titulo: text("titulo").notNull(),
+  mensaje: text("mensaje").notNull(),
+  canal: varchar("canal", { length: 30 }).notNull(), // EMAIL, WHATSAPP, AMBOS, SISTEMA
+  destinatarioEmail: text("destinatario_email"),
+  destinatarioWhatsapp: varchar("destinatario_whatsapp", { length: 50 }),
+  vehiculoId: integer("vehiculo_id").references(() => vehicles.id, { onDelete: "set null" }),
+  patente: varchar("patente", { length: 20 }),
+  metadata: text("metadata"),
+  estado: varchar("estado", { length: 30 }).default("MOCK_DISPATCHED").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type AlertLog = typeof alertLogs.$inferSelect;
+export type NewAlertLog = typeof alertLogs.$inferInsert;
+export type AlertConfig = typeof alertConfigs.$inferSelect;
+export type NewAlertConfig = typeof alertConfigs.$inferInsert;
 
 export const gpsInstallations = pgTable("gps_installations", {
   id: serial("id").primaryKey(),
