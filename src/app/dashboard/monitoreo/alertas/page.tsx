@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bell, Radio, CheckCircle2, ShieldAlert } from "lucide-react";
 import type { AlertFilterOptions } from "@/types/alerts";
+import type { AlertLog } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,7 @@ export default async function MonitoreoAlertasPage({ searchParams }: PageProps) 
     ...(initialSearch ? { search: initialSearch } : {}),
   };
 
-  let initialAlerts = [];
+  let initialAlerts: AlertLog[] = [];
   try {
     initialAlerts = await getAlertLogs(filters);
   } catch (err) {
