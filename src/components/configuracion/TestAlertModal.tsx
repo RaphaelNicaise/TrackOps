@@ -25,8 +25,8 @@ import {
   Sparkles,
   Info,
 } from "lucide-react";
-import { sendTestAlertAction, type ParsedAlertConfig } from "@/lib/alert-config-actions";
-import type { AlertModule, AlertSeverity, DispatchAlertResult } from "@/types/alerts";
+import { sendTestAlertAction } from "@/lib/alert-config-actions";
+import type { AlertModule, AlertSeverity, DispatchAlertResult, ParsedAlertConfig } from "@/types/alerts";
 import { appAlert } from "@/lib/alerts";
 
 interface TestAlertModalProps {

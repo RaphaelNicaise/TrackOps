@@ -48,7 +48,7 @@ vi.mock("@/lib/alerts", () => ({
 import { AlertsConfigForm } from "@/components/configuracion/AlertsConfigForm";
 import { TestAlertModal } from "@/components/configuracion/TestAlertModal";
 import ConfiguracionPage from "@/app/dashboard/administracion/configuracion/page";
-import type { ParsedAlertConfig } from "@/lib/alert-config-actions";
+import type { ParsedAlertConfig } from "@/types/alerts";
 
 const MOCK_CONFIG: ParsedAlertConfig = {
   id: 1,

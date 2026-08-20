@@ -7,7 +7,7 @@ import { AlertsFilterBar, type AlertFilters } from "./AlertsFilterBar";
 import { AlertsHistoryTable } from "./AlertsHistoryTable";
 import { AlertDetailDialog } from "./AlertDetailDialog";
 import type { AlertLog } from "@/db/schema";
-import type { ParsedAlertConfig } from "@/lib/alert-config-actions";
+import type { ParsedAlertConfig } from "@/types/alerts";
 
 interface AlertsDashboardClientProps {
   initialAlerts: AlertLog[];

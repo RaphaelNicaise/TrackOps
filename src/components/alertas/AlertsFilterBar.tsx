@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { TestAlertModal } from "@/components/configuracion/TestAlertModal";
 import { appAlert } from "@/lib/alerts";
-import type { ParsedAlertConfig } from "@/lib/alert-config-actions";
+import type { ParsedAlertConfig } from "@/types/alerts";
 
 export interface AlertFilters {
   search: string;

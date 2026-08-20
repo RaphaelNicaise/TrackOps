@@ -32,11 +32,8 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import {
-  saveAlertConfigAction,
-  type ParsedAlertConfig,
-  type AlertConfigFormValues,
-} from "@/lib/alert-config-actions";
+import { saveAlertConfigAction } from "@/lib/alert-config-actions";
+import type { ParsedAlertConfig, AlertConfigFormValues } from "@/types/alerts";
 import { appAlert } from "@/lib/alerts";
 import { TestAlertModal } from "./TestAlertModal";
 

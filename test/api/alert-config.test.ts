@@ -3,8 +3,8 @@ import {
   getAlertConfigAction,
   saveAlertConfigAction,
   sendTestAlertAction,
-  type AlertConfigFormValues,
 } from "@/lib/alert-config-actions";
+import type { AlertConfigFormValues } from "@/types/alerts";
 import { GET as getAlertConfigRoute, POST as postAlertConfigRoute, PUT as putAlertConfigRoute } from "@/app/api/alerts/config/route";
 import { auth } from "@/auth";
 import { db } from "@/db";

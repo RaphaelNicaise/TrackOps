@@ -7,46 +7,15 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { logAudit } from "@/lib/audit";
 import { dispatchAlert, setMockAlertConfig } from "@/lib/alerts/dispatcher";
-import type {
-  DispatchAlertParams,
-  DispatchAlertResult,
-  AlertModule,
-  AlertSeverity,
+import {
+  type DispatchAlertParams,
+  type DispatchAlertResult,
+  type AlertModule,
+  type AlertSeverity,
+  type AlertConfigFormValues,
+  type ParsedAlertConfig,
+  DEFAULT_ALERT_MODULES,
 } from "@/types/alerts";
-
-export interface AlertConfigFormValues {
-  id?: number;
-  empresaId?: number;
-  canalEmail?: number | boolean;
-  canalWhatsapp?: number | boolean;
-  emailDestino?: string | null;
-  telefonoWhatsapp?: string | null;
-  toleranciaKm?: number | string;
-  toleranciaDias?: number | string;
-  modulosHabilitados?: string[] | string;
-  activo?: number | boolean;
-}
-
-export interface ParsedAlertConfig {
-  id: number;
-  empresaId: number;
-  canalEmail: number;
-  canalWhatsapp: number;
-  emailDestino: string | null;
-  telefonoWhatsapp: string | null;
-  toleranciaKm: number;
-  toleranciaDias: number;
-  modulosHabilitados: string[];
-  activo: number;
-  createdAt?: Date;
-}
-
-export const DEFAULT_ALERT_MODULES: AlertModule[] = [
-  "MANTENIMIENTO",
-  "DOCUMENTACION",
-  "GEOCERCAS",
-  "HORARIOS",
-];
 
 function parseModules(val: unknown): string[] {
   if (Array.isArray(val)) {
