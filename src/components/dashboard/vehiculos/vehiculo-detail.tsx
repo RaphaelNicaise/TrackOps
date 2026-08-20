@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { ArrowLeft, Truck, CircleAlert } from "lucide-react";
+import { ArrowLeft, Truck, CircleAlert, Bell } from "lucide-react";
 import { format, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -100,6 +100,12 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
               {format(vehicle.rto, "dd/MM/yyyy", { locale: es })}
             </Badge>
           )}
+          <Button variant="outline" size="sm" asChild className="gap-2">
+            <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
+              <Bell className="h-4 w-4 text-amber-500" />
+              Ver Alertas
+            </Link>
+          </Button>
           <EditVehicleDialog vehicle={vehicle} />
           <DeleteVehicleButton id={vehicle.id} patente={vehicle.patente} />
         </div>
@@ -152,10 +158,31 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
 
         <TabsContent value="vencimientos" className="pt-2">
           <Card className="max-w-4xl">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-base">Vencimientos y Alertas</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Alertas operativas, mantenimientos preventivos y vencimientos legales.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild className="gap-2 shrink-0">
+                <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
+                  <Bell className="h-4 w-4 text-amber-500" />
+                  Ver Alertas
+                </Link>
+              </Button>
+            </CardHeader>
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CircleAlert className="h-4 w-4" />
-                Sin vencimientos ni alertas cargadas.
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CircleAlert className="h-4 w-4" />
+                  Consulte las alertas e incidentes registrados para la unidad {vehicle.patente}.
+                </div>
+                <Button variant="link" size="sm" asChild className="gap-1.5 p-0 h-auto font-medium">
+                  <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
+                    Ver historial de alertas &rarr;
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>

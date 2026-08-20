@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import {
   Search,
   Car,
@@ -291,7 +292,14 @@ export default function MapaPage() {
                     <span className="font-bold text-sm tracking-tight text-foreground flex items-center gap-1.5 truncate">
                       {v.patente}
                       {v.hasAlert && (
-                        <AlertTriangle className="h-3.5 w-3.5 text-destructive animate-pulse shrink-0" />
+                        <Link
+                          href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(v.patente)}`}
+                          onClick={(e) => e.stopPropagation()}
+                          title="Ver alertas de este vehículo"
+                          className="hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <AlertTriangle className="h-3.5 w-3.5 text-destructive animate-pulse shrink-0" />
+                        </Link>
                       )}
                     </span>
                     <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-auto shrink-0">

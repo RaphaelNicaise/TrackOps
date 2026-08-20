@@ -474,14 +474,24 @@ export default function FleetMap({
                 </div>
               </div>
               {focusedVehicle.hasAlert ? (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-destructive bg-destructive/10 px-2 py-1 rounded-md">
+                <Link
+                  href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1.5 text-xs font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors px-2 py-1 rounded-md"
+                  title="Ver alertas de este vehículo"
+                >
                   <Bell className="w-3.5 h-3.5" />
                   {focusedVehicle.alertasCount} {focusedVehicle.alertasCount === 1 ? 'Alerta' : 'Alertas'}
-                </span>
+                </Link>
               ) : (
-                <span className="text-xs font-medium text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-md">
+                <Link
+                  href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs font-medium text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors px-2 py-1 rounded-md"
+                  title="Ver historial de alertas"
+                >
                   Sin alertas
-                </span>
+                </Link>
               )}
             </div>
 
@@ -501,13 +511,16 @@ export default function FleetMap({
               <Button
                 variant="outline"
                 size="sm"
+                asChild
                 className="gap-2 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
               >
-                <Route className="w-4 h-4" />
-                Ver recorrido
+                <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}>
+                  <Bell className="w-4 h-4" />
+                  Ver alertas
+                </Link>
               </Button>
             </div>
           </div>
