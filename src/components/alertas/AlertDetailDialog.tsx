@@ -55,31 +55,31 @@ export function AlertDetailDialog({ alert, open, onOpenChange }: AlertDetailDial
     switch (modulo) {
       case "MANTENIMIENTO":
         return (
-          <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 flex items-center gap-1">
+          <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium gap-1">
             <Wrench className="h-3 w-3" /> Mantenimiento
           </Badge>
         );
       case "DOCUMENTACION":
         return (
-          <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 flex items-center gap-1">
-            <FileText className="h-3 w-3" /> Documentación
+          <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium gap-1">
+            <FileText className="h-3 w-3" /> Documentos
           </Badge>
         );
       case "GEOCERCAS":
         return (
-          <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 flex items-center gap-1">
+          <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-medium gap-1">
             <MapPin className="h-3 w-3" /> Geocercas
           </Badge>
         );
       case "HORARIOS":
         return (
-          <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 flex items-center gap-1">
+          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-medium gap-1">
             <Clock className="h-3 w-3" /> Horarios
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="flex items-center gap-1">
+          <Badge variant="outline" className="text-xs font-medium gap-1">
             <Bell className="h-3 w-3" /> {modulo}
           </Badge>
         );
@@ -90,25 +90,25 @@ export function AlertDetailDialog({ alert, open, onOpenChange }: AlertDetailDial
     switch (sev) {
       case "CRITICA":
         return (
-          <Badge className="bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30">
+          <Badge variant="outline" className="border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold">
             CRÍTICA
           </Badge>
         );
       case "ALTA":
         return (
-          <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30">
+          <Badge variant="outline" className="border-orange-500/40 bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-semibold">
             ALTA
           </Badge>
         );
       case "MEDIA":
         return (
-          <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30">
+          <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium">
             MEDIA
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30">
+          <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium">
             BAJA
           </Badge>
         );
@@ -126,7 +126,7 @@ export function AlertDetailDialog({ alert, open, onOpenChange }: AlertDetailDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline" className="font-mono text-xs">
@@ -134,17 +134,11 @@ export function AlertDetailDialog({ alert, open, onOpenChange }: AlertDetailDial
             </Badge>
             {getModuleBadge(alert.modulo)}
             {getSeverityBadge(alert.severidad)}
-            <Badge
-              variant="secondary"
-              className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-mono"
-            >
-              {alert.estado}
-            </Badge>
           </div>
           <DialogTitle className="text-xl font-bold text-foreground">
-            Detalle de Alerta Despachada
+            Detalle de Alerta
           </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground flex items-center gap-1.5 font-mono">
+          <DialogDescription className="text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
             <Clock className="h-3.5 w-3.5" />
             {formatDate(alert.createdAt)}
           </DialogDescription>

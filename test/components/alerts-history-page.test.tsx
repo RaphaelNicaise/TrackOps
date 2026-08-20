@@ -223,9 +223,9 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
 
       expect(html).toContain("Total Alertas");
       expect(html).toContain("42");
-      expect(html).toContain("Envíos WhatsApp");
+      expect(html).toContain("WhatsApp");
       expect(html).toContain("18");
-      expect(html).toContain("Envíos Email");
+      expect(html).toContain("Email");
       expect(html).toContain("35");
       expect(html).toContain("Críticas / Altas");
       expect(html).toContain("7");
@@ -236,9 +236,9 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
 
       expect(html).toContain("Total Alertas");
       expect(html).toContain("4");
-      expect(html).toContain("Envíos WhatsApp");
+      expect(html).toContain("WhatsApp");
       expect(html).toContain("2");
-      expect(html).toContain("Envíos Email");
+      expect(html).toContain("Email");
       expect(html).toContain("3");
       expect(html).toContain("Críticas / Altas");
       expect(html).toContain("2");
@@ -263,13 +263,13 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
         />
       );
 
-      expect(html).toContain("Buscar por texto, patente, destinatario...");
+      expect(html).toContain("Buscar por patente, mensaje o destinatario...");
       expect(html).toContain("AB123CD");
       expect(html).toContain("Mantenimiento");
       expect(html).toContain("Alta");
-      expect(html).toContain("Escanear Flota Ahora");
+      expect(html).toContain("Escanear Flota");
       expect(html).toContain("Alerta de Prueba");
-      expect(html).toContain("Limpiar Filtros");
+      expect(html).toContain("Limpiar");
     });
   });
 
@@ -286,10 +286,8 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
       expect(html).toContain("Vehículo");
       expect(html).toContain("Módulo");
       expect(html).toContain("Severidad");
-      expect(html).toContain("Canales &amp; Destinatarios");
-      expect(html).toContain("Asunto / Mensaje");
-      expect(html).toContain("Estado");
-      expect(html).toContain("Acciones");
+      expect(html).toContain("Canal &amp; Destinatario");
+      expect(html).toContain("Mensaje / Evento");
 
       // Verify row items
       expect(html).toContain("AB123CD");
@@ -297,7 +295,6 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
       expect(html).toContain("CC555DD");
       expect(html).toContain("Service 10.000km próximo");
       expect(html).toContain("Póliza de seguro por vencer");
-      expect(html).toContain("Ver Detalle");
     });
 
     it("renders empty state message when alerts list is empty", () => {
@@ -323,14 +320,13 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
         />
       );
 
-      expect(html).toContain("Detalle de Alerta Despachada");
+      expect(html).toContain("Detalle de Alerta");
       expect(html).toContain("Service 10.000km próximo");
       expect(html).toContain("El vehículo AB123CD superó el kilometraje previsto.");
       expect(html).toContain("taller@flota.com");
       expect(html).toContain("+54 9 11 1111-2222");
       expect(html).toContain("AB123CD");
       expect(html).toContain("Mantenimiento");
-      expect(html).toContain("MOCK_DISPATCHED");
     });
 
     it("does not render modal contents when closed", () => {
@@ -343,7 +339,7 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
         />
       );
 
-      expect(html).not.toContain("Detalle de Alerta Despachada");
+      expect(html).not.toContain("Detalle de Alerta");
     });
   });
 
@@ -354,11 +350,10 @@ describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alert
       });
       const html = renderToStaticMarkup(pageElement);
 
-      expect(html).toContain("Consola de Monitoreo");
       expect(html).toContain("Historial de Alertas");
-      expect(html).toContain("MONITOREO");
+      expect(html).toContain("Monitoreo");
       expect(html).toContain("Total Alertas");
-      expect(html).toContain("Escanear Flota Ahora");
+      expect(html).toContain("Escanear Flota");
       expect(html).toContain("AB123CD");
     });
   });

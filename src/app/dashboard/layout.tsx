@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar userRole={session?.user?.role} />
-      <main className="flex-1 w-full bg-background min-h-screen flex flex-col">
+      <main className="flex-1 w-full bg-background min-h-screen flex flex-col min-w-0 overflow-x-hidden">
         <HideOnScroll>
           <div className="h-14 flex items-center justify-between border-b bg-card px-4 md:px-6 shadow-sm">
             <div className="flex items-center gap-3">

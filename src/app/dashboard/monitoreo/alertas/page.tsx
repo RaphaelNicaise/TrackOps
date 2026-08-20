@@ -97,31 +97,25 @@ export default async function MonitoreoAlertasPage({ searchParams }: PageProps) 
   };
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-8 pt-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-5">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs font-mono bg-muted/60">
-              MONITOREO · HISTORIAL DE ALERTAS
-            </Badge>
-            <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Auditoría en Tiempo Real
-            </span>
+    <div className="space-y-6 p-6 w-full">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-xs">
+            <Bell className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
-            Consola de Monitoreo &amp; Historial de Alertas
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Registro cronológico y métricas de notificaciones multicanal (Email y WhatsApp) emitidas a la flota.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-mono text-primary flex items-center gap-2">
-            <Radio className="h-3.5 w-3.5 animate-pulse text-primary" />
-            <span>Consola Activa</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                Historial de Alertas
+              </h1>
+              <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-500 text-[10px] font-semibold uppercase">
+                Monitoreo
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Registro centralizado de eventos, despachos a WhatsApp y Email, y estado de alertas de la flota.
+            </p>
           </div>
         </div>
       </div>

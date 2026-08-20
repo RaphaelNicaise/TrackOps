@@ -149,21 +149,12 @@ export function AlertsDashboardClient({
   }, [alerts, filters]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* 4 KPI Summary Cards */}
       <AlertsStatsCards stats={stats} alerts={alerts} />
 
-      {/* Filter Toolbar & Actions */}
-      <div className="rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b pb-3">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-foreground font-mono">
-            Filtros &amp; Control de Historial
-          </h2>
-          <span className="text-xs font-mono text-muted-foreground">
-            Mostrando {filteredAlerts.length} de {alerts.length} alertas
-          </span>
-        </div>
-
+      {/* Unified Table Card with Integrated Filter Bar */}
+      <div className="rounded-xl border border-border/80 bg-card overflow-hidden shadow-xs">
         <AlertsFilterBar
           filters={filters}
           onFilterChange={handleFilterChange}
@@ -173,14 +164,13 @@ export function AlertsDashboardClient({
           empresaId={empresaId}
           isLoading={isLoading}
         />
-      </div>
 
-      {/* History Data Table */}
-      <AlertsHistoryTable
-        alerts={filteredAlerts}
-        onSelectAlert={handleSelectAlert}
-        isLoading={isLoading}
-      />
+        <AlertsHistoryTable
+          alerts={filteredAlerts}
+          onSelectAlert={handleSelectAlert}
+          isLoading={isLoading}
+        />
+      </div>
 
       {/* Detail Dialog Modal */}
       <AlertDetailDialog
