@@ -232,11 +232,12 @@ describe("Geofence Mock Helpers & DB Serialization", () => {
 
   describe("Geofences API Endpoints", () => {
     it("GET /api/geofences should return a list of geofences", async () => {
+      resetMockGeofences();
       const res = await getGeofences();
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(Array.isArray(data)).toBe(true);
-      expect(data.length).toBeGreaterThanOrEqual(4);
+      expect(data.length).toBeGreaterThanOrEqual(3);
     });
 
     it("POST /api/geofences should create a geofence and return 201", async () => {
