@@ -4,9 +4,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { gsap } from "gsap";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import gsap from "gsap";
+import { MotionPathPlugin } from "gsap/dist/MotionPathPlugin";
+import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import Lenis from "lenis";
 import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
@@ -22,7 +22,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import ScrollStack, { ScrollStackItem } from "@/components/ScrollStack";
 import BentoCard from "@/components/BentoCard";
 
-gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+}
 
 const PRICING_TIERS = [
   { max: 5, priceNumber: 39990, label: "Hasta 5 vehículos", type: "Plan Inicial" },
