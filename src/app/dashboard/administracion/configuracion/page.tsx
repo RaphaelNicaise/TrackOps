@@ -3,16 +3,7 @@ import { auth } from "@/auth";
 import { getAlertConfigAction } from "@/lib/alert-config-actions";
 import { AlertsConfigForm } from "@/components/configuracion/AlertsConfigForm";
 import { Badge } from "@/components/ui/badge";
-import {
-  Settings,
-  Bell,
-  Shield,
-  Radio,
-  CheckCircle2,
-  Mail,
-  MessageSquare,
-  Sparkles,
-} from "lucide-react";
+import { Settings } from "lucide-react";
 
 export const metadata = {
   title: "Configuración General & Alertas | TrackOps",
@@ -25,31 +16,25 @@ export default async function ConfiguracionPage() {
   const config = await getAlertConfigAction();
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-8 pt-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-5">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs font-mono bg-muted/60">
-              ADMINISTRACIÓN · CONFIGURACIÓN
-            </Badge>
-            <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Motor de Notificaciones Operativo
-            </span>
+    <div className="space-y-6 p-6 w-full">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-xs">
+            <Settings className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
-            Configuración General
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Alertas Multicanal y Parámetros Globales de Operación de Flota.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-mono text-primary flex items-center gap-2">
-            <Radio className="h-3.5 w-3.5 animate-pulse text-primary" />
-            <span>Despacho Inmediato Activo</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                Configuración General
+              </h1>
+              <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-500 text-[10px] font-semibold uppercase">
+                Administración
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Configuración de Alertas Multicanal (WhatsApp &amp; Email), módulos autorizados y parámetros operativos de flota.
+            </p>
           </div>
         </div>
       </div>

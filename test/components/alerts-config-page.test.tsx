@@ -240,7 +240,7 @@ describe("Alerts Configuration Page & UI Components (Task 4)", () => {
       const html = renderToStaticMarkup(pageElement);
 
       expect(html).toContain("Configuración General");
-      expect(html).toContain("ADMINISTRACIÓN");
+      expect(html).toContain("Administración");
       expect(html).toContain("Alertas Multicanal");
       expect(html).toContain("Sistema de Alertas Habilitado");
       expect(html).toContain("Guardar Configuración");
