@@ -61,22 +61,22 @@ export const superAdminNav: NavGroup[] = [
   {
     label: "Monitoreo SaaS",
     items: [
-      { title: "Dashboard Global", url: "/dashboard/superadmin/dashboard", icon: LayoutDashboard },
-      { title: "Alertas & Salud", url: "/dashboard/superadmin/alertas", icon: Bell },
+      { title: "Dashboard Global", url: "/panel/superadmin/dashboard", icon: LayoutDashboard },
+      { title: "Alertas & Salud", url: "/panel/superadmin/alertas", icon: Bell },
     ],
   },
   {
     label: "Gestión de Plataforma",
     items: [
-      { title: "Empresas Clientes", url: "/dashboard/superadmin/clientes", icon: Building2 },
-      { title: "Prospectos (Leads)", url: "/dashboard/superadmin/prospectos", icon: UserPlus },
-      { title: "Cobros & Planes", url: "/dashboard/superadmin/facturacion", icon: CreditCard },
+      { title: "Empresas Clientes", url: "/panel/superadmin/clientes", icon: Building2 },
+      { title: "Prospectos (Leads)", url: "/panel/superadmin/prospectos", icon: UserPlus },
+      { title: "Cobros & Planes", url: "/panel/superadmin/facturacion", icon: CreditCard },
     ],
   },
   {
     label: "Dev & Operaciones",
     items: [
-      { title: "Configuración Sistema", url: "/dashboard/superadmin/dev/config", icon: Settings },
+      { title: "Configuración Sistema", url: "/panel/superadmin/dev/config", icon: Settings },
       { title: "Umami Analytics", url: "http://localhost:3002", icon: BarChart3, external: true },
       { title: "pgAdmin Database", url: "http://localhost:5050", icon: Database, external: true },
       { title: "Portainer Docker", url: "http://localhost:9000", icon: Container, external: true },
@@ -87,41 +87,41 @@ export const superAdminNav: NavGroup[] = [
 export const adminNav: NavGroup[] = [
   {
     items: [
-      { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Mapa", url: "/dashboard/mapa", icon: Map },
+      { title: "Inicio", url: "/panel", icon: LayoutDashboard },
+      { title: "Mapa", url: "/panel/mapa", icon: Map },
     ]
   },
   {
     label: "Monitoreo",
     items: [
-      { title: "Dashboard", url: "/dashboard/monitoreo/dashboard", icon: LayoutDashboard },
-      { title: "Alertas", url: "/dashboard/monitoreo/alertas", icon: Bell },
+      { title: "Dashboard", url: "/panel/monitoreo/dashboard", icon: LayoutDashboard },
+      { title: "Alertas", url: "/panel/monitoreo/alertas", icon: Bell },
     ]
   },
   {
     label: "Control de Flota",
     items: [
-      { title: "Vehículos", url: "/dashboard/control-flota/vehiculos", icon: Truck },
-      { title: "Mantenimiento", url: "/dashboard/control-flota/mantenimiento", icon: Wrench },
-      { title: "Combustible", url: "/dashboard/control-flota/combustible", icon: Fuel },
-      { title: "Sitios", url: "/dashboard/control-flota/sitios", icon: MapPin },
-      { title: "Geocercas", url: "/dashboard/control-flota/geocercas", icon: Map },
-      { title: "Grupos de vehículos", url: "/dashboard/control-flota/grupos", icon: Users },
-      { title: "Horarios de uso", url: "/dashboard/control-flota/horarios", icon: Clock },
+      { title: "Vehículos", url: "/panel/control-flota/vehiculos", icon: Truck },
+      { title: "Mantenimiento", url: "/panel/control-flota/mantenimiento", icon: Wrench },
+      { title: "Combustible", url: "/panel/control-flota/combustible", icon: Fuel },
+      { title: "Sitios", url: "/panel/control-flota/sitios", icon: MapPin },
+      { title: "Geocercas", url: "/panel/control-flota/geocercas", icon: Map },
+      { title: "Grupos de vehículos", url: "/panel/control-flota/grupos", icon: Users },
+      { title: "Horarios de uso", url: "/panel/control-flota/horarios", icon: Clock },
     ]
   },
   {
     label: "Reportes",
     items: [
-      { title: "Reportes", url: "/dashboard/reportes", icon: FileText },
+      { title: "Reportes", url: "/panel/reportes", icon: FileText },
     ]
   },
   {
     label: "Administración",
     items: [
-      { title: "Configuración", url: "/dashboard/administracion/configuracion", icon: Settings },
-      { title: "Usuarios", url: "/dashboard/administracion/usuarios", icon: Users },
-      { title: "Facturación", url: "/dashboard/administracion/facturacion", icon: CreditCard },
+      { title: "Configuración", url: "/panel/administracion/configuracion", icon: Settings },
+      { title: "Usuarios", url: "/panel/administracion/usuarios", icon: Users },
+      { title: "Facturación", url: "/panel/administracion/facturacion", icon: CreditCard },
     ]
   }
 ];
@@ -132,16 +132,16 @@ export const navByRole: Record<string, NavGroup[]> = {
   CHOFER: [
     {
       items: [
-        { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
-        { title: "Combustible", url: "/dashboard/control-flota/combustible", icon: Fuel },
+        { title: "Inicio", url: "/panel", icon: LayoutDashboard },
+        { title: "Combustible", url: "/panel/control-flota/combustible", icon: Fuel },
       ]
     }
   ],
   VENDEDOR_INSTALADOR: [
     {
       items: [
-        { title: "Inicio", url: "/dashboard", icon: LayoutDashboard },
-        { title: "Mapa", url: "/dashboard/mapa", icon: Map },
+        { title: "Inicio", url: "/panel", icon: LayoutDashboard },
+        { title: "Mapa", url: "/panel/mapa", icon: Map },
       ]
     }
   ],
@@ -170,7 +170,7 @@ export function AppSidebar({
         items: [
           {
             title: "Volver a SuperAdmin",
-            url: "/dashboard/superadmin/clientes",
+            url: "/panel/superadmin/clientes",
             icon: ShieldAlert,
           },
         ],
@@ -224,7 +224,7 @@ export function AppSidebar({
                       <SidebarMenu className="gap-1.5">
                         {group.items.map((item, itemIdx) => {
                           const Icon = item.icon;
-                          const isActive = !item.external && (pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/")));
+                          const isActive = !item.external && (pathname === item.url || (item.url !== "/panel" && pathname.startsWith(item.url + "/")));
                           return (
                             <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
                               <SidebarMenuButton
@@ -275,7 +275,7 @@ export function AppSidebar({
                 <SidebarMenu className="gap-1.5">
                   {group.items.map((item, itemIdx) => {
                     const Icon = item.icon;
-                    const isActive = !item.external && (pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url + "/")));
+                    const isActive = !item.external && (pathname === item.url || (item.url !== "/panel" && pathname.startsWith(item.url + "/")));
                     return (
                       <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
                         <SidebarMenuButton

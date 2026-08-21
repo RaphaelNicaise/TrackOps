@@ -184,7 +184,7 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
         `Ingresando a "${empresa.nombre}" con Superpoderes...`,
         "⚡ Superpoderes Activados"
       );
-      window.location.href = "/dashboard/monitoreo/dashboard";
+      window.location.href = "/panel/monitoreo/dashboard";
     } catch (err: any) {
       appAlert.error(err?.message || "Error al ingresar con superpoderes.");
       setLoadingSuperadminId(null);

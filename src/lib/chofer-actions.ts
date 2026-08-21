@@ -26,7 +26,7 @@ export async function checkInVehicle(formData: FormData) {
     startTime: new Date(),
   } as any); // Using 'as any' here because endTime is omitted
 
-  revalidatePath("/dashboard/chofer");
+  revalidatePath("/panel/chofer");
 }
 
 export async function checkOutVehicle(formData: FormData) {
@@ -45,5 +45,5 @@ export async function checkOutVehicle(formData: FormData) {
     .set({ kilometrajeActual: endKm })
     .where(eq(vehicles.id, vId));
 
-  revalidatePath("/dashboard/chofer");
+  revalidatePath("/panel/chofer");
 }

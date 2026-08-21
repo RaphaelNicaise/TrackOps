@@ -49,7 +49,7 @@ export async function changeInitialPassword(formData: FormData): Promise<ChangeP
       reason: "mandatory_first_login_password_change",
     });
 
-    revalidatePath("/dashboard");
+    revalidatePath("/panel");
     return { success: true };
   } catch (error) {
     console.error("Error changing initial password:", error);

@@ -22,7 +22,7 @@ export async function createVehicle(formData: FormData) {
   });
 
   await logAudit("CREATE", "vehicle", null, { patente: formData.get("patente") });
-  revalidatePath("/dashboard/flota");
+  revalidatePath("/panel/flota");
 }
 
 export async function createMaintenanceLog(formData: FormData) {
@@ -48,8 +48,8 @@ export async function createMaintenanceLog(formData: FormData) {
   }
 
   await logAudit("CREATE", "maintenanceLog", null, { vehicleId: vId, descripcion: formData.get("descripcion") });
-  revalidatePath("/dashboard/mantenimiento");
-  revalidatePath("/dashboard/flota");
+  revalidatePath("/panel/mantenimiento");
+  revalidatePath("/panel/flota");
 }
 
 export async function createFuelTicket(formData: FormData) {
@@ -81,7 +81,7 @@ export async function createFuelTicket(formData: FormData) {
   }
 
   await logAudit("CREATE", "fuelTicket", null, { vehicleId: vId, litros: formData.get("litros") });
-  revalidatePath("/dashboard/combustible");
+  revalidatePath("/panel/combustible");
 }
 
 export async function createDocument(formData: FormData) {
@@ -104,7 +104,7 @@ export async function createDocument(formData: FormData) {
   });
 
   await logAudit("CREATE", "document", null, { vehicleId: vId, tipo: formData.get("tipoDocumento") });
-  revalidatePath("/dashboard/documentacion");
+  revalidatePath("/panel/documentacion");
 }
 
 
@@ -123,7 +123,7 @@ export async function startShift(formData: FormData) {
   });
 
   await logAudit("CREATE", "shiftLog", null, { vehicleId: vId, startKm });
-  revalidatePath("/dashboard/chofer");
+  revalidatePath("/panel/chofer");
 }
 
 export async function endShift(formData: FormData) {
@@ -139,7 +139,7 @@ export async function endShift(formData: FormData) {
   }).where(eq(shiftLogs.id, shiftId));
 
   await logAudit("UPDATE", "shiftLog", shiftId, { endKm });
-  revalidatePath("/dashboard/chofer");
+  revalidatePath("/panel/chofer");
 }
 
 export async function createFine(formData: FormData) {

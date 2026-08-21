@@ -199,8 +199,8 @@ describe("Alert Configuration Server Actions & API Route", () => {
       expect(result.config.telefonoWhatsapp).toBe("+5491122223333");
       expect(result.config.modulosHabilitados).toEqual(["MANTENIMIENTO", "DOCUMENTACION", "HORARIOS"]);
       expect(logAudit).toHaveBeenCalledWith("CREATE", "alertConfig", 101, expect.any(Object));
-      expect(revalidatePath).toHaveBeenCalledWith("/dashboard/administracion/configuracion");
-      expect(revalidatePath).toHaveBeenCalledWith("/dashboard/monitoreo/alertas");
+      expect(revalidatePath).toHaveBeenCalledWith("/panel/administracion/configuracion");
+      expect(revalidatePath).toHaveBeenCalledWith("/panel/monitoreo/alertas");
     });
 
     it("should update existing config row and log audit UPDATE", async () => {
@@ -255,8 +255,8 @@ describe("Alert Configuration Server Actions & API Route", () => {
       expect(result.config.telefonoWhatsapp).toBeNull();
       expect(result.config.modulosHabilitados).toEqual(["GEOCERCAS"]);
       expect(logAudit).toHaveBeenCalledWith("UPDATE", "alertConfig", 50, expect.any(Object));
-      expect(revalidatePath).toHaveBeenCalledWith("/dashboard/administracion/configuracion");
-      expect(revalidatePath).toHaveBeenCalledWith("/dashboard/monitoreo/alertas");
+      expect(revalidatePath).toHaveBeenCalledWith("/panel/administracion/configuracion");
+      expect(revalidatePath).toHaveBeenCalledWith("/panel/monitoreo/alertas");
     });
 
     it("should support FormData input directly", async () => {

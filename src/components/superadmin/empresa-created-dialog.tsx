@@ -121,8 +121,8 @@ export function EmpresaCreatedDialog({
         `Ingresando a "${empresa.nombre}" en Modo Superpoderes...`,
         "⚡ Superpoderes Activados"
       );
-      // Immediate redirection to dashboard
-      window.location.href = "/dashboard/monitoreo/dashboard";
+      // Immediate redirection to panel
+      window.location.href = "/panel/monitoreo/dashboard";
     } catch (err: any) {
       appAlert.error(err?.message || "Error al ingresar con superpoderes.");
       setIsEnteringSuperadmin(false);

@@ -89,8 +89,8 @@ vi.mock("@/db", () => ({
   },
 }));
 
-import SuperadminFacturacionPage from "@/app/dashboard/superadmin/facturacion/page";
-import SuperadminDevConfigPage from "@/app/dashboard/superadmin/dev/config/page";
+import SuperadminFacturacionPage from "@/app/panel/superadmin/facturacion/page";
+import SuperadminDevConfigPage from "@/app/panel/superadmin/dev/config/page";
 import {
   FacturacionView,
   SubscriptionPlanData,

@@ -171,7 +171,7 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
               return (
                 <TableRow
                   key={v.id}
-                  onClick={() => router.push(`/dashboard/control-flota/vehiculos/${v.id}`)}
+                  onClick={() => router.push(`/panel/control-flota/vehiculos/${v.id}`)}
                   className="cursor-pointer hover:bg-amber-50/70 dark:hover:bg-amber-500/15 transition-colors group"
                 >
                   <TableCell>
@@ -215,7 +215,7 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <Link
-                      href={`/dashboard/control-flota/vehiculos/${v.id}?tab=documentacion`}
+                      href={`/panel/control-flota/vehiculos/${v.id}?tab=documentacion`}
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                     >
@@ -225,7 +225,7 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
                   </TableCell>
                   <TableCell className="text-right pr-3">
                     <Link
-                      href={`/dashboard/control-flota/vehiculos/${v.id}`}
+                      href={`/panel/control-flota/vehiculos/${v.id}`}
                       onClick={(e) => e.stopPropagation()}
                       aria-label={`Abrir ${v.patente}`}
                       className="inline-flex items-center justify-center h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"

@@ -15,11 +15,11 @@ describe("Sidebar Superadmin items", () => {
     expect(group?.items).toHaveLength(2);
     expect(group?.items[0]).toMatchObject({
       title: "Dashboard Global",
-      url: "/dashboard/superadmin/dashboard",
+      url: "/panel/superadmin/dashboard",
     });
     expect(group?.items[1]).toMatchObject({
       title: "Alertas & Salud",
-      url: "/dashboard/superadmin/alertas",
+      url: "/panel/superadmin/alertas",
     });
   });
 
@@ -29,15 +29,15 @@ describe("Sidebar Superadmin items", () => {
     expect(group?.items).toHaveLength(3);
     expect(group?.items[0]).toMatchObject({
       title: "Empresas Clientes",
-      url: "/dashboard/superadmin/clientes",
+      url: "/panel/superadmin/clientes",
     });
     expect(group?.items[1]).toMatchObject({
       title: "Prospectos (Leads)",
-      url: "/dashboard/superadmin/prospectos",
+      url: "/panel/superadmin/prospectos",
     });
     expect(group?.items[2]).toMatchObject({
       title: "Cobros & Planes",
-      url: "/dashboard/superadmin/facturacion",
+      url: "/panel/superadmin/facturacion",
     });
   });
 
@@ -49,7 +49,7 @@ describe("Sidebar Superadmin items", () => {
     const configItem = group?.items.find((i) => i.title === "Configuración Sistema");
     expect(configItem).toMatchObject({
       title: "Configuración Sistema",
-      url: "/dashboard/superadmin/dev/config",
+      url: "/panel/superadmin/dev/config",
     });
     expect(configItem?.external).toBeFalsy();
 

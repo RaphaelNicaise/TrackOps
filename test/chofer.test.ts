@@ -73,7 +73,7 @@ describe('Chofer Actions (Shift Logs)', () => {
         userId: 'chofer-123',
         startKm: 10000,
       }));
-      expect(revalidatePath).toHaveBeenCalledWith('/dashboard/chofer');
+      expect(revalidatePath).toHaveBeenCalledWith('/panel/chofer');
     });
   });
 
@@ -97,7 +97,7 @@ describe('Chofer Actions (Shift Logs)', () => {
       // Second update call is for vehicles table to update km
       expect(mockSet).toHaveBeenNthCalledWith(2, { kilometrajeActual: 10500 });
       
-      expect(revalidatePath).toHaveBeenCalledWith('/dashboard/chofer');
+      expect(revalidatePath).toHaveBeenCalledWith('/panel/chofer');
     });
   });
 });

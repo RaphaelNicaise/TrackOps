@@ -70,7 +70,7 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
   return (
     <div className="space-y-6 p-4 md:p-6">
       <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground">
-        <Link href="/dashboard/control-flota/vehiculos">
+        <Link href="/panel/control-flota/vehiculos">
           <ArrowLeft className="h-4 w-4" />
           Volver
         </Link>
@@ -101,7 +101,7 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
             </Badge>
           )}
           <Button variant="outline" size="sm" asChild className="gap-2">
-            <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
+            <Link href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
               <Bell className="h-4 w-4 text-amber-500" />
               Ver Alertas
             </Link>
@@ -166,7 +166,7 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
                 </p>
               </div>
               <Button variant="outline" size="sm" asChild className="gap-2 shrink-0">
-                <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
+                <Link href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
                   <Bell className="h-4 w-4 text-amber-500" />
                   Ver Alertas
                 </Link>
@@ -179,7 +179,7 @@ export function VehiculoDetail({ vehicle }: VehiculoDetailProps) {
                   Consulte las alertas e incidentes registrados para la unidad {vehicle.patente}.
                 </div>
                 <Button variant="link" size="sm" asChild className="gap-1.5 p-0 h-auto font-medium">
-                  <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
+                  <Link href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(vehicle.patente)}`}>
                     Ver historial de alertas &rarr;
                   </Link>
                 </Button>

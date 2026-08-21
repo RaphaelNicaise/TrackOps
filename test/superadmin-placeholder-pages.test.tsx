@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { UnderConstruction, RoadmapFeature } from "@/components/superadmin/under-construction";
-import SuperadminDashboardPage from "@/app/dashboard/superadmin/dashboard/page";
-import SuperadminAlertasPage from "@/app/dashboard/superadmin/alertas/page";
+import SuperadminDashboardPage from "@/app/panel/superadmin/dashboard/page";
+import SuperadminAlertasPage from "@/app/panel/superadmin/alertas/page";
 import { Zap, ShieldCheck } from "lucide-react";
 
 describe("Superadmin UnderConstruction Component", () => {

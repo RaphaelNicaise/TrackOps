@@ -71,7 +71,7 @@ export async function updateProspectoStatus(
     prospectoNombre: updated?.nombre,
   });
 
-  revalidatePath("/dashboard/superadmin/prospectos");
+  revalidatePath("/panel/superadmin/prospectos");
   return { success: true, prospecto: updated };
 }
 
@@ -106,6 +106,6 @@ export async function createProspecto(data: ProspectoInput) {
     email: nuevoProspecto.email,
   });
 
-  revalidatePath("/dashboard/superadmin/prospectos");
+  revalidatePath("/panel/superadmin/prospectos");
   return { success: true, prospecto: nuevoProspecto };
 }

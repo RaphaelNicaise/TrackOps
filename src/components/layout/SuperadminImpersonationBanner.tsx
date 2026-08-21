@@ -25,7 +25,7 @@ export function SuperadminImpersonationBanner({
       setIsExiting(true);
       await exitSuperadminImpersonation();
       appAlert.success("Sesión de soporte finalizada.", "Modo Superpoderes");
-      router.push("/dashboard/superadmin/clientes");
+      router.push("/panel/superadmin/clientes");
       router.refresh();
     } catch (error: any) {
       appAlert.error(error?.message || "Error al finalizar el modo soporte");
@@ -63,7 +63,7 @@ export function SuperadminImpersonationBanner({
           className="h-7 text-xs gap-1.5 bg-background/80 hover:bg-amber-500/10 border-amber-500/30 text-amber-950 dark:text-amber-200"
           asChild
         >
-          <Link href="/dashboard/administracion/configuracion">
+          <Link href="/panel/administracion/configuracion">
             <Settings className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
             <span className="hidden sm:inline">Configuración Empresa</span>
             <span className="sm:hidden">Configuración</span>

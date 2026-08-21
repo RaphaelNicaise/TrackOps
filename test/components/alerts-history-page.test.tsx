@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
     refresh: vi.fn(),
   }),
   useSearchParams: () => new URLSearchParams("patente=AB123CD"),
-  usePathname: () => "/dashboard/monitoreo/alertas",
+  usePathname: () => "/panel/monitoreo/alertas",
 }));
 
 // Mock React Suspense for renderToStaticMarkup in tests so children are rendered
@@ -159,7 +159,7 @@ import { AlertsStatsCards } from "@/components/alertas/AlertsStatsCards";
 import { AlertsFilterBar } from "@/components/alertas/AlertsFilterBar";
 import { AlertsHistoryTable } from "@/components/alertas/AlertsHistoryTable";
 import { AlertDetailDialog } from "@/components/alertas/AlertDetailDialog";
-import MonitoreoAlertasPage from "@/app/dashboard/monitoreo/alertas/page";
+import MonitoreoAlertasPage from "@/app/panel/monitoreo/alertas/page";
 import { GET as getAlertsHistoryRoute } from "@/app/api/alerts/history/route";
 
 describe("Task 6: Monitoring & Alert History Console (/dashboard/monitoreo/alertas)", () => {

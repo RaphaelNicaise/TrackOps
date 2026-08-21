@@ -86,7 +86,7 @@ describe('Server Actions (Flota & Operaciones)', () => {
       expect(mockUpdate).not.toHaveBeenCalled();
       
       // Verify Revalidate
-      expect(revalidatePath).toHaveBeenCalledWith('/dashboard/combustible');
+      expect(revalidatePath).toHaveBeenCalledWith('/panel/combustible');
     });
 
     it('inserts fuel ticket and UPDATES vehicle km if new km is higher', async () => {
@@ -153,7 +153,7 @@ describe('Server Actions (Flota & Operaciones)', () => {
         tipo: 'utilitario',
         kilometrajeActual: 500,
       }));
-      expect(revalidatePath).toHaveBeenCalledWith('/dashboard/flota');
+      expect(revalidatePath).toHaveBeenCalledWith('/panel/flota');
     });
   });
 
@@ -184,7 +184,7 @@ describe('Server Actions (Flota & Operaciones)', () => {
       // Should update km
       expect(mockUpdate).toHaveBeenCalled();
       expect(mockSet).toHaveBeenCalledWith({ kilometrajeActual: 15000 });
-      expect(revalidatePath).toHaveBeenCalledWith('/dashboard/mantenimiento');
+      expect(revalidatePath).toHaveBeenCalledWith('/panel/mantenimiento');
     });
   });
 
@@ -209,7 +209,7 @@ describe('Server Actions (Flota & Operaciones)', () => {
         tipoDocumento: 'VTV',
         fileUrl: '/empresa-1/docs/vtv.pdf',
       }));
-      expect(revalidatePath).toHaveBeenCalledWith('/dashboard/documentacion');
+      expect(revalidatePath).toHaveBeenCalledWith('/panel/documentacion');
     });
   });
 

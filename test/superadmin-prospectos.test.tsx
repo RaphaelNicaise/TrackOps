@@ -163,7 +163,7 @@ import {
 } from "@/lib/prospectos-actions";
 import { ProspectoDetailDialog } from "@/components/superadmin/prospecto-detail-dialog";
 import { ProspectosTable } from "@/components/superadmin/prospectos-table";
-import SuperadminProspectosPage from "@/app/dashboard/superadmin/prospectos/page";
+import SuperadminProspectosPage from "@/app/panel/superadmin/prospectos/page";
 
 const MOCK_PROSPECTOS: Prospecto[] = [
   {

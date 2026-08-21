@@ -97,7 +97,7 @@ export async function getTenantOnboardingStatus(): Promise<TenantOnboardingStatu
         title: "Canales de Alerta",
         description: "WhatsApp y Email para avisos de service y vencimientos.",
         completed: isAlertsCompleted,
-        href: "/dashboard/administracion/configuracion",
+        href: "/panel/administracion/configuracion",
         actionLabel: isAlertsCompleted ? "Ver canales" : "Configurar canales",
         badgeText: isAlertsCompleted ? "Canales listos" : "Pendiente",
       },
@@ -106,7 +106,7 @@ export async function getTenantOnboardingStatus(): Promise<TenantOnboardingStatu
         title: "Flota de Vehículos",
         description: "Cargar vehículos o importar planilla Excel.",
         completed: isVehiclesCompleted,
-        href: "/dashboard/control-flota/vehiculos",
+        href: "/panel/control-flota/vehiculos",
         actionLabel: isVehiclesCompleted ? "Gestionar flota" : "Cargar vehículos",
         badgeText: vehicleCount > 0 ? `${vehicleCount} ${vehicleCount === 1 ? "unidad" : "unidades"}` : "Sin unidades",
       },
@@ -115,7 +115,7 @@ export async function getTenantOnboardingStatus(): Promise<TenantOnboardingStatu
         title: "Equipo y Choferes",
         description: "Asignar responsables y choferes de unidad.",
         completed: isUsersCompleted,
-        href: "/dashboard/administracion/usuarios",
+        href: "/panel/administracion/usuarios",
         actionLabel: isUsersCompleted ? "Ver equipo" : "Invitar choferes",
         badgeText: userCount > 1 ? `${userCount} usuarios` : "1 usuario",
       },
@@ -124,7 +124,7 @@ export async function getTenantOnboardingStatus(): Promise<TenantOnboardingStatu
         title: "Mantenimiento Preventivo",
         description: "Reglas de cambio de aceite, neumáticos y frenos.",
         completed: isMaintenanceCompleted,
-        href: "/dashboard/control-flota/mantenimiento",
+        href: "/panel/control-flota/mantenimiento",
         actionLabel: isMaintenanceCompleted ? "Ver planes" : "Configurar reglas",
         badgeText: maintenancePlansCount > 0 ? `${maintenancePlansCount} planes` : (vehicleCount > 0 ? "Fichas activas" : "Pendiente"),
       },
@@ -181,8 +181,8 @@ export async function completeTenantSetup(): Promise<{ success: boolean; error?:
       empresaNombre: context.empresaNombre,
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/monitoreo/dashboard");
+    revalidatePath("/panel");
+    revalidatePath("/panel/monitoreo/dashboard");
     revalidatePath("/", "layout");
 
     return { success: true };
@@ -212,8 +212,8 @@ export async function reopenTenantSetup(): Promise<{ success: boolean; error?: s
       empresaNombre: context.empresaNombre,
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/monitoreo/dashboard");
+    revalidatePath("/panel");
+    revalidatePath("/panel/monitoreo/dashboard");
     revalidatePath("/", "layout");
 
     return { success: true };

@@ -253,13 +253,13 @@ export async function saveAlertConfigAction(
   }
 
   try {
-    revalidatePath("/dashboard/administracion/configuracion");
+    revalidatePath("/panel/administracion/configuracion");
   } catch {}
   try {
-    revalidatePath("/dashboard/monitoreo/alertas");
+    revalidatePath("/panel/monitoreo/alertas");
   } catch {}
   try {
-    revalidatePath("/dashboard/alertas");
+    revalidatePath("/panel/alertas");
   } catch {}
 
   return {

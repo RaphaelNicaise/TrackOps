@@ -138,7 +138,7 @@ export function DeleteVehicleButton({ id, patente }: { id: number; patente: stri
     startTransition(async () => {
       await deleteVehicle(fd);
       setOpen(false);
-      router.replace("/dashboard/control-flota/vehiculos");
+      router.replace("/panel/control-flota/vehiculos");
       router.refresh();
     });
   }

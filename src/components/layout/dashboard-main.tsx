@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 
 export function DashboardMain({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isMap = pathname === "/dashboard/mapa" || pathname.startsWith("/dashboard/control-flota/geocercas");
+  const isMap = pathname === "/panel/mapa" || pathname.startsWith("/panel/control-flota/geocercas") || pathname === "/dashboard/mapa" || pathname.startsWith("/dashboard/control-flota/geocercas");
 
   if (isMap) {
     return <div className="relative w-full h-[calc(100dvh-3.5rem)] overflow-hidden">{children}</div>;

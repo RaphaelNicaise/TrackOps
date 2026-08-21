@@ -119,8 +119,8 @@ export async function createEmpresaWithAdmin(formData: FormData) {
     planId,
   });
 
-  revalidatePath("/dashboard/superadmin/clientes");
-  revalidatePath("/dashboard");
+  revalidatePath("/panel/superadmin/clientes");
+  revalidatePath("/panel");
 
   return {
     success: true,
@@ -160,8 +160,8 @@ export async function createEmpresa(formData: FormData) {
   }
 
   await logAudit("CREATE", "empresa", empresa.id, { nombre: empresa.nombre, cuit });
-  revalidatePath("/dashboard/superadmin/clientes");
-  revalidatePath("/dashboard");
+  revalidatePath("/panel/superadmin/clientes");
+  revalidatePath("/panel");
   return { success: true, empresa };
 }
 
@@ -221,8 +221,8 @@ export async function updateEmpresa(formData: FormData) {
   }
 
   await logAudit("UPDATE", "empresa", id, { nombre, cuit, email, telefono });
-  revalidatePath("/dashboard/superadmin/clientes");
-  revalidatePath("/dashboard");
+  revalidatePath("/panel/superadmin/clientes");
+  revalidatePath("/panel");
   return { success: true };
 }
 
@@ -259,8 +259,8 @@ export async function toggleEmpresaStatus(formData: FormData) {
   }
 
   await logAudit("UPDATE", "empresa_status", empresaId, { estado: nuevoEstado });
-  revalidatePath("/dashboard/superadmin/clientes");
-  revalidatePath("/dashboard");
+  revalidatePath("/panel/superadmin/clientes");
+  revalidatePath("/panel");
   return { success: true, estado: nuevoEstado };
 }
 
@@ -282,7 +282,7 @@ export async function createSubscriptionPlan(formData: FormData) {
   }).returning();
 
   await logAudit("CREATE", "subscriptionPlan", plan.id, { nombre: plan.nombre });
-  revalidatePath("/dashboard/superadmin/suscripciones");
+  revalidatePath("/panel/superadmin/suscripciones");
 }
 
 export async function assignSubscription(formData: FormData) {
@@ -300,7 +300,7 @@ export async function assignSubscription(formData: FormData) {
   }).returning();
 
   await logAudit("CREATE", "subscription", sub.id, { empresaId, planId });
-  revalidatePath("/dashboard/superadmin/empresas");
+  revalidatePath("/panel/superadmin/empresas");
 }
 
 // ═══════════ ALERTAS CONFIG ═══════════
@@ -333,7 +333,7 @@ export async function saveAlertConfig(formData: FormData) {
     await logAudit("CREATE", "alertConfig", cfg.id, data);
   }
 
-  revalidatePath("/dashboard/alertas");
+  revalidatePath("/panel/alertas");
 }
 
 // ═══════════ USERS / PERSONAL ═══════════
@@ -355,8 +355,8 @@ export async function createUser(formData: FormData) {
   }).returning();
 
   await logAudit("CREATE", "user", user.id, { name: user.name, role: user.role });
-  revalidatePath("/dashboard/configuracion/usuarios");
-  revalidatePath("/dashboard/personal");
+  revalidatePath("/panel/configuracion/usuarios");
+  revalidatePath("/panel/personal");
 }
 
 // ═══════════ GPS INSTALLATIONS (VENDEDOR/INSTALADOR) ═══════════
@@ -375,7 +375,7 @@ export async function createGpsInstallation(formData: FormData) {
   }).returning();
 
   await logAudit("CREATE", "gpsInstallation", install.id, { vehicleId: install.vehicleId });
-  revalidatePath("/dashboard/instalaciones");
+  revalidatePath("/panel/instalaciones");
 }
 
 export async function updateGpsInstallationStatus(formData: FormData) {
@@ -391,7 +391,7 @@ export async function updateGpsInstallationStatus(formData: FormData) {
   }).where(eq(gpsInstallations.id, id));
 
   await logAudit("UPDATE", "gpsInstallation", id, { estado });
-  revalidatePath("/dashboard/instalaciones");
+  revalidatePath("/panel/instalaciones");
 }
 
 // ═══════════ 360° TENANT DETAIL & USER SECURITY ═══════════

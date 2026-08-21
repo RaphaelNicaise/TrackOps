@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
     refresh: vi.fn(),
   }),
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => "/dashboard/control-flota/vehiculos/1",
+  usePathname: () => "/panel/control-flota/vehiculos/1",
 }));
 
 // Mock leaflet styles and plugins
@@ -81,7 +81,7 @@ vi.mock("@/components/dashboard/vehiculos/documentos", () => ({
 
 import { VehiculoDetail, VehiculoDetailData } from "@/components/dashboard/vehiculos/vehiculo-detail";
 import FleetMap from "@/components/map/FleetMap";
-import MapaPage from "@/app/dashboard/mapa/page";
+import MapaPage from "@/app/panel/mapa/page";
 
 describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
   beforeEach(() => {
@@ -104,7 +104,7 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
 
     it("renders a direct link to filtered alerts in the vehicle detail header actions", () => {
       const html = renderToStaticMarkup(<VehiculoDetail vehicle={mockVehicle} />);
-      const expectedHref = `/dashboard/monitoreo/alertas?patente=${encodeURIComponent(mockVehicle.patente)}`;
+      const expectedHref = `/panel/monitoreo/alertas?patente=${encodeURIComponent(mockVehicle.patente)}`;
 
       expect(html).toContain(expectedHref);
       expect(html).toContain("Ver Alertas");
@@ -112,7 +112,7 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
 
     it("renders alert navigation link inside vencimientos y alertas section", () => {
       const html = renderToStaticMarkup(<VehiculoDetail vehicle={mockVehicle} />);
-      const expectedHref = `/dashboard/monitoreo/alertas?patente=${encodeURIComponent(mockVehicle.patente)}`;
+      const expectedHref = `/panel/monitoreo/alertas?patente=${encodeURIComponent(mockVehicle.patente)}`;
 
       expect(html).toContain("Vencimientos y alertas");
       expect(html).toContain(expectedHref);
@@ -124,7 +124,7 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
         patente: "AF 999 ZZ/1",
       };
       const html = renderToStaticMarkup(<VehiculoDetail vehicle={vehicleWithSpecialChars} />);
-      const expectedHref = `/dashboard/monitoreo/alertas?patente=${encodeURIComponent("AF 999 ZZ/1")}`;
+      const expectedHref = `/panel/monitoreo/alertas?patente=${encodeURIComponent("AF 999 ZZ/1")}`;
 
       expect(html).toContain(expectedHref);
     });
@@ -168,7 +168,7 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
         />
       );
 
-      const expectedHref = `/dashboard/monitoreo/alertas?patente=${encodeURIComponent("AB 123 CD")}`;
+      const expectedHref = `/panel/monitoreo/alertas?patente=${encodeURIComponent("AB 123 CD")}`;
       expect(html).toContain(expectedHref);
       expect(html).toContain("2 Alertas");
     });
@@ -181,7 +181,7 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
         />
       );
 
-      const expectedHref = `/dashboard/monitoreo/alertas?patente=${encodeURIComponent("AF 888 ZZ")}`;
+      const expectedHref = `/panel/monitoreo/alertas?patente=${encodeURIComponent("AF 888 ZZ")}`;
       expect(html).toContain(expectedHref);
       expect(html).toContain("Sin alertas");
     });
@@ -194,7 +194,7 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
         />
       );
 
-      const expectedHref = `/dashboard/monitoreo/alertas?patente=${encodeURIComponent("AB 123 CD")}`;
+      const expectedHref = `/panel/monitoreo/alertas?patente=${encodeURIComponent("AB 123 CD")}`;
       expect(html).toContain(expectedHref);
       expect(html).toContain("Ver alertas");
     });
@@ -205,7 +205,7 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
       const html = renderToStaticMarkup(<MapaPage />);
 
       // mockVehiculos includes at least one vehicle with hasAlert=true
-      expect(html).toContain("/dashboard/monitoreo/alertas?patente=");
+      expect(html).toContain("/panel/monitoreo/alertas?patente=");
     });
   });
 });
