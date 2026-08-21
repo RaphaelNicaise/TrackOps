@@ -1,92 +1,84 @@
-# Design Spec: Rediseño Integral de la Tabla de Vehículos
+# Design Spec: Rediseño Integral y Minimalista de la Tabla de Vehículos
 
 **Fecha:** 2026-08-21  
 **Módulo:** Control de Flota - Vehículos (`/panel/control-flota/vehiculos`)  
-**Objetivo:** Modernizar la tabla de vehículos adoptando el estándar visual, interactivo y funcional de las tablas de *Empresas Clientes*, *Prospectos Leads* y *Centro de Soporte*.
+**Objetivo:** Modernizar la tabla de vehículos con un diseño ágil, limpio y centrado 100% en la tabla, eliminando tarjetas KPI gigantes y usando micro-contadores en línea en las pestañas y barra de herramientas.
 
 ---
 
-## 1. Visión General y Objetivos
-- Reemplazar la tabla básica actual por un panel de gestión integral con KPIs superiores, filtros reactivos, badges de alto contraste, tipografía monoespaciada en patentes/chasis, y acciones directas.
-- Mantener compatibilidad total con los flujos existentes: `CreateVehicleDialog`, `EditVehicleDialog`, `DeleteVehicleDialog`, navegación a `/panel/control-flota/vehiculos/[id]`, navegación a `/panel/mapa`.
-- Asegurar soporte de ordenamiento interactivo (Sort), búsqueda multi-campo y filtrado instantáneo.
+## 1. Visión General y Filosofía de Diseño
+- **Foco absoluto en la tabla:** Se eliminan las tarjetas KPI grandes para no desplazar el contenido ni sobrecargar la pantalla.
+- **Micro-métricas integradas:** Los datos cuantitativos clave se muestran como píldoras/badges compactos directamente dentro de las pestañas (`Todos (12)`, `RTO Vigente (10)`, `RTO Vencido (2)`, `Sin RTO (1)`).
+- **Consistencia visual:** Adopta la estética cuidada, moderna y funcional de las mejores tablas de la plataforma (estilo monospace para patentes/chasis, dropdowns interactivos, acciones en 1 clic, badges de alta legibilidad).
+- **Preservación de funcionalidades:** Mantiene integración con `CreateVehicleDialog`, `EditVehicleDialog`, `DeleteVehicleDialog`, navegación a `/panel/control-flota/vehiculos/[id]` y enlaces al mapa `/panel/mapa`.
 
 ---
 
 ## 2. Componentes y Arquitectura de UI
 
-### A. Cabecera y Tarjetas KPI (3 Tarjetas Principales)
-1. **Total Vehículos:**
-   - Contador total de unidades en la flota del tenant (`Truck`).
-   - Subtexto con desglose de tipos principales (*ej: 8 Camiones, 4 Utilitarios*).
-2. **RTO / VTV Vigente:**
-   - Contador de vehículos con inspección técnica vigente (`ShieldCheck`, color verde esmeralda).
-   - Subtexto con porcentaje de cumplimiento de la flota.
-3. **RTO Vencido / Crítico:**
-   - Contador de vehículos con RTO vencido o por vencer en menos de 15 días (`AlertTriangle`).
-   - Alerta visual destacada en rojo/ámbar si el conteo es mayor a 0.
+### A. Cabecera Compacta (Header)
+- **Título & Subtítulo compacto:**
+  - Título: `Vehículos` (`text-2xl font-bold tracking-tight text-foreground`).
+  - Subtítulo: Contador dinámico en texto sutil (`12 vehículos registrados en tu flota`).
+- **Acción Primaria:** Botón `+ Nuevo Vehículo` montando `<CreateVehicleDialog />` alineado a la derecha.
 
-### B. Barra de Herramientas y Filtros
-1. **Buscador en tiempo real:**
-   - Búsqueda multi-campo sobre: `patente`, `marca`, `modelo`, `chasis` y `tipo`.
-   - Botón para limpiar búsqueda con un clic.
-2. **Pestañas de Estado Rápidas:**
-   - `Todos` (con badge contador)
-   - `RTO Vigente`
-   - `RTO Vencido / Crítico`
-   - `Sin RTO`
-3. **Filtro Desplegable Secundario:**
-   - Por **Tipo de Vehículo** (*Todos, Camión, Camioneta, Utilitario, Auto, Colectivo, etc.*).
-4. **Botón "Limpiar Filtros":**
-   - Visible reactivamente cuando hay algún filtro o búsqueda activa.
-5. **Botón Primario de Acción:**
-   - `+ Nuevo Vehículo` (monta el diálogo `CreateVehicleDialog`).
+### B. Barra de Filtros y Pestañas en Línea
+1. **Pestañas de Estado (Inline Tabs con Contadores):**
+   - `Todos` (Badge con total)
+   - `RTO Vigente` (Badge verde esmeralda con total)
+   - `RTO Vencido` (Badge ámbar/rojo con total)
+   - `Sin RTO` (Badge gris con total)
+2. **Barra de Control:**
+   - **Buscador en tiempo real:** Input estilizado con ícono de lupa y botón para limpiar rápido. Busca sobre patente, marca, modelo, chasis y tipo.
+   - **Selector de Tipo de Vehículo:** Dropdown compacto (*Todos, Camión, Camioneta, Utilitario, Auto, Colectivo*).
+   - **Botón "Limpiar Filtros":** Se muestra solo cuando hay búsqueda o filtros activos.
+   - **Contador de resultados:** `Mostrando X de Y vehículos`.
 
-### C. Estructura de la Tabla y Filas
-1. **Columnas:**
-   - **Vehículo / Patente:**
-     - Badge chapa patente monoespaciada con estilo visual distintivo.
-     - Avatar con ícono según el tipo de vehículo.
-     - Título: Marca y Modelo (`font-semibold`).
-     - Subtexto: Año (`anio ?? "—"`).
-   - **Chasis / VIN:**
-     - Texto monoespaciado limpio con botón/función para copiar al portapapeles.
-   - **Tipo:**
-     - Badge con categoría formateada y color acorde.
-   - **Kilometraje Actual:**
-     - Odómetro numérico formateado (`es-AR`, ej: `145.200 km`) con ícono de velocímetro / odómetro.
-   - **Inspección Técnica (RTO / VTV):**
-     - Badge de estado coloreado:
-       - 🟢 **Vigente:** Fecha + "Vigente" (o días restantes).
-       - 🔴 **Vencido:** Fecha + "Vencido hace X días".
-       - ⚪ **Sin registrar:** "—".
-   - **Documentación:**
-     - Badge de legajo con conteo de documentos y enlace directo al tab de documentación (`/panel/control-flota/vehiculos/[id]?tab=documentacion`).
-   - **Acciones:**
-     - Botón directo `👁️ Ver Ficha` (navega a `/panel/control-flota/vehiculos/[id]`).
-     - Botón directo `🗺️ Ver en Mapa` (navega a `/panel/mapa?patente=...` o `/panel/mapa`).
-     - Menú contextual desplegable (`...`):
-       - *Editar Vehículo* (abre `EditVehicleDialog`).
-       - *Gestionar Documentos*.
-       - *Eliminar Vehículo*.
+### C. Filas y Columnas de la Tabla
+1. **Patente y Modelo:**
+   - **Chapa Patente:** Badge visual estilo patente nacional en fuente monoespaciada destacada (`font-mono font-bold tracking-wider`).
+   - **Avatar / Ícono:** Mini avatar según el tipo de unidad (`Truck`, `Car`, etc.).
+   - **Marca & Modelo:** Título claro (`font-medium`) con el año como subtexto (`anio ?? "—"`).
+2. **Chasis / VIN:**
+   - Tipografía monoespaciada limpia (`font-mono text-xs text-muted-foreground`) con botón de copiar rápido.
+3. **Tipo de Porte:**
+   - Badge ligero con categoría del vehículo (*Camión, Utilitario, etc.*).
+4. **Kilometraje Actual:**
+   - Formato numérico argentino (`145.200 km`) alineado a la derecha con ícono de velocímetro.
+5. **Inspección Técnica (RTO / VTV):**
+   - Badge de estado con color y fecha:
+     - 🟢 **Vigente:** Fecha formateada (`dd/MM/yyyy`) + badge verde.
+     - 🔴 **Vencido:** Fecha formateada + badge rojo "Vencido".
+     - ⚪ **Sin registrar:** Texto tenue `Sin registrar`.
+6. **Documentación:**
+   - Badge interactivo con ícono `FileText` y conteo de documentos con enlace directo al tab de documentación (`/panel/control-flota/vehiculos/[id]?tab=documentacion`).
+7. **Acciones Rápidas (Directas + Menú):**
+   - Botón directo `👁️ Ver Ficha` (navega a `/panel/control-flota/vehiculos/[id]`).
+   - Botón directo `🗺️ Ver en Mapa` (navega a `/panel/mapa?patente=...`).
+   - Menú contextual `⋯`:
+     - *Editar Vehículo* (abre `EditVehicleDialog`).
+     - *Ver Documentación*.
+     - *Eliminar Vehículo*.
 
-### D. Estado Vacío (Empty State)
-- Tarjeta estilizada con ícono de camión, mensaje claro cuando no hay resultados para los filtros seleccionados, y botón para resetear la búsqueda o dar de alta un vehículo.
+### D. Ordenamiento Interactivo (Sorting)
+- Cabeceras interactivas con flechas para ordenar por:
+  - Patente (`patente`)
+  - Vehículo / Año (`anio`)
+  - Chasis (`chasis`)
+  - Kilometraje (`kilometrajeActual`)
+  - Vencimiento RTO (`rto`)
+  - Cantidad de Documentos (`docCount`)
+
+### E. Estado Vacío (Empty State)
+- Contenedor limpio y centrado cuando no hay vehículos o los filtros no arrojan resultados, con botón para resetear la búsqueda o crear un nuevo vehículo.
 
 ---
 
-## 3. Manejo de Datos y Compatibilidad
-- **Props de Entrada:** `VehiculosTableProps { vehicles: VehiculoRow[] }`.
-- **Mapeo de Tipos:** Se conserva `VehiculoRow` para garantizar compatibilidad retroactiva con `VehiculosPage` (`src/app/panel/control-flota/vehiculos/page.tsx`).
-- **Validación con Vitest:** Cobertura de pruebas unitarias verificando KPIs, filtrado por tabs, búsqueda, ordenamiento y acciones.
-
----
-
-## 4. Plan de Testing
-- Pruebas en `test/components/vehiculos-table.test.tsx` (o actualización de tests existentes):
-  - Renderizado de los 3 KPIs (Total, Vigente, Vencido).
-  - Búsqueda por patente y marca.
-  - Filtrado por pestaña de RTO (Vigente vs Vencido).
-  - Filtrado por tipo de vehículo.
+## 3. Plan de Testing
+- Pruebas en `test/components/vehiculos-table.test.tsx`:
+  - Renderizado del encabezado y tabs con micro-contadores.
+  - Búsqueda multi-campo (patente, marca, chasis).
+  - Filtrado por pestañas (RTO Vigente, RTO Vencido, Sin RTO).
+  - Filtrado por selector de tipo de vehículo.
   - Ordenamiento por columnas.
-  - Renderizado de botones de acción rápida.
+  - Renderizado de botones de acción rápida y menú contextual.
