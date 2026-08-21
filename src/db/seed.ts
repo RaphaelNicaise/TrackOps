@@ -17,9 +17,22 @@ async function createTablesIfNotExist() {
         id serial PRIMARY KEY,
         nombre text NOT NULL,
         cuit varchar(20),
+        email text,
+        telefono varchar(50),
+        direccion text,
+        ciudad text,
+        provincia text,
+        setup_completado integer DEFAULT 0 NOT NULL,
         created_at timestamp DEFAULT now() NOT NULL
       );
     `;
+
+    await sql`ALTER TABLE empresas ADD COLUMN IF NOT EXISTS email text;`;
+    await sql`ALTER TABLE empresas ADD COLUMN IF NOT EXISTS telefono varchar(50);`;
+    await sql`ALTER TABLE empresas ADD COLUMN IF NOT EXISTS direccion text;`;
+    await sql`ALTER TABLE empresas ADD COLUMN IF NOT EXISTS ciudad text;`;
+    await sql`ALTER TABLE empresas ADD COLUMN IF NOT EXISTS provincia text;`;
+    await sql`ALTER TABLE empresas ADD COLUMN IF NOT EXISTS setup_completado integer DEFAULT 0 NOT NULL;`;
 
     await sql`
       CREATE TABLE IF NOT EXISTS users (
@@ -30,9 +43,14 @@ async function createTablesIfNotExist() {
         image text,
         password_hash text,
         role varchar(30) DEFAULT 'CHOFER' NOT NULL,
-        empresa_id integer REFERENCES empresas(id)
+        empresa_id integer REFERENCES empresas(id),
+        must_change_password integer DEFAULT 0 NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
       );
     `;
+
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password integer DEFAULT 0 NOT NULL;`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT now() NOT NULL;`;
 
     await sql`
       CREATE TABLE IF NOT EXISTS vehicles (
@@ -135,6 +153,157 @@ async function createTablesIfNotExist() {
         updated_at timestamp DEFAULT now() NOT NULL
       );
     `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS subscription_plans (
+        id serial PRIMARY KEY,
+        nombre text NOT NULL,
+        max_vehiculos integer NOT NULL,
+        precio_mensual double precision NOT NULL,
+        precio_anual double precision,
+        activo integer DEFAULT 1 NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS empresa_subscriptions (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id),
+        plan_id integer NOT NULL REFERENCES subscription_plans(id),
+        estado varchar(20) DEFAULT 'activa' NOT NULL,
+        fecha_inicio timestamp DEFAULT now() NOT NULL,
+        fecha_fin timestamp,
+        metodo_pago varchar(30),
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS alert_configs (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id),
+        canal_email integer DEFAULT 1 NOT NULL,
+        canal_whatsapp integer DEFAULT 0 NOT NULL,
+        email_destino text,
+        telefono_whatsapp varchar(20),
+        tolerancia_km integer DEFAULT 500,
+        tolerancia_dias integer DEFAULT 15,
+        modulos_habilitados text DEFAULT '["MANTENIMIENTO","DOCUMENTACION","GEOCERCAS","HORARIOS"]' NOT NULL,
+        activo integer DEFAULT 1 NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      ALTER TABLE alert_configs ADD COLUMN IF NOT EXISTS modulos_habilitados text DEFAULT '["MANTENIMIENTO","DOCUMENTACION","GEOCERCAS","HORARIOS"]' NOT NULL;
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS alert_logs (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id),
+        modulo varchar(50) NOT NULL,
+        tipo varchar(50) NOT NULL,
+        severidad varchar(20) DEFAULT 'MEDIA' NOT NULL,
+        titulo text NOT NULL,
+        mensaje text NOT NULL,
+        canal varchar(30) NOT NULL,
+        destinatario_email text,
+        destinatario_whatsapp varchar(50),
+        vehiculo_id integer REFERENCES vehicles(id) ON DELETE SET NULL,
+        patente varchar(20),
+        metadata text,
+        estado varchar(30) DEFAULT 'MOCK_DISPATCHED' NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id serial PRIMARY KEY,
+        user_id text,
+        user_name text,
+        action varchar(20) NOT NULL,
+        entity_type varchar(50) NOT NULL,
+        entity_id text,
+        details text,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS maintenance_plans (
+        id serial PRIMARY KEY,
+        vehicle_id integer NOT NULL REFERENCES vehicles(id),
+        componente varchar(100) NOT NULL,
+        intervalo_km integer NOT NULL,
+        ultimo_service_km integer NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS vehicle_groups (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id),
+        nombre text NOT NULL,
+        descripcion text,
+        color varchar(30) DEFAULT '#3b82f6' NOT NULL,
+        icono varchar(50) DEFAULT 'truck' NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS vehicle_group_members (
+        id serial PRIMARY KEY,
+        group_id integer NOT NULL REFERENCES vehicle_groups(id) ON DELETE CASCADE,
+        vehicle_id integer NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS schedules (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id),
+        nombre text NOT NULL,
+        descripcion text,
+        color varchar(30) DEFAULT '#F2B705' NOT NULL,
+        activo integer DEFAULT 1 NOT NULL,
+        dias_config text NOT NULL,
+        tolerancia_minutos integer DEFAULT 5 NOT NULL,
+        target_type varchar(30) DEFAULT 'ALL' NOT NULL,
+        target_vehicles text,
+        target_categories text,
+        target_groups text,
+        alert_channels text DEFAULT '["UI"]' NOT NULL,
+        email_recipients text,
+        whatsapp_recipients text,
+        created_at timestamp DEFAULT now() NOT NULL,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS schedule_violations (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id),
+        schedule_id integer REFERENCES schedules(id) ON DELETE SET NULL,
+        vehicle_id integer NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+        patente varchar(20) NOT NULL,
+        fecha_inicio timestamp NOT NULL,
+        fecha_fin timestamp,
+        duracion_minutos integer DEFAULT 0 NOT NULL,
+        velocidad_maxima double precision DEFAULT 0 NOT NULL,
+        lat double precision,
+        lng double precision,
+        notificado_email integer DEFAULT 0 NOT NULL,
+        notificado_whatsapp integer DEFAULT 0 NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
     console.log("✓ Database tables verified/created successfully.");
   } finally {
     await sql.end();
