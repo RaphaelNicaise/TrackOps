@@ -4,6 +4,24 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { superAdminNav, navByRole } from "@/components/layout/app-sidebar";
 import { Headphones } from "lucide-react";
 
+vi.mock("@/auth", () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: { id: "admin-1", email: "admin@test.com", role: "SUPER_ADMIN" },
+  }),
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
+
+vi.mock("next/headers", () => ({
+  cookies: vi.fn().mockReturnValue({
+    get: vi.fn(),
+    set: vi.fn(),
+    delete: vi.fn(),
+  }),
+}));
+
 // Mock support actions
 vi.mock("@/lib/soporte-actions", () => ({
   getSupportTickets: vi.fn().mockResolvedValue({
