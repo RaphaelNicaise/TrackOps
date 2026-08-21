@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardMain } from "@/components/layout/dashboard-main";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { SupportTicketHeaderButton } from "@/components/soporte/support-ticket-header-button";
 import { ForcePasswordChangeModal } from "@/components/auth/ForcePasswordChangeModal";
 import { SuperadminImpersonationBanner } from "@/components/layout/SuperadminImpersonationBanner";
 import Image from "next/image";
@@ -51,6 +52,13 @@ export default async function PanelLayout({
               </div>
             </div>
             <div className="text-sm flex items-center gap-3">
+              <SupportTicketHeaderButton
+                userName={session?.user?.name}
+                userEmail={session?.user?.email}
+                empresaNombre={tenantContext?.empresaNombre}
+                empresaId={tenantContext?.empresaId ?? (session?.user as any)?.empresaId}
+                userRole={session?.user?.role}
+              />
               <ThemeToggle />
               <span className="bg-accent text-accent-foreground px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider hidden sm:inline-flex">
                 {session?.user?.role || "GUEST"}
