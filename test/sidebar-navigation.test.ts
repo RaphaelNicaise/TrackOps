@@ -26,7 +26,7 @@ describe("Sidebar Superadmin items", () => {
   it("should contain all Gestión de Plataforma items", () => {
     const group = superAdminNav.find((g) => g.label === "Gestión de Plataforma");
     expect(group).toBeDefined();
-    expect(group?.items).toHaveLength(3);
+    expect(group?.items).toHaveLength(4);
     expect(group?.items[0]).toMatchObject({
       title: "Empresas Clientes",
       url: "/panel/superadmin/clientes",
@@ -36,6 +36,10 @@ describe("Sidebar Superadmin items", () => {
       url: "/panel/superadmin/prospectos",
     });
     expect(group?.items[2]).toMatchObject({
+      title: "Centro de Soporte",
+      url: "/panel/superadmin/soporte",
+    });
+    expect(group?.items[3]).toMatchObject({
       title: "Cobros & Planes",
       url: "/panel/superadmin/facturacion",
     });

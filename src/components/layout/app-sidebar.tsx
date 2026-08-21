@@ -37,6 +37,7 @@ import {
   ExternalLink,
   Clock,
   ShieldAlert,
+  Headphones,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -70,6 +71,7 @@ export const superAdminNav: NavGroup[] = [
     items: [
       { title: "Empresas Clientes", url: "/panel/superadmin/clientes", icon: Building2 },
       { title: "Prospectos (Leads)", url: "/panel/superadmin/prospectos", icon: UserPlus },
+      { title: "Centro de Soporte", url: "/panel/superadmin/soporte", icon: Headphones },
       { title: "Cobros & Planes", url: "/panel/superadmin/facturacion", icon: CreditCard },
     ],
   },
@@ -166,7 +168,7 @@ export function AppSidebar({
   if (isImpersonating) {
     groups = [
       {
-        label: "⚡ Modo Superpoderes",
+        label: "Modo Soporte",
         items: [
           {
             title: "Volver a SuperAdmin",
