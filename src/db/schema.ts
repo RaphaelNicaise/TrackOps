@@ -192,7 +192,8 @@ export const auditLogs = pgTable("audit_logs", {
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: serial("id").primaryKey(),
   nombre: text("nombre").notNull(),
-  maxVehiculos: integer("max_vehiculos").notNull(),
+  minVehiculos: integer("min_vehiculos").default(1).notNull(),
+  maxVehiculos: integer("max_vehiculos"), // null = sin tope (ej +50)
   precioMensual: doublePrecision("precio_mensual").notNull(),
   precioAnual: doublePrecision("precio_anual"),
   activo: integer("activo").default(1).notNull(), // 1 = activo, 0 = inactivo
@@ -372,6 +373,28 @@ export const scheduleViolations = pgTable("schedule_violations", {
   notificadoEmail: integer("notificado_email").default(0).notNull(),
   notificadoWhatsapp: integer("notificado_whatsapp").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const ticketsSoporte = pgTable("tickets_soporte", {
+  id: serial("id").primaryKey(),
+  origen: varchar("origen", { length: 20 }).notNull().default("PANEL"),
+  empresaId: integer("empresa_id").references(() => empresas.id, { onDelete: "set null" }),
+  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+  nombreContacto: text("nombre_contacto").notNull(),
+  emailContacto: text("email_contacto").notNull(),
+  telefonoContacto: varchar("telefono_contacto", { length: 50 }),
+  empresaNombreManual: text("empresa_nombre_manual"),
+  tipo: varchar("tipo", { length: 40 }).notNull(),
+  prioridad: varchar("prioridad", { length: 20 }).notNull().default("MEDIA"),
+  estado: varchar("estado", { length: 30 }).notNull().default("PENDIENTE"),
+  asunto: text("asunto").notNull(),
+  mensaje: text("mensaje").notNull(),
+  preferenciaRespuesta: varchar("preferencia_respuesta", { length: 20 }).default("EMAIL"),
+  notasInternas: text("notas_internas"),
+  resueltoPor: text("resuelto_por"),
+  resueltoAt: timestamp("resuelto_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 
