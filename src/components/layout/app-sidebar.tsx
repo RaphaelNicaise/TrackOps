@@ -38,6 +38,8 @@ import {
   Clock,
   ShieldAlert,
   Headphones,
+  UserCheck,
+  Navigation,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -104,6 +106,8 @@ export const adminNav: NavGroup[] = [
     label: "Control de Flota",
     items: [
       { title: "Vehículos", url: "/panel/control-flota/vehiculos", icon: Truck },
+      { title: "Choferes", url: "/panel/control-flota/choferes", icon: UserCheck },
+      { title: "Viajes", url: "/panel/control-flota/viajes", icon: Navigation },
       { title: "Mantenimiento", url: "/panel/control-flota/mantenimiento", icon: Wrench },
       { title: "Combustible", url: "/panel/control-flota/combustible", icon: Fuel },
       { title: "Sitios", url: "/panel/control-flota/sitios", icon: MapPin },
@@ -134,7 +138,7 @@ export const navByRole: Record<string, NavGroup[]> = {
   CHOFER: [
     {
       items: [
-        { title: "Inicio", url: "/panel", icon: LayoutDashboard },
+        { title: "Mi Panel / Mis Viajes", url: "/panel/chofer", icon: Navigation },
         { title: "Combustible", url: "/panel/control-flota/combustible", icon: Fuel },
       ]
     }
