@@ -10,19 +10,14 @@ Bypass de auth demo en producción. src/auth.ts:82 si !user || !user.passwordHas
 
 13. Sin TanStack Table ni paginación. Spec doc/design.md:10 pide TanStack Table data-dense. Tablas son &lt;Table&gt; shadcn con sort manual src/components/dashboard/vehiculos/vehiculos-table.tsx:1 sin sticky header ni limit. export/route.ts:19 hace select * en memoria. Decisión: migrar a @tanstack/react-table (ya tenés react-query/recharts) con 25/50 paginación o dejar simple hasta 500 vehículos.
 
-
-
 Tipografía triple. src/app/layout.tsx:1 carga Outfit+Playfair_Display pero globals.css:1 usa SF Pro/Geist. Landing usa font-playfair serif. Decisión: unificar en Outfit (industrial) vs mantener Playfair editorial en landing. Hacer chequeo general de tipografias
 
 
 
-Que el Chofer o el admin de la empresa, cuando quiera crear el viaje pueda elegir tanto un sitio (preconfigurado en la seccion sitios) como algun lugar de google places.
-
-Ver el tema del cobro escalonado, porque hay que cobrar mensual pero puede pasar que en el medio de la mensualidad se agreguen vehiculos.
-
-Integrarle a cada vehiculo la columnas para verificar si tiene o no el gps instalado, que modelo, etc. Que eso iria conectado con la cuenta instalador vendedor, cuando instale el GPS, se tendria que reflejar en el vehiculo, que esta funcionando. 
-
-Seccion de Combustible + Funcionalidades para el chofer, carga de tickets (foto o manual) para gestionar tema combustible
+- Que el Chofer o el admin de la empresa, cuando quiera crear el viaje pueda elegir tanto un sitio (preconfigurado en la seccion sitios) como algun lugar de google places.
+- Ver el tema del cobro escalonado, porque hay que cobrar mensual pero puede pasar que en el medio de la mensualidad se agreguen vehiculos.
+- Integrarle a cada vehiculo la columnas para verificar si tiene o no el gps instalado, que modelo, etc. Que eso iria conectado con la cuenta instalador vendedor, cuando instale el GPS, se tendria que reflejar en el vehiculo, que esta funcionando. 
+- Seccion de Combustible + Funcionalidades para el chofer, carga de tickets (foto o manual) para gestionar tema combustible
 
 
 
