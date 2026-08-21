@@ -30,6 +30,12 @@ export const empresas = pgTable("empresas", {
   id: serial("id").primaryKey(),
   nombre: text("nombre").notNull(),
   cuit: varchar("cuit", { length: 20 }),
+  email: text("email"),
+  telefono: varchar("telefono", { length: 50 }),
+  direccion: text("direccion"),
+  ciudad: text("ciudad"),
+  provincia: text("provincia"),
+  setupCompletado: integer("setup_completado").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 
@@ -44,6 +50,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   role: varchar("role", { length: 30 }).default("CHOFER").notNull(), // SUPER_ADMIN, ADMIN_EMPRESA, CHOFER, VENDEDOR_INSTALADOR
   empresaId: integer("empresa_id").references(() => empresas.id),
+  mustChangePassword: integer("must_change_password").default(0).notNull(),
 })
 
 export const accounts = pgTable(
