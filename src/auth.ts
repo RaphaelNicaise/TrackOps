@@ -30,6 +30,7 @@ async function getOrCreateDemoUser(email: string) {
         name: existing.name ?? demo.name,
         role: existing.role,
         empresaId: existing.empresaId ?? demo.empresaId,
+        mustChangePassword: existing.mustChangePassword ?? 0,
       };
     }
 
@@ -47,10 +48,16 @@ async function getOrCreateDemoUser(email: string) {
       empresaId,
     });
 
-    return demo;
+    return {
+      ...demo,
+      mustChangePassword: 0,
+    };
   } catch (e) {
     // Si la BD no está disponible, igual permitimos el login demo
-    return demo;
+    return {
+      ...demo,
+      mustChangePassword: 0,
+    };
   }
 }
 
@@ -96,6 +103,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             name: user.name,
             role: user.role,
             empresaId: user.empresaId,
+            mustChangePassword: user.mustChangePassword ?? 0,
           };
         }
 

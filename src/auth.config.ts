@@ -26,8 +26,9 @@ export const authConfig = {
       if (user) {
         // user object is only passed on initial sign in
         token.role = user.role;
-        token.empresaId = user.empresaId;
+        token.empresaId = user.empresaId ?? undefined;
         token.id = user.id;
+        token.mustChangePassword = user.mustChangePassword ?? 0;
       }
       return token;
     },
@@ -37,6 +38,7 @@ export const authConfig = {
           session.user.id = token.id as string;
           session.user.role = token.role as string;
           session.user.empresaId = token.empresaId as number | undefined;
+          session.user.mustChangePassword = typeof token.mustChangePassword === "number" ? token.mustChangePassword : 0;
         }
       }
       return session;

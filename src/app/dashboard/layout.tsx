@@ -4,6 +4,7 @@ import { DashboardMain } from "@/components/layout/dashboard-main";
 import HideOnScroll from "@/components/layout/hide-on-scroll";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { ForcePasswordChangeModal } from "@/components/auth/ForcePasswordChangeModal";
 import Image from "next/image";
 
 export default async function DashboardLayout({
@@ -15,6 +16,10 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
+      <ForcePasswordChangeModal
+        mustChangePassword={session?.user?.mustChangePassword}
+        userName={session?.user?.name || session?.user?.email}
+      />
       <AppSidebar userRole={session?.user?.role} />
       <main className="flex-1 w-full bg-background min-h-screen flex flex-col min-w-0 overflow-x-hidden">
         <HideOnScroll>
