@@ -14,6 +14,13 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { logAudit } from "./audit";
 import bcrypt from "bcryptjs";
+import {
+  enterTenantAsSuperadmin,
+  exitSuperadminImpersonation,
+  getEffectiveTenantContext,
+} from "./impersonation";
+
+export { enterTenantAsSuperadmin, exitSuperadminImpersonation, getEffectiveTenantContext };
 
 // ═══════════ EMPRESAS ═══════════
 
@@ -138,26 +145,7 @@ export async function toggleEmpresaStatus(formData: FormData) {
 }
 
 export async function superpoderesAccessTenant(empresaId: number) {
-  const session = await auth();
-  if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
-
-  const [empresa] = await db
-    .select()
-    .from(empresas)
-    .where(eq(empresas.id, empresaId));
-
-  await logAudit("IMPERSONATE", "empresa", empresaId, {
-    action: "superpoderes_access",
-    empresaNombre: empresa?.nombre || "Empresa Desconocida",
-    superadminEmail: session.user.email,
-  });
-
-  return {
-    success: true,
-    empresaId,
-    empresaNombre: empresa?.nombre || `Empresa #${empresaId}`,
-    message: `Sesión de soporte iniciada como administrador para ${empresa?.nombre || `Empresa #${empresaId}`}`,
-  };
+  return await enterTenantAsSuperadmin(empresaId);
 }
 
 // ═══════════ SUSCRIPCIONES ═══════════

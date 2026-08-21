@@ -1,10 +1,12 @@
 import { auth } from "@/auth";
+import { getEffectiveTenantContext } from "@/lib/impersonation";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardMain } from "@/components/layout/dashboard-main";
 import HideOnScroll from "@/components/layout/hide-on-scroll";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { ForcePasswordChangeModal } from "@/components/auth/ForcePasswordChangeModal";
+import { SuperadminImpersonationBanner } from "@/components/layout/SuperadminImpersonationBanner";
 import Image from "next/image";
 
 export default async function DashboardLayout({
@@ -13,6 +15,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  const tenantContext = await getEffectiveTenantContext();
 
   return (
     <SidebarProvider>
@@ -22,6 +25,12 @@ export default async function DashboardLayout({
       />
       <AppSidebar userRole={session?.user?.role} />
       <main className="flex-1 w-full bg-background min-h-screen flex flex-col min-w-0 overflow-x-hidden">
+        {tenantContext.isImpersonating && tenantContext.empresaId && (
+          <SuperadminImpersonationBanner
+            empresaId={tenantContext.empresaId}
+            empresaNombre={tenantContext.empresaNombre || `Empresa #${tenantContext.empresaId}`}
+          />
+        )}
         <HideOnScroll>
           <div className="h-14 flex items-center justify-between border-b bg-card px-4 md:px-6 shadow-sm">
             <div className="flex items-center gap-3">
