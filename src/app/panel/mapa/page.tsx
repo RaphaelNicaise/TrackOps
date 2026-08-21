@@ -293,7 +293,7 @@ export default function MapaPage() {
                       {v.patente}
                       {v.hasAlert && (
                         <Link
-                          href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(v.patente)}`}
+                          href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(v.patente)}`}
                           onClick={(e) => e.stopPropagation()}
                           title="Ver alertas de este vehículo"
                           className="hover:scale-110 transition-transform cursor-pointer"

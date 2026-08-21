@@ -1,0 +1,22 @@
+import { auth } from "@/auth";
+import { getEffectiveTenantContext } from "@/lib/impersonation";
+import { redirect } from "next/navigation";
+
+export default async function PanelPage() {
+  const session = await auth();
+  const tenantContext = await getEffectiveTenantContext();
+
+  if (session?.user?.role === "SUPER_ADMIN" && !tenantContext?.isImpersonating) {
+    redirect("/panel/superadmin/dashboard");
+  }
+
+  if (session?.user?.role === "CHOFER") {
+    redirect("/panel/control-flota/combustible");
+  }
+
+  if (session?.user?.role === "VENDEDOR_INSTALADOR") {
+    redirect("/panel/mapa");
+  }
+
+  redirect("/panel/monitoreo/dashboard");
+}

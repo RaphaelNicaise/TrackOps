@@ -71,7 +71,7 @@ export default async function MonitoreoDashboardPage() {
       value: totalVehicles === 1 ? "1 Unidad" : `${totalVehicles} Unidades`,
       subtext: totalVehicles > 0 ? "Monitoreadas en el sistema" : "Sin unidades registradas",
       icon: Truck,
-      href: "/dashboard/control-flota/vehiculos",
+      href: "/panel/control-flota/vehiculos",
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
       borderColor: "border-blue-500/20",
@@ -81,7 +81,7 @@ export default async function MonitoreoDashboardPage() {
       value: totalUsers === 1 ? "1 Usuario" : `${totalUsers} Miembros`,
       subtext: totalUsers > 1 ? "Operadores asignados" : "Solo administrador",
       icon: Users,
-      href: "/dashboard/administracion/usuarios",
+      href: "/panel/administracion/usuarios",
       color: "text-emerald-500",
       bgColor: "bg-emerald-500/10",
       borderColor: "border-emerald-500/20",
@@ -91,7 +91,7 @@ export default async function MonitoreoDashboardPage() {
       value: totalMaintenancePlans === 1 ? "1 Plan" : `${totalMaintenancePlans} Planes`,
       subtext: totalMaintenancePlans > 0 ? "Reglas preventivas activas" : "Pendiente de configuración",
       icon: Wrench,
-      href: "/dashboard/control-flota/mantenimiento",
+      href: "/panel/control-flota/mantenimiento",
       color: "text-amber-500",
       bgColor: "bg-amber-500/10",
       borderColor: "border-amber-500/20",
@@ -101,7 +101,7 @@ export default async function MonitoreoDashboardPage() {
       value: `${alertCount} Notificaciones`,
       subtext: "WhatsApp y Email emitidos",
       icon: Bell,
-      href: "/dashboard/monitoreo/alertas",
+      href: "/panel/monitoreo/alertas",
       color: "text-indigo-500",
       bgColor: "bg-indigo-500/10",
       borderColor: "border-indigo-500/20",
@@ -134,7 +134,7 @@ export default async function MonitoreoDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href="/dashboard/mapa">
+          <Link href="/panel/mapa">
             <Button size="sm" className="gap-1.5">
               <MapPin className="h-4 w-4" />
               Ver Mapa en Vivo
@@ -195,7 +195,7 @@ export default async function MonitoreoDashboardPage() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-0">
               <Link
-                href="/dashboard/control-flota/vehiculos"
+                href="/panel/control-flota/vehiculos"
                 className="p-3.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/30 transition-all flex items-start gap-3 group"
               >
                 <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 border border-blue-500/20 shrink-0">
@@ -213,7 +213,7 @@ export default async function MonitoreoDashboardPage() {
               </Link>
 
               <Link
-                href="/dashboard/control-flota/mantenimiento"
+                href="/panel/control-flota/mantenimiento"
                 className="p-3.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/30 transition-all flex items-start gap-3 group"
               >
                 <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 shrink-0">
@@ -231,7 +231,7 @@ export default async function MonitoreoDashboardPage() {
               </Link>
 
               <Link
-                href="/dashboard/control-flota/combustible"
+                href="/panel/control-flota/combustible"
                 className="p-3.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/30 transition-all flex items-start gap-3 group"
               >
                 <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shrink-0">
@@ -249,7 +249,7 @@ export default async function MonitoreoDashboardPage() {
               </Link>
 
               <Link
-                href="/dashboard/control-flota/geocercas"
+                href="/panel/control-flota/geocercas"
                 className="p-3.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/30 transition-all flex items-start gap-3 group"
               >
                 <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 border border-purple-500/20 shrink-0">
@@ -279,7 +279,7 @@ export default async function MonitoreoDashboardPage() {
                     <Bell className="h-4 w-4 text-primary" />
                     Últimas Alertas
                   </CardTitle>
-                  <Link href="/dashboard/monitoreo/alertas">
+                  <Link href="/panel/monitoreo/alertas">
                     <Button variant="ghost" size="sm" className="text-xs h-7 px-2">
                       Ver todas
                     </Button>
@@ -330,7 +330,7 @@ export default async function MonitoreoDashboardPage() {
             </div>
 
             <div className="p-4 pt-0 border-t border-border/40 mt-auto">
-              <Link href="/dashboard/administracion/configuracion" className="w-full">
+              <Link href="/panel/administracion/configuracion" className="w-full">
                 <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
                   <Bell className="h-3.5 w-3.5" />
                   Configurar Canales WhatsApp / Email

@@ -8,7 +8,7 @@ import { ForcePasswordChangeModal } from "@/components/auth/ForcePasswordChangeM
 import { SuperadminImpersonationBanner } from "@/components/layout/SuperadminImpersonationBanner";
 import Image from "next/image";
 
-export default async function DashboardLayout({
+export default async function PanelLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -47,7 +47,7 @@ export default async function DashboardLayout({
                 />
               </div>
               <div className="text-xs text-muted-foreground font-mono hidden md:block">
-                TRACKOPS / DASHBOARD
+                TRACKOPS / PANEL
               </div>
             </div>
             <div className="text-sm flex items-center gap-3">
