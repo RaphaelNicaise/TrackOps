@@ -6,8 +6,6 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
-import "leaflet.markercluster";
-import { renderToString } from "react-dom/server";
 import { Car, Truck as TruckIcon, AlertTriangle, X, Bell, ArrowUpRight, Route, Gauge, Clock, Shield } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -52,6 +50,38 @@ if (typeof window !== "undefined") {
         }
       };
     }
+    // Guard against Polyline / Polygon _projectLatlngs recursion crash on null/invalid coords or cross-module LatLng instanceof failures
+    if (L.Polyline && (L.Polyline.prototype as any)) {
+      // @ts-ignore - patching private Leaflet method for null-guard
+      (L.Polyline.prototype as any)._projectLatlngs = function (latlngs: any, result: any, projectedBounds: any) {
+        if (!latlngs || !Array.isArray(latlngs) || latlngs.length === 0) return;
+
+        const first = latlngs[0];
+        const flat =
+          first instanceof L.LatLng ||
+          (first != null && typeof first === "object" && ("lat" in first || "lng" in first)) ||
+          (Array.isArray(first) && typeof first[0] === "number");
+
+        if (flat) {
+          const ring: any[] = [];
+          for (let i = 0; i < latlngs.length; i++) {
+            if (!latlngs[i]) continue;
+            try {
+              const pt = this._map.latLngToLayerPoint(latlngs[i]);
+              ring.push(pt);
+              projectedBounds.extend(pt);
+            } catch {}
+          }
+          result.push(ring);
+        } else {
+          for (let i = 0; i < latlngs.length; i++) {
+            if (latlngs[i]) {
+              this._projectLatlngs(latlngs[i], result, projectedBounds);
+            }
+          }
+        }
+      };
+    }
   }
 }
 
@@ -90,14 +120,34 @@ function GeofencesGroup({
   return (
     <>
       {geofences.map((g) => {
+        if (!g) return null;
         const color = g.color || "#3b82f6";
         const opacity = g.opacidad ?? 0.25;
 
-        if (g.tipo === "Polígono" && g.coordenadas && g.coordenadas.length >= 3) {
+        if (g.tipo === "Polígono" && Array.isArray(g.coordenadas) && g.coordenadas.length >= 3) {
+          const validCoords: [number, number][] = [];
+          for (const pt of g.coordenadas) {
+            if (Array.isArray(pt) && pt.length >= 2) {
+              const lat = Number(pt[0]);
+              const lng = Number(pt[1]);
+              if (!isNaN(lat) && !isNaN(lng)) {
+                validCoords.push([lat, lng]);
+              }
+            } else if (pt && typeof pt === "object" && "lat" in pt && "lng" in pt) {
+              const lat = Number((pt as any).lat);
+              const lng = Number((pt as any).lng);
+              if (!isNaN(lat) && !isNaN(lng)) {
+                validCoords.push([lat, lng]);
+              }
+            }
+          }
+
+          if (validCoords.length < 3) return null;
+
           return (
             <Polygon
               key={`geofence-${g.id}`}
-              positions={g.coordenadas}
+              positions={validCoords}
               pathOptions={{
                 color: color,
                 fillColor: color,
@@ -160,11 +210,29 @@ function GeofencesGroup({
         }
 
         if (g.tipo === "Círculo" && g.centro && g.radio) {
+          let centerLatLng: [number, number] | null = null;
+          if (Array.isArray(g.centro) && g.centro.length >= 2) {
+            const lat = Number(g.centro[0]);
+            const lng = Number(g.centro[1]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              centerLatLng = [lat, lng];
+            }
+          } else if (g.centro && typeof g.centro === "object" && "lat" in g.centro && "lng" in g.centro) {
+            const lat = Number((g.centro as any).lat);
+            const lng = Number((g.centro as any).lng);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              centerLatLng = [lat, lng];
+            }
+          }
+
+          const radius = Number(g.radio);
+          if (!centerLatLng || isNaN(radius) || radius <= 0) return null;
+
           return (
             <Circle
               key={`geofence-${g.id}`}
-              center={g.centro}
-              radius={g.radio}
+              center={centerLatLng}
+              radius={radius}
               pathOptions={{
                 color: color,
                 fillColor: color,
@@ -201,7 +269,7 @@ function GeofencesGroup({
                   <div className="space-y-0.5 text-[11px]">
                     <div className="flex items-center justify-between text-muted-foreground">
                       <span>Radio:</span>
-                      <span className="font-semibold text-foreground">{g.radio}m</span>
+                      <span className="font-semibold text-foreground">{radius}m</span>
                     </div>
                     {g.speedLimit && (
                       <div className="flex items-center justify-between text-muted-foreground">
@@ -277,27 +345,48 @@ function VehicleClusterGroup({
     clusterGroupRef.current = clusterGroup;
 
     // Add markers for each vehicle
-    vehiculos.forEach((v) => {
-      let bgClass = "bg-emerald-500";
-      if (v.estado === "Ralentí") bgClass = "bg-amber-500";
-      if (v.estado === "Detenido") bgClass = "bg-slate-500";
-      if (v.hasAlert) bgClass = "bg-destructive";
+    const validVehiculos = Array.isArray(vehiculos)
+      ? vehiculos.filter(
+          (v) =>
+            v &&
+            typeof v.lat === "number" &&
+            !isNaN(v.lat) &&
+            typeof v.lng === "number" &&
+            !isNaN(v.lng)
+        )
+      : [];
 
-      const iconHtml = renderToString(
-        <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-card border shadow-lg cursor-pointer">
-          {v.tipo === "Camión" || v.tipo === "Camioneta" ? (
-            <TruckIcon className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
-          ) : (
-            <Car className={`w-4 h-4 ${bgClass.replace('bg-', 'text-')}`} />
-          )}
-          <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${bgClass}`} />
-          {v.hasAlert && (
-            <div className="absolute -bottom-2 bg-destructive text-destructive-foreground text-[8px] font-bold px-1 rounded-sm shadow-sm flex items-center gap-0.5">
-              <AlertTriangle className="w-2 h-2" />
-            </div>
-          )}
-        </div>
-      );
+    validVehiculos.forEach((v) => {
+      let bgClass = "bg-emerald-500";
+      let textClass = "text-emerald-500";
+      if (v.estado === "Ralentí") {
+        bgClass = "bg-amber-500";
+        textClass = "text-amber-500";
+      } else if (v.estado === "Detenido") {
+        bgClass = "bg-slate-500";
+        textClass = "text-slate-500";
+      }
+      if (v.hasAlert) {
+        bgClass = "bg-destructive";
+        textClass = "text-destructive";
+      }
+
+      const isTruck = v.tipo === "Camión" || v.tipo === "Camioneta";
+      const iconSvg = isTruck
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${textClass}"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${textClass}"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`;
+
+      const alertBadge = v.hasAlert
+        ? `<div class="absolute -bottom-2 bg-destructive text-destructive-foreground text-[8px] font-bold px-1 rounded-sm shadow-sm flex items-center gap-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>`
+        : "";
+
+      const iconHtml = `<div class="relative flex items-center justify-center w-8 h-8 rounded-full bg-card border shadow-lg cursor-pointer">
+        ${iconSvg}
+        <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${bgClass}"></div>
+        ${alertBadge}
+      </div>`;
 
       const customIcon = L.divIcon({
         html: iconHtml,
@@ -438,7 +527,7 @@ export default function FleetMap({
                 className="group min-w-0 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(`/dashboard/control-flota/vehiculos/${focusedVehicle.id}`);
+                  router.push(`/panel/control-flota/vehiculos/${focusedVehicle.id}`);
                 }}
               >
                 <h3 className="font-bold text-lg flex items-center gap-2 truncate group-hover:text-primary transition-colors">
@@ -475,7 +564,7 @@ export default function FleetMap({
               </div>
               {focusedVehicle.hasAlert ? (
                 <Link
-                  href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
+                  href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
                   onClick={(e) => e.stopPropagation()}
                   className="flex items-center gap-1.5 text-xs font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors px-2 py-1 rounded-md"
                   title="Ver alertas de este vehículo"
@@ -485,7 +574,7 @@ export default function FleetMap({
                 </Link>
               ) : (
                 <Link
-                  href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
+                  href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
                   onClick={(e) => e.stopPropagation()}
                   className="text-xs font-medium text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors px-2 py-1 rounded-md"
                   title="Ver historial de alertas"
@@ -502,7 +591,7 @@ export default function FleetMap({
                 className="gap-2 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(`/dashboard/control-flota/vehiculos/${focusedVehicle.id}`);
+                  router.push(`/panel/control-flota/vehiculos/${focusedVehicle.id}`);
                 }}
               >
                 <ArrowUpRight className="w-4 h-4" />
@@ -517,7 +606,7 @@ export default function FleetMap({
                   e.stopPropagation();
                 }}
               >
-                <Link href={`/dashboard/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}>
+                <Link href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}>
                   <Bell className="w-4 h-4" />
                   Ver alertas
                 </Link>

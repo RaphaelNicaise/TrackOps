@@ -56,17 +56,49 @@ if (typeof window !== "undefined" && L) {
         return new L.Point(0, 0);
       }
     };
-  }
-  if ((L.Map as any)?.prototype?._getMapPanePos) {
-    const origGetMapPanePos = (L.Map as any).prototype._getMapPanePos;
-    (L.Map as any).prototype._getMapPanePos = function () {
-      if (!this._mapPane) return new L.Point(0, 0);
-      try {
-        return origGetMapPanePos.call(this);
-      } catch {
-        return new L.Point(0, 0);
-      }
-    };
+    if ((L.Map as any)?.prototype?._getMapPanePos) {
+      const origGetMapPanePos = (L.Map as any).prototype._getMapPanePos;
+      (L.Map as any).prototype._getMapPanePos = function () {
+        if (!this._mapPane) return new L.Point(0, 0);
+        try {
+          return origGetMapPanePos.call(this);
+        } catch {
+          return new L.Point(0, 0);
+        }
+      };
+    }
+    // Guard against Polyline / Polygon _projectLatlngs recursion crash on null/invalid coords or cross-module LatLng instanceof failures
+    if (L.Polyline && (L.Polyline.prototype as any)) {
+      // @ts-ignore - patching private Leaflet method for null-guard
+      (L.Polyline.prototype as any)._projectLatlngs = function (latlngs: any, result: any, projectedBounds: any) {
+        if (!latlngs || !Array.isArray(latlngs) || latlngs.length === 0) return;
+
+        const first = latlngs[0];
+        const flat =
+          first instanceof L.LatLng ||
+          (first != null && typeof first === "object" && ("lat" in first || "lng" in first)) ||
+          (Array.isArray(first) && typeof first[0] === "number");
+
+        if (flat) {
+          const ring: any[] = [];
+          for (let i = 0; i < latlngs.length; i++) {
+            if (!latlngs[i]) continue;
+            try {
+              const pt = this._map.latLngToLayerPoint(latlngs[i]);
+              ring.push(pt);
+              projectedBounds.extend(pt);
+            } catch {}
+          }
+          result.push(ring);
+        } else {
+          for (let i = 0; i < latlngs.length; i++) {
+            if (latlngs[i]) {
+              this._projectLatlngs(latlngs[i], result, projectedBounds);
+            }
+          }
+        }
+      };
+    }
   }
 }
 
@@ -1099,11 +1131,30 @@ export default function GeofenceMap({
             </Popup>
           );
 
-          if (g.tipo === "Polígono" && g.coordenadas && g.coordenadas.length > 0) {
+          if (g.tipo === "Polígono" && Array.isArray(g.coordenadas) && g.coordenadas.length >= 3) {
+            const validCoords: [number, number][] = [];
+            for (const pt of g.coordenadas) {
+              if (Array.isArray(pt) && pt.length >= 2) {
+                const lat = Number(pt[0]);
+                const lng = Number(pt[1]);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                  validCoords.push([lat, lng]);
+                }
+              } else if (pt && typeof pt === "object" && "lat" in pt && "lng" in pt) {
+                const lat = Number((pt as any).lat);
+                const lng = Number((pt as any).lng);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                  validCoords.push([lat, lng]);
+                }
+              }
+            }
+
+            if (validCoords.length < 3) return null;
+
             return (
               <Polygon
                 key={g.id}
-                positions={g.coordenadas}
+                positions={validCoords}
                 pathOptions={{
                   color: g.color,
                   fillColor: g.color,
@@ -1117,11 +1168,29 @@ export default function GeofenceMap({
               </Polygon>
             );
           } else if (g.tipo === "Círculo" && g.centro && g.radio) {
+            let centerLatLng: [number, number] | null = null;
+            if (Array.isArray(g.centro) && g.centro.length >= 2) {
+              const lat = Number(g.centro[0]);
+              const lng = Number(g.centro[1]);
+              if (!isNaN(lat) && !isNaN(lng)) {
+                centerLatLng = [lat, lng];
+              }
+            } else if (g.centro && typeof g.centro === "object" && "lat" in g.centro && "lng" in g.centro) {
+              const lat = Number((g.centro as any).lat);
+              const lng = Number((g.centro as any).lng);
+              if (!isNaN(lat) && !isNaN(lng)) {
+                centerLatLng = [lat, lng];
+              }
+            }
+
+            const radius = Number(g.radio);
+            if (!centerLatLng || isNaN(radius) || radius <= 0) return null;
+
             return (
               <Circle
                 key={g.id}
-                center={g.centro}
-                radius={g.radio}
+                center={centerLatLng}
+                radius={radius}
                 pathOptions={{
                   color: g.color,
                   fillColor: g.color,

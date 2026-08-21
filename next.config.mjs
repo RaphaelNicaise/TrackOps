@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["gsap"],
-  webpack: (config, { dev }) => {
-    if (dev) {
-      // Disable Webpack disk pack file cache in dev to avoid Windows ENOENT & stale chunk 404 issues
-      config.cache = false;
-    }
+  transpilePackages: ["gsap", "framer-motion", "motion"],
+  // Permitir dev desde 127.0.0.1 sin warnings de cross-origin
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  webpack: (config) => {
     return config;
   },
 };
