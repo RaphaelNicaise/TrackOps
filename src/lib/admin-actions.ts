@@ -24,6 +24,111 @@ export { enterTenantAsSuperadmin, exitSuperadminImpersonation, getEffectiveTenan
 
 // ═══════════ EMPRESAS ═══════════
 
+export async function createEmpresaWithAdmin(formData: FormData) {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized: Se requiere rol SUPER_ADMIN");
+
+  const nombre = (formData.get("nombre") as string)?.trim();
+  const cuit = (formData.get("cuit") as string)?.trim() || null;
+  const email = (formData.get("email") as string)?.trim() || null;
+  const telefono = (formData.get("telefono") as string)?.trim() || null;
+  const direccion = (formData.get("direccion") as string)?.trim() || null;
+  const ciudad = (formData.get("ciudad") as string)?.trim() || null;
+  const provincia = (formData.get("provincia") as string)?.trim() || null;
+  const planIdStr = formData.get("planId") as string | null;
+
+  const adminNombre = (formData.get("adminNombre") as string)?.trim();
+  const adminEmail = (formData.get("adminEmail") as string)?.trim();
+  const adminPassword = (formData.get("adminPassword") as string)?.trim();
+
+  if (!nombre) {
+    throw new Error("El nombre de la empresa es requerido");
+  }
+  if (!adminNombre) {
+    throw new Error("El nombre del administrador es requerido");
+  }
+  if (!adminEmail) {
+    throw new Error("El email del administrador es requerido");
+  }
+  if (!adminPassword || adminPassword.length < 8) {
+    throw new Error("La contraseña del administrador debe tener al menos 8 caracteres");
+  }
+
+  // Check if admin email already exists
+  const existingUser = await db.select().from(users).where(eq(users.email, adminEmail));
+  if (existingUser.length > 0) {
+    throw new Error(`El email "${adminEmail}" ya está registrado para otro usuario.`);
+  }
+
+  // Hash password
+  const hash = await bcrypt.hash(adminPassword, 10);
+
+  // 1. Insert empresa
+  const [empresa] = await db.insert(empresas).values({
+    nombre,
+    cuit,
+    email,
+    telefono,
+    direccion,
+    ciudad,
+    provincia,
+    setupCompletado: 0,
+  }).returning();
+
+  // 2. Insert admin user
+  const [adminUser] = await db.insert(users).values({
+    name: adminNombre,
+    email: adminEmail,
+    passwordHash: hash,
+    role: "ADMIN_EMPRESA",
+    empresaId: empresa.id,
+    mustChangePassword: 1,
+  }).returning();
+
+  // 3. Insert subscription
+  let planId = 1;
+  if (planIdStr) {
+    const parsed = parseInt(planIdStr);
+    if (!isNaN(parsed) && parsed > 0) {
+      planId = parsed;
+    }
+  }
+
+  await db.insert(empresaSubscriptions).values({
+    empresaId: empresa.id,
+    planId,
+    estado: "activa",
+    metodoPago: "transferencia",
+  });
+
+  // 4. Insert alertConfigs
+  await db.insert(alertConfigs).values({
+    empresaId: empresa.id,
+    emailDestino: email || adminEmail,
+    telefonoWhatsapp: telefono ? telefono.slice(0, 20) : null,
+    canalEmail: 1,
+    canalWhatsapp: telefono ? 1 : 0,
+    activo: 1,
+  });
+
+  // 5. Log audit
+  await logAudit("CREATE", "empresa_with_admin", empresa.id, {
+    nombre,
+    adminEmail,
+    planId,
+  });
+
+  revalidatePath("/dashboard/superadmin/clientes");
+  revalidatePath("/dashboard");
+
+  return {
+    success: true,
+    empresa,
+    adminUser: { name: adminNombre, email: adminEmail },
+    initialPassword: adminPassword,
+  };
+}
+
 export async function createEmpresa(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
@@ -66,14 +171,28 @@ export async function updateEmpresa(formData: FormData) {
   const id = parseInt(formData.get("id") as string);
   if (isNaN(id)) throw new Error("ID de empresa inválido");
 
-  const nombre = formData.get("nombre") as string;
-  const cuit = (formData.get("cuit") as string) || null;
+  const nombre = (formData.get("nombre") as string)?.trim();
+  const cuit = (formData.get("cuit") as string)?.trim() || null;
+  const email = (formData.get("email") as string)?.trim() || null;
+  const telefono = (formData.get("telefono") as string)?.trim() || null;
+  const direccion = (formData.get("direccion") as string)?.trim() || null;
+  const ciudad = (formData.get("ciudad") as string)?.trim() || null;
+  const provincia = (formData.get("provincia") as string)?.trim() || null;
   const planIdStr = formData.get("planId") as string | null;
   const estado = formData.get("estado") as string | null;
 
+  if (!nombre) {
+    throw new Error("El nombre de la empresa es requerido");
+  }
+
   await db.update(empresas).set({
-    nombre: nombre.trim(),
-    cuit: cuit ? cuit.trim() : null,
+    nombre,
+    cuit,
+    email,
+    telefono,
+    direccion,
+    ciudad,
+    provincia,
   }).where(eq(empresas.id, id));
 
   if (planIdStr) {
@@ -100,7 +219,7 @@ export async function updateEmpresa(formData: FormData) {
     }
   }
 
-  await logAudit("UPDATE", "empresa", id, { nombre, cuit });
+  await logAudit("UPDATE", "empresa", id, { nombre, cuit, email, telefono });
   revalidatePath("/dashboard/superadmin/clientes");
   revalidatePath("/dashboard");
   return { success: true };

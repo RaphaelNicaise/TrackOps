@@ -21,14 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Building2,
   Car,
   CheckCircle2,
@@ -38,17 +30,26 @@ import {
   MoreHorizontal,
   Power,
   PowerOff,
-  RefreshCw,
   Search,
-  ShieldAlert,
-  ShieldCheck,
   Sparkles,
   Truck,
   X,
   Zap,
 } from "lucide-react";
-import { EmpresaFormDialog, PlanOption, EmpresaFormData } from "./empresa-form-dialog";
-import { toggleEmpresaStatus, superpoderesAccessTenant } from "@/lib/admin-actions";
+import {
+  EmpresaFormDialog,
+  PlanOption,
+  EmpresaFormData,
+} from "./empresa-form-dialog";
+import {
+  EmpresaCreatedDialog,
+  CreatedEmpresaInfo,
+  CreatedAdminInfo,
+} from "./empresa-created-dialog";
+import {
+  toggleEmpresaStatus,
+  enterTenantAsSuperadmin,
+} from "@/lib/admin-actions";
 import { appAlert } from "@/lib/alerts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -57,6 +58,11 @@ export interface EmpresaRow {
   id: number;
   nombre: string;
   cuit: string | null;
+  email?: string | null;
+  telefono?: string | null;
+  direccion?: string | null;
+  ciudad?: string | null;
+  provincia?: string | null;
   createdAt: string | Date;
   planId?: number | null;
   planNombre?: string | null;
@@ -79,14 +85,8 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
   const [editingEmpresa, setEditingEmpresa] = useState<EmpresaFormData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  // State for Superpoderes modal/loading
-  const [superpoderesEmpresa, setSuperpoderesEmpresa] = useState<EmpresaRow | null>(null);
-  const [isSuperpoderesOpen, setIsSuperpoderesOpen] = useState(false);
-  const [isConnectingSuperpower, setIsConnectingSuperpower] = useState(false);
-  const [activeImpersonatedTenant, setActiveImpersonatedTenant] = useState<{
-    id: number;
-    nombre: string;
-  } | null>(null);
+  // State for direct superadmin loading per row
+  const [loadingSuperadminId, setLoadingSuperadminId] = useState<number | null>(null);
 
   // State for Status toggle loading
   const [togglingStatusId, setTogglingStatusId] = useState<number | null>(null);
@@ -97,7 +97,8 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
       const matchSearch =
         searchQuery.trim() === "" ||
         emp.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (emp.cuit && emp.cuit.includes(searchQuery.trim()));
+        (emp.cuit && emp.cuit.includes(searchQuery.trim())) ||
+        (emp.email && emp.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const currentStatus = emp.estadoSuscripcion?.toLowerCase() || "activa";
       const matchStatus =
@@ -169,32 +170,19 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
     }
   };
 
-  // Trigger Superpoderes Access
-  const handleOpenSuperpoderesModal = (empresa: EmpresaRow) => {
-    setSuperpoderesEmpresa(empresa);
-    setIsSuperpoderesOpen(true);
-  };
-
-  const handleConfirmSuperpoderes = async () => {
-    if (!superpoderesEmpresa) return;
-
-    setIsConnectingSuperpower(true);
+  // Direct Superpoderes Access
+  const handleDirectSuperpoderes = async (empresa: EmpresaRow) => {
+    setLoadingSuperadminId(empresa.id);
     try {
-      const res = await superpoderesAccessTenant(superpoderesEmpresa.id);
-      setActiveImpersonatedTenant({
-        id: superpoderesEmpresa.id,
-        nombre: superpoderesEmpresa.nombre,
-      });
-
-      setIsSuperpoderesOpen(false);
+      await enterTenantAsSuperadmin(empresa.id);
       appAlert.success(
-        `Has ingresado con Superpoderes a "${superpoderesEmpresa.nombre}". Tienes control total en modo soporte.`,
+        `Ingresando a "${empresa.nombre}" con Superpoderes...`,
         "⚡ Superpoderes Activados"
       );
+      window.location.href = "/dashboard";
     } catch (err: any) {
-      appAlert.error(err?.message || "Error al acceder como empresa.");
-    } finally {
-      setIsConnectingSuperpower(false);
+      appAlert.error(err?.message || "Error al ingresar con superpoderes.");
+      setLoadingSuperadminId(null);
     }
   };
 
@@ -257,54 +245,16 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
 
   return (
     <div className="space-y-4">
-      {/* Superpoderes Active Support Banner */}
-      {activeImpersonatedTenant && (
-        <div className="rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-500">
-              <Zap className="h-5 w-5 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase">
-                  Modo Superpoderes Activo
-                </span>
-                <Badge variant="outline" className="text-[10px] bg-background/80 font-mono">
-                  Tenant #{activeImpersonatedTenant.id}
-                </Badge>
-              </div>
-              <p className="text-sm font-semibold text-foreground">
-                Sesión de soporte conectada a: <span className="underline decoration-amber-500 underline-offset-2">{activeImpersonatedTenant.nombre}</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setActiveImpersonatedTenant(null);
-                appAlert.info("Has salido del modo superpoderes.");
-              }}
-              className="text-xs border-amber-500/40 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 h-8"
-            >
-              <PowerOff className="h-3.5 w-3.5 mr-1.5" />
-              Finalizar Soporte
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Toolbar & Filters */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-card p-4 rounded-xl border border-border">
         {/* Search */}
         <div className="relative flex-1 min-w-[240px] max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Buscar por empresa o CUIT..."
+            placeholder="Buscar por empresa, CUIT o email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-8 h-9 text-sm"
+            className="pl-9 pr-8 h-9 text-xs"
           />
           {searchQuery && (
             <button
@@ -316,7 +266,7 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
           )}
         </div>
 
-        {/* Status Filter Tabs & Plan Filters */}
+        {/* Status Filter Tabs & Action Button */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Tabs */}
           <div className="flex items-center bg-muted/60 p-1 rounded-lg border border-border text-xs">
@@ -354,11 +304,22 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
             </button>
           </div>
 
-          {/* New Empresa Button */}
+          {/* New Empresa Button Dialog */}
           <EmpresaFormDialog
             plans={plans}
-            onSuccess={() => {
-              // Can trigger page refresh or notification
+            onEmpresaCreated={(created) => {
+              const newRow: EmpresaRow = {
+                id: created.empresa.id,
+                nombre: created.empresa.nombre,
+                cuit: created.empresa.cuit || null,
+                email: created.empresa.email || null,
+                telefono: created.empresa.telefono || null,
+                planNombre: created.planNombre,
+                estadoSuscripcion: "activa",
+                totalVehiculos: 0,
+                createdAt: new Date(),
+              };
+              setEmpresas((prev) => [newRow, ...prev]);
             }}
           />
         </div>
@@ -439,6 +400,7 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                   "activa";
 
                 const isCurrentlyToggling = togglingStatusId === empresa.id;
+                const isCurrentlySuperadmin = loadingSuperadminId === empresa.id;
 
                 return (
                   <TableRow
@@ -456,11 +418,16 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                           {initials || "EM"}
                         </div>
                         <div className="space-y-0.5">
-                          <div className="font-semibold text-sm text-foreground flex items-center gap-1.5">
+                          <div className="font-semibold text-xs text-foreground flex items-center gap-1.5">
                             {empresa.nombre}
                           </div>
-                          <div className="text-[11px] font-mono text-muted-foreground">
-                            ID: #{empresa.id}
+                          <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-2">
+                            <span>ID: #{empresa.id}</span>
+                            {empresa.email && (
+                              <span className="text-muted-foreground/70 truncate max-w-[140px]">
+                                · {empresa.email}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -500,16 +467,26 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                     {/* Acciones */}
                     <TableCell className="text-right pr-6">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Botón de Superpoderes */}
+                        {/* Botón de Superpoderes directo con loading indicator */}
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleOpenSuperpoderesModal(empresa)}
+                          onClick={() => handleDirectSuperpoderes(empresa)}
+                          disabled={isCurrentlySuperadmin}
                           title="Acceder como Empresa (Modo Superpoderes)"
                           className="h-8 px-2.5 text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:border-amber-500/50 gap-1.5 transition-all shadow-2xs"
                         >
-                          <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                          <span className="hidden sm:inline">Superpoderes</span>
+                          {isCurrentlySuperadmin ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              <span className="hidden sm:inline">Conectando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                              <span className="hidden sm:inline">Superpoderes</span>
+                            </>
+                          )}
                         </Button>
 
                         {/* Dropdown Menu */}
@@ -532,7 +509,8 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
 
                             {/* Superpoderes */}
                             <DropdownMenuItem
-                              onClick={() => handleOpenSuperpoderesModal(empresa)}
+                              onClick={() => handleDirectSuperpoderes(empresa)}
+                              disabled={isCurrentlySuperadmin}
                               className="text-xs gap-2 cursor-pointer font-medium text-amber-600 dark:text-amber-400"
                             >
                               <Key className="h-3.5 w-3.5" />
@@ -548,6 +526,11 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                                   id: empresa.id,
                                   nombre: empresa.nombre,
                                   cuit: empresa.cuit,
+                                  email: empresa.email,
+                                  telefono: empresa.telefono,
+                                  direccion: empresa.direccion,
+                                  ciudad: empresa.ciudad,
+                                  provincia: empresa.provincia,
                                   planId: empresa.planId,
                                   planNombre: empresa.planNombre,
                                 });
@@ -615,7 +598,6 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSuccess={() => {
-          // If edited, we can update the list in memory
           if (editingEmpresa) {
             setEmpresas((prev) =>
               prev.map((e) =>
@@ -624,6 +606,11 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                       ...e,
                       nombre: editingEmpresa.nombre,
                       cuit: editingEmpresa.cuit || null,
+                      email: editingEmpresa.email || null,
+                      telefono: editingEmpresa.telefono || null,
+                      direccion: editingEmpresa.direccion || null,
+                      ciudad: editingEmpresa.ciudad || null,
+                      provincia: editingEmpresa.provincia || null,
                       planNombre: editingEmpresa.planNombre,
                       planId: editingEmpresa.planId,
                     }
@@ -635,96 +622,6 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
           setEditingEmpresa(null);
         }}
       />
-
-      {/* Modal Confirmación de Superpoderes */}
-      <Dialog open={isSuperpoderesOpen} onOpenChange={setIsSuperpoderesOpen}>
-        <DialogContent className="sm:max-w-[500px] border-border bg-card p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent p-6 border-b border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className="bg-amber-500 text-amber-950 font-mono font-bold text-xs gap-1">
-                <Zap className="h-3 w-3 fill-amber-950" />
-                SUPERPODERES
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Acceso Multi-Inquilino Directo
-              </span>
-            </div>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
-              <ShieldAlert className="h-5 w-5 text-amber-500" />
-              Acceder como Empresa
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground mt-1">
-              Ingresarás al espacio de trabajo de este inquilino en modo soporte avanzado con permisos de administrador.
-            </DialogDescription>
-          </div>
-
-          <div className="p-6 space-y-4">
-            {superpoderesEmpresa && (
-              <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground font-medium">Empresa Destino:</span>
-                  <span className="text-sm font-bold text-foreground">
-                    {superpoderesEmpresa.nombre}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground font-medium">CUIT:</span>
-                  <span className="text-xs font-mono font-semibold">
-                    {superpoderesEmpresa.cuit || "Sin CUIT"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground font-medium">Plan Actual:</span>
-                  <div>{getPlanBadge(superpoderesEmpresa.planNombre)}</div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground font-medium">Flota Conectada:</span>
-                  <span className="text-xs font-semibold">
-                    {superpoderesEmpresa.totalVehiculos} vehículos
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-700 dark:text-amber-300 space-y-1">
-              <div className="font-semibold flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4" />
-                Auditoría de Seguridad Activa
-              </div>
-              <p className="text-[11px] leading-relaxed">
-                Este acceso quedará registrado en los registros de auditoría inmutables del sistema con tu usuario actual.
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter className="bg-muted/30 px-6 py-4 border-t border-border flex flex-row items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsSuperpoderesOpen(false)}
-              disabled={isConnectingSuperpower}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmSuperpoderes}
-              disabled={isConnectingSuperpower}
-              className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold gap-2 shadow-xs"
-            >
-              {isConnectingSuperpower ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Conectando...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4 fill-amber-950" />
-                  Iniciar Sesión de Soporte
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
