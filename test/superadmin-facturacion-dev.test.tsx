@@ -99,9 +99,9 @@ import {
 import { DevConfigView } from "@/components/superadmin/dev-config-view";
 
 const MOCK_PLANS: SubscriptionPlanData[] = [
-  { id: 1, nombre: "Starter", maxVehiculos: 5, precioMensual: 49, precioAnual: 490, activo: 1 },
-  { id: 2, nombre: "Pro", maxVehiculos: 25, precioMensual: 149, precioAnual: 1490, activo: 1 },
-  { id: 3, nombre: "Enterprise", maxVehiculos: 100, precioMensual: 399, precioAnual: 3990, activo: 1 },
+  { id: 1, nombre: "Starter", minVehiculos: 1, maxVehiculos: 5, precioMensual: 49, precioAnual: 490, activo: 1 },
+  { id: 2, nombre: "Pro", minVehiculos: 6, maxVehiculos: 25, precioMensual: 149, precioAnual: 1490, activo: 1 },
+  { id: 3, nombre: "Enterprise", minVehiculos: 26, maxVehiculos: null, precioMensual: 399, precioAnual: 3990, activo: 1 },
 ];
 
 const MOCK_RECORDS: BillingRecord[] = [
@@ -220,10 +220,10 @@ describe("Superadmin Facturacion & SaaS Billing", () => {
     expect(html).toContain("Más Elegido");
     expect(html).toContain("Enterprise Tier");
 
-    // Check Plan Limits
-    expect(html).toContain("Hasta 5 unidades");
-    expect(html).toContain("Hasta 25 unidades");
-    expect(html).toContain("100+ unidades");
+    // Check Plan Limits (new range display)
+    expect(html).toContain("1 - 5");
+    expect(html).toContain("6 - 25");
+    expect(html).toContain("26");
 
     // Check Billing Table Headers
     expect(html).toContain("Inquilino / Empresa");

@@ -57,15 +57,19 @@ import {
   ArrowRight,
   FileCheck,
   HelpCircle,
+  Plus,
+  Settings,
 } from "lucide-react";
 import { appAlert } from "@/lib/alerts";
 import { format, addMonths, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
+import { createSubscriptionPlan, updateSubscriptionPlan, deleteSubscriptionPlan } from "@/lib/admin-actions";
 
 export interface SubscriptionPlanData {
   id: number;
   nombre: string;
-  maxVehiculos: number;
+  minVehiculos: number;
+  maxVehiculos: number | null;
   precioMensual: number;
   precioAnual?: number | null;
   activo?: number;
@@ -115,6 +119,12 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
   const [paymentMethod, setPaymentMethod] = useState<string>("mercadopago");
   const [paymentReference, setPaymentReference] = useState<string>("");
   const [newPlanId, setNewPlanId] = useState<number>(1);
+
+  // Plan CRUD dialog
+  const [isPlanDialogOpen, setIsPlanDialogOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlanData | null>(null);
+  const [planForm, setPlanForm] = useState({ nombre: "", minVehiculos: 1, maxVehiculos: "" as string | number, precioMensual: 0, precioAnual: "" as string | number });
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
 
   // Financial Metrics Calculation
   const metrics = useMemo(() => {
@@ -379,6 +389,58 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
     setIsInvoiceDetailOpen(true);
   };
 
+  const handleOpenCreatePlan = () => {
+    setEditingPlan(null);
+    setPlanForm({ nombre: "", minVehiculos: plans.length > 0 ? Math.max(...plans.map((p) => (p.maxVehiculos ?? p.minVehiculos) + 1), 1) : 1, maxVehiculos: "", precioMensual: 0, precioAnual: "" });
+    setIsPlanDialogOpen(true);
+  };
+  const handleOpenEditPlan = (plan: SubscriptionPlanData) => {
+    setEditingPlan(plan);
+    setPlanForm({ nombre: plan.nombre, minVehiculos: plan.minVehiculos, maxVehiculos: plan.maxVehiculos ?? "", precioMensual: plan.precioMensual, precioAnual: plan.precioAnual ?? "" });
+    setIsPlanDialogOpen(true);
+  };
+  const handleSavePlan = async () => {
+    if (!planForm.nombre.trim()) { appAlert.error("Nombre requerido", "Error"); return; }
+    if (planForm.minVehiculos < 1) { appAlert.error("Mínimo debe ser >=1", "Error"); return; }
+    const maxVal = planForm.maxVehiculos === "" ? null : Number(planForm.maxVehiculos);
+    if (maxVal != null && maxVal < planForm.minVehiculos) { appAlert.error("El máximo no puede ser menor que el mínimo", "Error"); return; }
+    setIsSavingPlan(true);
+    try {
+      const fd = new FormData();
+      fd.append("nombre", planForm.nombre.trim());
+      fd.append("minVehiculos", String(planForm.minVehiculos));
+      fd.append("maxVehiculos", maxVal != null ? String(maxVal) : "");
+      fd.append("precioMensual", String(planForm.precioMensual));
+      if (planForm.precioAnual !== "" && planForm.precioAnual != null) fd.append("precioAnual", String(planForm.precioAnual));
+      if (editingPlan) {
+        fd.append("id", String(editingPlan.id));
+        await updateSubscriptionPlan(fd);
+        appAlert.success(`Plan "${planForm.nombre}" actualizado`, "Plan actualizado");
+      } else {
+        await createSubscriptionPlan(fd);
+        appAlert.success(`Plan "${planForm.nombre}" creado`, "Plan creado");
+      }
+      setIsPlanDialogOpen(false);
+      // optimistic update
+      window.location.reload();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error al guardar plan";
+      appAlert.error(msg, "Error");
+    } finally { setIsSavingPlan(false); }
+  };
+  const handleDeletePlan = async (plan: SubscriptionPlanData) => {
+    if (!confirm(`¿Eliminar plan "${plan.nombre}"?`)) return;
+    try {
+      const fd = new FormData(); fd.append("id", String(plan.id));
+      await deleteSubscriptionPlan(fd);
+      appAlert.success("Plan eliminado", "Eliminado");
+      window.location.reload();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error al eliminar";
+      appAlert.error(msg, "Error");
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* ══════════════════════════════════════════════════════ */}
@@ -503,31 +565,36 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
             </p>
           </div>
 
-          {/* Monthly / Annual Billing Switch */}
-          <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border text-xs">
-            <button
-              onClick={() => setIsAnnualBilling(false)}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-                !isAnnualBilling
-                  ? "bg-background text-foreground shadow-xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Facturación Mensual
-            </button>
-            <button
-              onClick={() => setIsAnnualBilling(true)}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                isAnnualBilling
-                  ? "bg-background text-primary shadow-xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Facturación Anual
-              <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
-                Ahorrá 17%
-              </span>
-            </button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={handleOpenCreatePlan} className="h-8 text-xs gap-1.5">
+              <Plus className="h-3.5 w-3.5" />
+              Nuevo rango
+            </Button>
+            <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border text-xs">
+              <button
+                onClick={() => setIsAnnualBilling(false)}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+                  !isAnnualBilling
+                    ? "bg-background text-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Mensual
+              </button>
+              <button
+                onClick={() => setIsAnnualBilling(true)}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                  isAnnualBilling
+                    ? "bg-background text-primary shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Anual
+                <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                  -17%
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -597,6 +664,14 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
                     <CardTitle className="text-lg font-bold text-foreground">
                       Plan {plan.nombre}
                     </CardTitle>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenEditPlan(plan)} title="Editar rango">
+                        <Settings className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDeletePlan(plan)} title="Eliminar">
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                   <CardDescription className="text-xs">
                     {isEnterprise
@@ -620,11 +695,18 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
                   <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex items-center justify-between text-xs">
                     <span className="text-muted-foreground font-medium flex items-center gap-1.5">
                       <Car className="h-3.5 w-3.5 text-primary" />
-                      Límite de Vehículos:
+                      Rango:
                     </span>
-                    <span className="font-bold text-foreground">
-                      {plan.maxVehiculos >= 100 ? "100+ unidades" : `Hasta ${plan.maxVehiculos} unidades`}
+                    <span className="font-bold text-foreground font-mono">
+                      {plan.minVehiculos} - {plan.maxVehiculos ? plan.maxVehiculos : "∞"} veh.
                     </span>
+                  </div>
+                  <div className="text-[11px] text-muted-foreground text-center">
+                    {plan.maxVehiculos
+                      ? `De ${plan.minVehiculos} a ${plan.maxVehiculos} vehículos`
+                      : `Desde ${plan.minVehiculos} vehículos (tope abierto)`}
+                    <br />
+                    <span className="text-[10px]">Extra: al siguiente plan</span>
                   </div>
 
                   <div className="space-y-2">
@@ -1153,6 +1235,56 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
           <DialogFooter>
             <Button onClick={() => setIsInvoiceDetailOpen(false)}>
               Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Plan Range Dialog */}
+      <Dialog open={isPlanDialogOpen} onOpenChange={setIsPlanDialogOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-primary" />
+              {editingPlan ? "Editar rango" : "Nuevo rango"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Definí de cuántos a cuántos vehículos aplica y el valor. Dejá vacío el máximo para tope abierto (ej +50).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">Nombre del plan</label>
+              <Input value={planForm.nombre} onChange={(e) => setPlanForm({ ...planForm, nombre: e.target.value })} placeholder="Ej: Inicial, Crecimiento" className="h-9 text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">Desde (mín)</label>
+                <Input type="number" min={1} value={planForm.minVehiculos} onChange={(e) => setPlanForm({ ...planForm, minVehiculos: parseInt(e.target.value) || 1 })} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">Hasta (máx) — vacío = ∞</label>
+                <Input type="number" placeholder="Ej: 5 o vacío para +50" value={planForm.maxVehiculos} onChange={(e) => setPlanForm({ ...planForm, maxVehiculos: e.target.value })} className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">Precio mensual (ARS)</label>
+                <Input type="number" value={planForm.precioMensual} onChange={(e) => setPlanForm({ ...planForm, precioMensual: parseFloat(e.target.value) || 0 })} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">Precio anual (opcional)</label>
+                <Input type="number" value={planForm.precioAnual} onChange={(e) => setPlanForm({ ...planForm, precioAnual: e.target.value })} className="h-9" placeholder="Ej: 399900" />
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground bg-muted/40 p-2 rounded border">
+              Ej: 1-5 $39990, 6-15 $64900, 50-∞ $199900. Si una empresa supera el máximo, se cobra la diferencia en la siguiente cuota al valor del siguiente plan.
+            </p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsPlanDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSavePlan} disabled={isSavingPlan} className="font-semibold">
+              {isSavingPlan ? "Guardando..." : editingPlan ? "Guardar cambios" : "Crear plan"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -46,7 +46,8 @@ import {
 export interface PlanOption {
   id: number;
   nombre: string;
-  maxVehiculos?: number;
+  minVehiculos?: number;
+  maxVehiculos?: number | null;
   precioMensual?: number;
   precioAnual?: number | null;
 }
@@ -80,9 +81,11 @@ interface EmpresaFormDialogProps {
 }
 
 const DEFAULT_PLANS: PlanOption[] = [
-  { id: 1, nombre: "Starter", maxVehiculos: 5, precioMensual: 49 },
-  { id: 2, nombre: "Pro", maxVehiculos: 25, precioMensual: 149 },
-  { id: 3, nombre: "Enterprise", maxVehiculos: 100, precioMensual: 399 },
+  { id: 1, nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 39990 },
+  { id: 2, nombre: "Crecimiento", minVehiculos: 6, maxVehiculos: 15, precioMensual: 64900 },
+  { id: 3, nombre: "Consolidada", minVehiculos: 16, maxVehiculos: 30, precioMensual: 99900 },
+  { id: 4, nombre: "Masiva", minVehiculos: 31, maxVehiculos: 49, precioMensual: 149900 },
+  { id: 5, nombre: "Enterprise", minVehiculos: 50, maxVehiculos: null, precioMensual: 199900 },
 ];
 
 export function EmpresaFormDialog({
@@ -501,7 +504,9 @@ export function EmpresaFormDialog({
                         </div>
 
                         <div className="text-[11px] text-muted-foreground mt-0.5">
-                          {plan.maxVehiculos
+                          {plan.minVehiculos != null
+                            ? `${plan.minVehiculos} - ${plan.maxVehiculos ? plan.maxVehiculos : "∞"} vehículos`
+                            : plan.maxVehiculos
                             ? `Hasta ${plan.maxVehiculos} vehículos`
                             : "Flota ilimitada"}
                         </div>

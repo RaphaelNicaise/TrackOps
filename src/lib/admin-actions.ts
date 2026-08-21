@@ -86,12 +86,22 @@ export async function createEmpresaWithAdmin(formData: FormData) {
     mustChangePassword: 1,
   }).returning();
 
-  // 3. Insert subscription
-  let planId = 1;
+  // 3. Insert subscription - valida plan existe, si no hay planes crea uno por defecto
+  let planId: number | null = null;
   if (planIdStr) {
     const parsed = parseInt(planIdStr);
     if (!isNaN(parsed) && parsed > 0) {
-      planId = parsed;
+      const [exists] = await db.select({ id: subscriptionPlans.id }).from(subscriptionPlans).where(eq(subscriptionPlans.id, parsed)).limit(1);
+      if (exists) planId = parsed;
+    }
+  }
+  if (!planId) {
+    const [defaultPlan] = await db.select({ id: subscriptionPlans.id }).from(subscriptionPlans).where(eq(subscriptionPlans.activo, 1)).orderBy(subscriptionPlans.minVehiculos).limit(1);
+    if (defaultPlan) planId = defaultPlan.id;
+    else {
+      // auto-crea plan inicial si no hay ninguno
+      const [newPlan] = await db.insert(subscriptionPlans).values({ nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 39990, precioAnual: 399900, activo: 1 }).returning();
+      planId = newPlan.id;
     }
   }
 
@@ -148,14 +158,17 @@ export async function createEmpresa(formData: FormData) {
   }).returning();
 
   if (planIdStr) {
-    const planId = parseInt(planIdStr);
-    if (!isNaN(planId) && planId > 0) {
-      await db.insert(empresaSubscriptions).values({
-        empresaId: empresa.id,
-        planId,
-        estado: "activa",
-        metodoPago: "transferencia",
-      });
+    const parsed = parseInt(planIdStr);
+    if (!isNaN(parsed) && parsed > 0) {
+      const [exists] = await db.select({ id: subscriptionPlans.id }).from(subscriptionPlans).where(eq(subscriptionPlans.id, parsed)).limit(1);
+      if (exists) {
+        await db.insert(empresaSubscriptions).values({
+          empresaId: empresa.id,
+          planId: parsed,
+          estado: "activa",
+          metodoPago: "transferencia",
+        });
+      }
     }
   }
 
@@ -273,16 +286,60 @@ export async function superpoderesAccessTenant(empresaId: number) {
 export async function createSubscriptionPlan(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
-
+  const nombre = (formData.get("nombre") as string)?.trim();
+  if (!nombre) throw new Error("Nombre de plan requerido");
+  const minVehiculos = parseInt(formData.get("minVehiculos") as string);
+  const maxRaw = formData.get("maxVehiculos") as string | null;
+  const maxVehiculos = maxRaw && maxRaw.trim() !== "" ? parseInt(maxRaw) : null;
+  const precioMensual = parseFloat(formData.get("precioMensual") as string);
+  if (isNaN(minVehiculos) || isNaN(precioMensual)) throw new Error("Datos de plan inválidos");
+  if (maxVehiculos != null && maxVehiculos < minVehiculos) throw new Error("El máximo no puede ser menor que el mínimo");
   const [plan] = await db.insert(subscriptionPlans).values({
-    nombre: formData.get("nombre") as string,
-    maxVehiculos: parseInt(formData.get("maxVehiculos") as string),
-    precioMensual: parseFloat(formData.get("precioMensual") as string),
+    nombre,
+    minVehiculos,
+    maxVehiculos,
+    precioMensual,
     precioAnual: formData.get("precioAnual") ? parseFloat(formData.get("precioAnual") as string) : null,
   }).returning();
+  await logAudit("CREATE", "subscriptionPlan", plan.id, { nombre: plan.nombre, minVehiculos, maxVehiculos });
+  revalidatePath("/panel/superadmin/facturacion");
+  revalidatePath("/panel/superadmin/clientes");
+  revalidatePath("/");
+  return { success: true, plan };
+}
 
-  await logAudit("CREATE", "subscriptionPlan", plan.id, { nombre: plan.nombre });
-  revalidatePath("/panel/superadmin/suscripciones");
+export async function updateSubscriptionPlan(formData: FormData) {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
+  const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) throw new Error("ID inválido");
+  const nombre = (formData.get("nombre") as string)?.trim();
+  const minVehiculos = parseInt(formData.get("minVehiculos") as string);
+  const maxRaw = formData.get("maxVehiculos") as string | null;
+  const maxVehiculos = maxRaw && maxRaw.trim() !== "" ? parseInt(maxRaw) : null;
+  const precioMensual = parseFloat(formData.get("precioMensual") as string);
+  const precioAnual = formData.get("precioAnual") ? parseFloat(formData.get("precioAnual") as string) : null;
+  if (!nombre || isNaN(minVehiculos) || isNaN(precioMensual)) throw new Error("Datos inválidos");
+  if (maxVehiculos != null && maxVehiculos < minVehiculos) throw new Error("El máximo no puede ser menor que el mínimo");
+  const [updated] = await db.update(subscriptionPlans).set({ nombre, minVehiculos, maxVehiculos, precioMensual, precioAnual }).where(eq(subscriptionPlans.id, id)).returning();
+  await logAudit("UPDATE", "subscriptionPlan", id, { nombre, minVehiculos, maxVehiculos });
+  revalidatePath("/panel/superadmin/facturacion");
+  revalidatePath("/");
+  return { success: true, plan: updated };
+}
+
+export async function deleteSubscriptionPlan(formData: FormData) {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
+  const id = parseInt(formData.get("id") as string);
+  if (isNaN(id)) throw new Error("ID inválido");
+  const linked = await db.select({ id: empresaSubscriptions.id }).from(empresaSubscriptions).where(eq(empresaSubscriptions.planId, id)).limit(1);
+  if (linked.length > 0) throw new Error("No se puede eliminar un plan con empresas asignadas. Reasigná las empresas primero.");
+  await db.delete(subscriptionPlans).where(eq(subscriptionPlans.id, id));
+  await logAudit("DELETE", "subscriptionPlan", id, {});
+  revalidatePath("/panel/superadmin/facturacion");
+  revalidatePath("/");
+  return { success: true };
 }
 
 export async function assignSubscription(formData: FormData) {
@@ -432,6 +489,7 @@ export async function getEmpresaDetail360(empresaId: number): Promise<{
       metodoPago: empresaSubscriptions.metodoPago,
       createdAt: empresaSubscriptions.createdAt,
       planNombre: subscriptionPlans.nombre,
+      minVehiculos: subscriptionPlans.minVehiculos,
       maxVehiculos: subscriptionPlans.maxVehiculos,
       precioMensual: subscriptionPlans.precioMensual,
       precioAnual: subscriptionPlans.precioAnual,

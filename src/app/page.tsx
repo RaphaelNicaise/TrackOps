@@ -26,13 +26,14 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 }
 
-const PRICING_TIERS = [
-  { max: 5, priceNumber: 39990, label: "Hasta 5 vehículos", type: "Plan Inicial" },
-  { max: 15, priceNumber: 64900, label: "6 a 15 vehículos", type: "Flota en Crecimiento" },
-  { max: 30, priceNumber: 99900, label: "16 a 30 vehículos", type: "Flota Consolidada" },
-  { max: 49, priceNumber: 149900, label: "31 a 49 vehículos", type: "Operación Masiva" },
-  { max: 50, priceNumber: 199900, label: "+50 vehículos", type: "Enterprise" }
+const FALLBACK_TIERS = [
+  { min: 1, max: 5, priceNumber: 39990, label: "1 a 5 vehículos", type: "Inicial" },
+  { min: 6, max: 15, priceNumber: 64900, label: "6 a 15 vehículos", type: "Crecimiento" },
+  { min: 16, max: 30, priceNumber: 99900, label: "16 a 30 vehículos", type: "Consolidada" },
+  { min: 31, max: 49, priceNumber: 149900, label: "31 a 49 vehículos", type: "Masiva" },
+  { min: 50, max: null as number | null, priceNumber: 199900, label: "50 o más vehículos", type: "Enterprise" }
 ];
+const PRICING_TIERS = FALLBACK_TIERS;
 
 const LOGOS_CONFIANZA = [
   { node: <div className="flex gap-2 items-center text-[#787774] opacity-50 hover:opacity-100 transition-opacity"><Truck size={24} /> <span className="font-semibold text-lg font-sans tracking-tight">TransPort</span></div>, title: "TransPort" },
@@ -60,16 +61,33 @@ export default function LandingPage() {
   const [vehicles, setVehicles] = useState([10]);
   const [annualMode, setAnnualMode] = useState(false);
   const [prevPrice, setPrevPrice] = useState(0);
+  const [tiers, setTiers] = useState(FALLBACK_TIERS);
 
   useEffect(() => {
     setMounted(true);
+    // Fetch planes dinámicos desde DB (configurable en /panel/superadmin/facturacion)
+    fetch("/api/plans")
+      .then((r) => r.json())
+      .then((plans: Array<{ minVehiculos: number; maxVehiculos: number | null; precioMensual: number; nombre: string; activo?: number }>) => {
+        if (Array.isArray(plans) && plans.length > 0) {
+          const mapped = plans
+            .filter((p) => (p.activo ?? 1) !== 0)
+            .map((p) => ({
+              min: p.minVehiculos,
+              max: p.maxVehiculos,
+              priceNumber: p.precioMensual,
+              label: p.maxVehiculos ? `${p.minVehiculos} a ${p.maxVehiculos} vehículos` : `${p.minVehiculos} o más vehículos`,
+              type: p.nombre,
+            }))
+            .sort((a, b) => a.min - b.min);
+          if (mapped.length > 0) setTiers(mapped);
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const currentTier = vehicles[0] <= 5 ? PRICING_TIERS[0] 
-                    : vehicles[0] <= 15 ? PRICING_TIERS[1]
-                    : vehicles[0] <= 30 ? PRICING_TIERS[2]
-                    : vehicles[0] <= 49 ? PRICING_TIERS[3]
-                    : PRICING_TIERS[4];
+  const currentTier =
+    tiers.find((t) => vehicles[0] >= t.min && (t.max == null || vehicles[0] <= t.max)) || tiers[tiers.length - 1];
 
   const calculatedPrice = annualMode ? Math.round(currentTier.priceNumber * 0.9) : currentTier.priceNumber;
   const [currentPrice, setCurrentPrice] = useState(calculatedPrice);
