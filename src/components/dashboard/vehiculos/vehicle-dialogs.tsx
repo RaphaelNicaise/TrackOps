@@ -37,9 +37,22 @@ function toDateInputValue(date: Date | null): string {
   return format(date, "yyyy-MM-dd");
 }
 
-export function EditVehicleDialog({ vehicle }: { vehicle: VehiculoEditable }) {
+export function EditVehicleDialog({
+  vehicle,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  trigger,
+}: {
+  vehicle: VehiculoEditable;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
+}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? (setControlledOpen ?? (() => {})) : setInternalOpen;
   const [isPending, startTransition] = useTransition();
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -55,12 +68,16 @@ export function EditVehicleDialog({ vehicle }: { vehicle: VehiculoEditable }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Pencil className="h-4 w-4" />
-          Editar
-        </Button>
-      </DialogTrigger>
+      {trigger !== null && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="outline" size="sm">
+              <Pencil className="h-4 w-4" />
+              Editar
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Editar vehículo {vehicle.patente}</DialogTitle>
@@ -127,9 +144,24 @@ export function EditVehicleDialog({ vehicle }: { vehicle: VehiculoEditable }) {
   );
 }
 
-export function DeleteVehicleButton({ id, patente }: { id: number; patente: string }) {
+export function DeleteVehicleButton({
+  id,
+  patente,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  trigger,
+}: {
+  id: number;
+  patente: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
+}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? (setControlledOpen ?? (() => {})) : setInternalOpen;
   const [isPending, startTransition] = useTransition();
 
   function onDelete() {
@@ -145,12 +177,16 @@ export function DeleteVehicleButton({ id, patente }: { id: number; patente: stri
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          <Trash2 className="h-4 w-4" />
-          Eliminar
-        </Button>
-      </DialogTrigger>
+      {trigger !== null && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="destructive" size="sm">
+              <Trash2 className="h-4 w-4" />
+              Eliminar
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>¿Eliminar vehículo {patente}?</DialogTitle>
@@ -170,6 +206,8 @@ export function DeleteVehicleButton({ id, patente }: { id: number; patente: stri
     </Dialog>
   );
 }
+
+export const DeleteVehicleDialog = DeleteVehicleButton;
 
 export function CreateVehicleDialog() {
   const router = useRouter();
