@@ -27,7 +27,7 @@ Control de mantenimiento de flota.
 #### Features a proponer:
 
 - Panel tipo Google Analytics con Umamy Analytics para ver estadisticas de la web. 
-- Dashboard de Analíticas
+- Dashboard de Analíticas 
 - Gestión de Combustible: Permitir que se carguen los tickets de nafta/gas, verificacion de discrepancias de comubistible, excel y pdf.  
 - Gestión Documental y Vencimientos: Alertas de vencimiento de la VTV (Revisión Técnica), pólizas de seguro, matafuegos y habilitaciones de ruta. (Vencimiento de VTV Vencimiento de licencia de conducir de choferes,Habilitación municipal,Senasa,Póliza de seguro)
 - Tracking en vivo en mapa dentro de la plataforma (se lee el dato del GPS, pero el mapa en tiempo real lo sigue viendo en la app de su proveedor). Wialon
