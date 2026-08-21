@@ -11,7 +11,7 @@ export default async function PanelPage() {
   }
 
   if (session?.user?.role === "CHOFER") {
-    redirect("/panel/control-flota/combustible");
+    redirect("/panel/chofer");
   }
 
   if (session?.user?.role === "VENDEDOR_INSTALADOR") {
