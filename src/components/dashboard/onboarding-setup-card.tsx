@@ -22,7 +22,8 @@ import {
   ShieldCheck,
   Check,
 } from "lucide-react";
-import { completeTenantSetup, TenantOnboardingStatus } from "@/lib/onboarding-actions";
+import { completeTenantSetup } from "@/lib/onboarding-actions";
+import { TenantOnboardingStatus } from "@/types/onboarding";
 import { appAlert } from "@/lib/alerts";
 
 interface OnboardingSetupCardProps {

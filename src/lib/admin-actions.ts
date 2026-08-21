@@ -19,6 +19,7 @@ import {
   exitSuperadminImpersonation,
   getEffectiveTenantContext,
 } from "./impersonation";
+import { EmpresaDetail360Data } from "@/types/admin";
 
 export { enterTenantAsSuperadmin, exitSuperadminImpersonation, getEffectiveTenantContext };
 
@@ -394,33 +395,6 @@ export async function updateGpsInstallationStatus(formData: FormData) {
 }
 
 // ═══════════ 360° TENANT DETAIL & USER SECURITY ═══════════
-
-export interface EmpresaDetail360Data {
-  empresa: typeof empresas.$inferSelect;
-  subscription: {
-    id: number;
-    empresaId: number;
-    planId: number;
-    estado: string;
-    fechaInicio: Date;
-    fechaFin: Date | null;
-    metodoPago: string | null;
-    createdAt: Date;
-    planNombre?: string | null;
-    maxVehiculos?: number | null;
-    precioMensual?: number | null;
-    precioAnual?: number | null;
-  } | null;
-  vehicles: (typeof vehicles.$inferSelect)[];
-  users: {
-    id: string;
-    name: string | null;
-    email: string | null;
-    role: string;
-    mustChangePassword: number;
-  }[];
-  alertConfig: typeof alertConfigs.$inferSelect | null;
-}
 
 export async function getEmpresaDetail360(empresaId: number): Promise<{
   success: boolean;

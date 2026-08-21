@@ -7,15 +7,7 @@ import { empresas } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { logAudit } from "./audit";
 import { revalidatePath } from "next/cache";
-
-export const IMPERSONATE_COOKIE = "trackops_impersonate_tenant_id";
-
-export interface EffectiveTenantContext {
-  empresaId: number | null;
-  empresaNombre: string | null;
-  isImpersonating: boolean;
-  superadminUser: any | null;
-}
+import { IMPERSONATE_COOKIE, EffectiveTenantContext } from "@/types/impersonation";
 
 /**
  * Retrieves the effective tenant context.

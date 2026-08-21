@@ -69,8 +69,8 @@ import {
   resetTenantUserPassword,
   toggleEmpresaStatus,
   enterTenantAsSuperadmin,
-  EmpresaDetail360Data,
 } from "@/lib/admin-actions";
+import { EmpresaDetail360Data } from "@/types/admin";
 import { EmpresaFormData } from "./empresa-form-dialog";
 import { appAlert } from "@/lib/alerts";
 import { format } from "date-fns";
