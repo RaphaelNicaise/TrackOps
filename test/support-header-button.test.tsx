@@ -165,7 +165,7 @@ describe("SupportTicketHeaderButton Component (Task 3)", () => {
       expect(html).toContain("Urgente");
     });
 
-    it("renders form inputs for asunto, mensaje, telefonoContacto, and preferenciaRespuesta", () => {
+    it("renders form inputs for asunto, mensaje, email/whatsapp dynamic fields and preferenciaRespuesta", () => {
       const html = renderToStaticMarkup(
         <SupportTicketHeaderButton
           userName="Juan Perez"
@@ -176,11 +176,10 @@ describe("SupportTicketHeaderButton Component (Task 3)", () => {
 
       expect(html).toContain("Asunto");
       expect(html).toContain("Mensaje");
-      expect(html).toContain("Teléfono / WhatsApp de contacto");
-      expect(html).toContain("Preferencia de Respuesta");
-      expect(html).toContain("EMAIL");
-      expect(html).toContain("WHATSAPP");
-      expect(html).toContain("TELEFONO");
+      expect(html).toContain("Email de Contacto para Respuesta");
+      expect(html).toContain("¿Por qué medio prefieres recibir la respuesta?");
+      expect(html).toContain("Email");
+      expect(html).toContain("WhatsApp");
       expect(html).toContain("Enviar Ticket");
       expect(html).toContain("Cancelar");
     });

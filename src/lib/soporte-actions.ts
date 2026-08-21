@@ -18,15 +18,33 @@ export async function createSupportTicket(data: CreateTicketInput) {
     const session = await auth();
 
     const nombreContacto = (data.nombreContacto || session?.user?.name || "").trim();
-    const emailContacto = (data.emailContacto || session?.user?.email || "").trim().toLowerCase();
     const tipo = data.tipo;
     const asunto = (data.asunto || "").trim();
     const mensaje = (data.mensaje || "").trim();
+    const preferenciaRespuesta: PreferenciaRespuesta =
+      data.preferenciaRespuesta === "WHATSAPP" ? "WHATSAPP" : "EMAIL";
 
-    if (!nombreContacto || !emailContacto || !tipo || !asunto || !mensaje) {
+    const emailContacto = (data.emailContacto || session?.user?.email || "").trim().toLowerCase();
+    const telefonoContacto = (data.telefonoContacto || "").trim();
+
+    if (!nombreContacto || !tipo || !asunto || !mensaje) {
       return {
         success: false,
-        error: "Los campos nombre, email, tipo, asunto y mensaje son obligatorios.",
+        error: "Los campos nombre, tipo de requerimiento, asunto y mensaje son obligatorios.",
+      };
+    }
+
+    if (preferenciaRespuesta === "EMAIL" && !emailContacto) {
+      return {
+        success: false,
+        error: "Por favor ingresa un email de contacto para recibir respuesta por correo.",
+      };
+    }
+
+    if (preferenciaRespuesta === "WHATSAPP" && !telefonoContacto) {
+      return {
+        success: false,
+        error: "Por favor ingresa tu número de WhatsApp de contacto para recibir respuesta.",
       };
     }
 
@@ -34,9 +52,13 @@ export async function createSupportTicket(data: CreateTicketInput) {
     const empresaId = data.empresaId ?? (session?.user as any)?.empresaId ?? null;
     const origen = data.origen || (session?.user ? "PANEL" : "WEB");
     const prioridad = data.prioridad || "MEDIA";
-    const telefonoContacto = data.telefonoContacto?.trim() || null;
     const empresaNombreManual = data.empresaNombreManual?.trim() || null;
-    const preferenciaRespuesta = data.preferenciaRespuesta || "EMAIL";
+
+    // Fallback email for DB non-null column if contact is solely via WhatsApp
+    const finalEmail =
+      emailContacto ||
+      (telefonoContacto ? `${telefonoContacto.replace(/\s+/g, "")}@whatsapp.user` : "soporte@trackops.com");
+    const finalTelefono = telefonoContacto || null;
 
     const [inserted] = await db
       .insert(ticketsSoporte)
@@ -45,8 +67,8 @@ export async function createSupportTicket(data: CreateTicketInput) {
         empresaId,
         userId,
         nombreContacto,
-        emailContacto,
-        telefonoContacto,
+        emailContacto: finalEmail,
+        telefonoContacto: finalTelefono,
         empresaNombreManual,
         tipo,
         prioridad,

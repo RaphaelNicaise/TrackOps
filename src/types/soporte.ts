@@ -12,7 +12,7 @@ export type TicketPrioridad = "BAJA" | "MEDIA" | "ALTA" | "URGENTE";
 
 export type TicketEstado = "PENDIENTE" | "EN_REVISION" | "RESUELTO" | "DESCARTADO";
 
-export type PreferenciaRespuesta = "EMAIL" | "WHATSAPP" | "TELEFONO";
+export type PreferenciaRespuesta = "EMAIL" | "WHATSAPP";
 
 export interface TicketSoporteRow {
   id: number;
@@ -43,7 +43,7 @@ export interface CreateTicketInput {
   empresaId?: number | null;
   userId?: string | null;
   nombreContacto: string;
-  emailContacto: string;
+  emailContacto?: string | null;
   telefonoContacto?: string | null;
   empresaNombreManual?: string | null;
   tipo: TicketTipo;

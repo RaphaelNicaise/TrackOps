@@ -145,11 +145,12 @@ describe("Support Center Server Actions (soporte-actions)", () => {
       expect(mockInsert).not.toHaveBeenCalled();
     });
 
-    it("should validate required fields and fail when email is missing", async () => {
+    it("should validate required fields and fail when email is missing with EMAIL preference", async () => {
       (auth as any).mockResolvedValueOnce({ user: null });
       const input = {
         nombreContacto: "Juan Perez",
         emailContacto: "",
+        preferenciaRespuesta: "EMAIL",
         tipo: "PROBLEMA_TECNICO",
         asunto: "Falla de señal",
         mensaje: "El vehículo no reporta",
@@ -158,7 +159,41 @@ describe("Support Center Server Actions (soporte-actions)", () => {
       const result = await createSupportTicket(input);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("obligatorios");
+      expect(result.error).toContain("email");
+    });
+
+    it("should validate required fields and fail when whatsapp is missing with WHATSAPP preference", async () => {
+      (auth as any).mockResolvedValueOnce({ user: null });
+      const input = {
+        nombreContacto: "Juan Perez",
+        telefonoContacto: "",
+        preferenciaRespuesta: "WHATSAPP",
+        tipo: "PROBLEMA_TECNICO",
+        asunto: "Falla de señal",
+        mensaje: "El vehículo no reporta",
+      } as CreateTicketInput;
+
+      const result = await createSupportTicket(input);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("WhatsApp");
+    });
+
+    it("should succeed with WHATSAPP preference when whatsapp is provided even without email", async () => {
+      (auth as any).mockResolvedValueOnce({ user: null });
+      const input = {
+        nombreContacto: "Juan Perez",
+        telefonoContacto: "+5491122334455",
+        preferenciaRespuesta: "WHATSAPP",
+        tipo: "PROBLEMA_TECNICO",
+        asunto: "Falla de señal",
+        mensaje: "El vehículo no reporta",
+      } as CreateTicketInput;
+
+      const result = await createSupportTicket(input);
+
+      expect(result.success).toBe(true);
+      expect(mockInsert).toHaveBeenCalled();
     });
 
     it("should validate required fields and fail when message is missing", async () => {

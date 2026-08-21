@@ -44,7 +44,6 @@ const TIPO_OPTIONS: { value: TicketTipo; label: string }[] = [
 const PREFERENCIA_OPTIONS: { value: PreferenciaRespuesta; label: string; icon: any }[] = [
   { value: "EMAIL", label: "Email", icon: Mail },
   { value: "WHATSAPP", label: "WhatsApp", icon: MessageSquare },
-  { value: "TELEFONO", label: "Llamada Telefónica", icon: Phone },
 ];
 
 export function PublicSupportDialog({
@@ -82,11 +81,6 @@ export function PublicSupportDialog({
       return;
     }
 
-    if (!emailContacto.trim()) {
-      appAlert.error("Por favor ingresa tu email de contacto.");
-      return;
-    }
-
     if (!asunto.trim()) {
       appAlert.error("Por favor ingresa un asunto para tu consulta.");
       return;
@@ -97,12 +91,22 @@ export function PublicSupportDialog({
       return;
     }
 
+    if (preferenciaRespuesta === "EMAIL" && !emailContacto.trim()) {
+      appAlert.error("Por favor ingresa tu email de contacto para recibir respuesta por correo.");
+      return;
+    }
+
+    if (preferenciaRespuesta === "WHATSAPP" && !telefonoContacto.trim()) {
+      appAlert.error("Por favor ingresa tu número de WhatsApp para recibir respuesta.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await createSupportTicket({
         origen: "WEB",
         nombreContacto: nombreContacto.trim(),
-        emailContacto: emailContacto.trim(),
+        emailContacto: emailContacto.trim() || undefined,
         telefonoContacto: telefonoContacto.trim() || undefined,
         empresaNombreManual: empresaNombreManual.trim() || undefined,
         tipo,
@@ -157,7 +161,7 @@ export function PublicSupportDialog({
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 py-1">
-            {/* Nombre y Email */}
+            {/* Nombre y Empresa */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="public-nombre" className="text-xs font-semibold text-foreground">
@@ -177,44 +181,6 @@ export function PublicSupportDialog({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="public-email" className="text-xs font-semibold text-foreground">
-                  Email de Contacto *
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="public-email"
-                    type="email"
-                    value={emailContacto}
-                    onChange={(e) => setEmailContacto(e.target.value)}
-                    placeholder="laura@empresa.com"
-                    className="h-9 pl-8 text-xs"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Teléfono y Empresa */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="public-telefono" className="text-xs font-semibold text-foreground">
-                  Teléfono / WhatsApp (opcional)
-                </Label>
-                <div className="relative">
-                  <Phone className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="public-telefono"
-                    type="tel"
-                    value={telefonoContacto}
-                    onChange={(e) => setTelefonoContacto(e.target.value)}
-                    placeholder="+54 9 11 5555-1234"
-                    className="h-9 pl-8 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
                 <Label htmlFor="public-empresa" className="text-xs font-semibold text-foreground">
                   Empresa / Flota (opcional)
                 </Label>
@@ -229,6 +195,109 @@ export function PublicSupportDialog({
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Preferencia de Contacto */}
+            <div className="space-y-2 pt-1 border-t border-border/60">
+              <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <span>¿Por qué medio prefieres recibir la respuesta?</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {PREFERENCIA_OPTIONS.map((opt) => {
+                  const isSelected = preferenciaRespuesta === opt.value;
+                  const Icon = opt.icon;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setPreferenciaRespuesta(opt.value)}
+                      className={`flex items-center justify-center gap-2 p-2 rounded-lg border text-xs font-medium transition-all ${
+                        isSelected
+                          ? "bg-primary/10 border-primary text-primary font-semibold shadow-xs"
+                          : "bg-background border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Campos dinámicos de contacto */}
+              {preferenciaRespuesta === "EMAIL" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="public-email" className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 text-blue-500" />
+                      <span>Email de Contacto *</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="public-email"
+                        type="email"
+                        value={emailContacto}
+                        onChange={(e) => setEmailContacto(e.target.value)}
+                        placeholder="laura@empresa.com"
+                        className="h-9 text-xs"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="public-telefono" className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>Teléfono (opcional)</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="public-telefono"
+                        type="tel"
+                        value={telefonoContacto}
+                        onChange={(e) => setTelefonoContacto(e.target.value)}
+                        placeholder="+54 9 11 5555-1234"
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="public-telefono" className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <MessageSquare className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>Número de WhatsApp *</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="public-telefono"
+                        type="tel"
+                        value={telefonoContacto}
+                        onChange={(e) => setTelefonoContacto(e.target.value)}
+                        placeholder="+54 9 11 5555-1234"
+                        className="h-9 text-xs"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="public-email" className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>Email (opcional)</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="public-email"
+                        type="email"
+                        value={emailContacto}
+                        onChange={(e) => setEmailContacto(e.target.value)}
+                        placeholder="laura@empresa.com"
+                        className="h-9 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Tipo de Consulta */}
@@ -279,25 +348,6 @@ export function PublicSupportDialog({
                 placeholder="Describe con claridad tu requerimiento, duda o problema técnico..."
                 required
               />
-            </div>
-
-            {/* Preferencia de Respuesta */}
-            <div className="space-y-1.5">
-              <Label htmlFor="public-preferencia" className="text-xs font-semibold text-foreground">
-                Preferencia de Contacto
-              </Label>
-              <select
-                id="public-preferencia"
-                value={preferenciaRespuesta}
-                onChange={(e) => setPreferenciaRespuesta(e.target.value as PreferenciaRespuesta)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-xs text-foreground shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                {PREFERENCIA_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label} ({opt.value})
-                  </option>
-                ))}
-              </select>
             </div>
 
             <DialogFooter className="pt-2 gap-2 sm:gap-0">

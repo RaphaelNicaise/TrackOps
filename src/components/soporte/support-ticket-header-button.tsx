@@ -56,7 +56,6 @@ const PRIORIDAD_OPTIONS: { value: TicketPrioridad; label: string; color: string 
 const PREFERENCIA_OPTIONS: { value: PreferenciaRespuesta; label: string; icon: any }[] = [
   { value: "EMAIL", label: "Email", icon: Mail },
   { value: "WHATSAPP", label: "WhatsApp", icon: MessageSquare },
-  { value: "TELEFONO", label: "Llamada Telefónica", icon: Phone },
 ];
 
 export function SupportTicketHeaderButton({
@@ -72,6 +71,7 @@ export function SupportTicketHeaderButton({
   const [prioridad, setPrioridad] = useState<TicketPrioridad>("MEDIA");
   const [asunto, setAsunto] = useState<string>("");
   const [mensaje, setMensaje] = useState<string>("");
+  const [emailContacto, setEmailContacto] = useState<string>(userEmail || "");
   const [telefonoContacto, setTelefonoContacto] = useState<string>("");
   const [preferenciaRespuesta, setPreferenciaRespuesta] = useState<PreferenciaRespuesta>("EMAIL");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -81,6 +81,7 @@ export function SupportTicketHeaderButton({
     setPrioridad("MEDIA");
     setAsunto("");
     setMensaje("");
+    setEmailContacto(userEmail || "");
     setTelefonoContacto("");
     setPreferenciaRespuesta("EMAIL");
   };
@@ -98,13 +99,23 @@ export function SupportTicketHeaderButton({
       return;
     }
 
+    if (preferenciaRespuesta === "EMAIL" && !emailContacto.trim()) {
+      appAlert.error("Por favor ingresa tu email de contacto para recibir respuesta por correo.");
+      return;
+    }
+
+    if (preferenciaRespuesta === "WHATSAPP" && !telefonoContacto.trim()) {
+      appAlert.error("Por favor ingresa tu número de WhatsApp para recibir respuesta.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await createSupportTicket({
         origen: "PANEL",
         empresaId: empresaId ?? undefined,
         nombreContacto: (userName || userEmail || "Usuario").trim(),
-        emailContacto: (userEmail || "").trim(),
+        emailContacto: emailContacto.trim() || undefined,
         telefonoContacto: telefonoContacto.trim() || undefined,
         tipo,
         prioridad,
@@ -136,7 +147,10 @@ export function SupportTicketHeaderButton({
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setEmailContacto(userEmail || "");
+          setOpen(true);
+        }}
         title="Contactar Soporte / Reportar Incidencia"
         aria-label="Contactar Soporte / Reportar Incidencia"
         className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent hover:border-border transition-colors"
@@ -175,19 +189,11 @@ export function SupportTicketHeaderButton({
                 </Badge>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground pt-1">
-              <div className="flex items-center gap-1.5 truncate">
-                <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate">
-                  Usuario: <strong className="text-foreground">{userName || "No especificado"}</strong>
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 truncate">
-                <Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                <span className="truncate">
-                  Email: <strong className="text-foreground">{userEmail || "No especificado"}</strong>
-                </span>
-              </div>
+            <div className="flex items-center gap-2 text-muted-foreground pt-1">
+              <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="truncate">
+                Remitente: <strong className="text-foreground">{userName || userEmail || "Usuario del Panel"}</strong>
+              </span>
             </div>
           </div>
 
@@ -239,7 +245,7 @@ export function SupportTicketHeaderButton({
             {/* Asunto */}
             <div className="space-y-1.5">
               <Label htmlFor="ticket-asunto" className="text-xs font-semibold text-foreground">
-                Asunto / Título del Reclamo
+                Asunto / Título del Reclamo *
               </Label>
               <Input
                 id="ticket-asunto"
@@ -254,7 +260,7 @@ export function SupportTicketHeaderButton({
             {/* Mensaje */}
             <div className="space-y-1.5">
               <Label htmlFor="ticket-mensaje" className="text-xs font-semibold text-foreground">
-                Mensaje y Detalle del Problema
+                Mensaje y Detalle del Problema *
               </Label>
               <textarea
                 id="ticket-mensaje"
@@ -267,39 +273,73 @@ export function SupportTicketHeaderButton({
               />
             </div>
 
-            {/* Teléfono / WhatsApp opcional & Preferencia de Respuesta */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="ticket-telefono" className="text-xs font-semibold text-foreground">
-                  Teléfono / WhatsApp de contacto (opcional)
-                </Label>
-                <Input
-                  id="ticket-telefono"
-                  type="tel"
-                  value={telefonoContacto}
-                  onChange={(e) => setTelefonoContacto(e.target.value)}
-                  placeholder="+54 9 11 5555-1234"
-                  className="h-9 text-xs"
-                />
+            {/* Preferencia de Respuesta */}
+            <div className="space-y-2 pt-1 border-t border-border/60">
+              <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <span>¿Por qué medio prefieres recibir la respuesta?</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                {PREFERENCIA_OPTIONS.map((opt) => {
+                  const isSelected = preferenciaRespuesta === opt.value;
+                  const Icon = opt.icon;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setPreferenciaRespuesta(opt.value)}
+                      className={`flex items-center justify-center gap-2 p-2 rounded-lg border text-xs font-medium transition-all ${
+                        isSelected
+                          ? "bg-primary/10 border-primary text-primary font-semibold shadow-xs"
+                          : "bg-background border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="ticket-preferencia" className="text-xs font-semibold text-foreground">
-                  Preferencia de Respuesta
-                </Label>
-                <select
-                  id="ticket-preferencia"
-                  value={preferenciaRespuesta}
-                  onChange={(e) => setPreferenciaRespuesta(e.target.value as PreferenciaRespuesta)}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-xs text-foreground shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  {PREFERENCIA_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label} ({opt.value})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Campo dinámico según preferencia */}
+              {preferenciaRespuesta === "EMAIL" ? (
+                <div className="space-y-1.5 pt-1">
+                  <Label htmlFor="ticket-email" className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-blue-500" />
+                    <span>Email de Contacto para Respuesta *</span>
+                  </Label>
+                  <Input
+                    id="ticket-email"
+                    type="email"
+                    value={emailContacto}
+                    onChange={(e) => setEmailContacto(e.target.value)}
+                    placeholder="tu-email@empresa.com"
+                    className="h-9 text-xs"
+                    required
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Te enviaremos la resolución del ticket a esta casilla de correo.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5 pt-1">
+                  <Label htmlFor="ticket-telefono" className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5 text-emerald-500" />
+                    <span>Número de WhatsApp para Respuesta *</span>
+                  </Label>
+                  <Input
+                    id="ticket-telefono"
+                    type="tel"
+                    value={telefonoContacto}
+                    onChange={(e) => setTelefonoContacto(e.target.value)}
+                    placeholder="+54 9 11 5555-1234"
+                    className="h-9 text-xs"
+                    required
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Un asesor de soporte te escribirá directamente por WhatsApp a este número.
+                  </p>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="pt-2 gap-2 sm:gap-0">

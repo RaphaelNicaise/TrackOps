@@ -69,11 +69,11 @@ describe("PublicSupportDialog Component (Task 4)", () => {
       );
     });
 
-    it("renders all required form inputs: nombre, email, telefono, empresa", () => {
+    it("renders all form inputs: nombre, email, telefono, empresa", () => {
       const html = renderToStaticMarkup(<PublicSupportDialog defaultOpen={true} />);
       expect(html).toContain("Nombre y Apellido");
       expect(html).toContain("Email de Contacto");
-      expect(html).toContain("Teléfono / WhatsApp");
+      expect(html).toContain("Teléfono (opcional)");
       expect(html).toContain("Empresa / Flota");
       expect(html).toContain("type=\"email\"");
     });
@@ -92,10 +92,9 @@ describe("PublicSupportDialog Component (Task 4)", () => {
       const html = renderToStaticMarkup(<PublicSupportDialog defaultOpen={true} />);
       expect(html).toContain("Asunto");
       expect(html).toContain("Mensaje o Consulta");
-      expect(html).toContain("Preferencia de Contacto");
-      expect(html).toContain("EMAIL");
-      expect(html).toContain("WHATSAPP");
-      expect(html).toContain("TELEFONO");
+      expect(html).toContain("¿Por qué medio prefieres recibir la respuesta?");
+      expect(html).toContain("Email");
+      expect(html).toContain("WhatsApp");
     });
 
     it("renders dialog action buttons: cancel and submit", () => {
