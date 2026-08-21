@@ -46,6 +46,7 @@ import {
   CreatedEmpresaInfo,
   CreatedAdminInfo,
 } from "./empresa-created-dialog";
+import { EmpresaDetailSheet } from "./empresa-detail-sheet";
 import {
   toggleEmpresaStatus,
   enterTenantAsSuperadmin,
@@ -84,6 +85,10 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
   // State for Editing
   const [editingEmpresa, setEditingEmpresa] = useState<EmpresaFormData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // State for 360 Detail Sheet
+  const [selectedDetailEmpresaId, setSelectedDetailEmpresaId] = useState<number | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
 
   // State for direct superadmin loading per row
   const [loadingSuperadminId, setLoadingSuperadminId] = useState<number | null>(null);
@@ -407,18 +412,24 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                     key={empresa.id}
                     className="hover:bg-muted/30 transition-colors"
                   >
-                    {/* Empresa Avatar & Name */}
+                    {/* Empresa Avatar & Name - Clickable for 360 Sheet */}
                     <TableCell className="font-medium py-3.5">
-                      <div className="flex items-center gap-3">
+                      <div
+                        onClick={() => {
+                          setSelectedDetailEmpresaId(empresa.id);
+                          setIsDetailSheetOpen(true);
+                        }}
+                        className="flex items-center gap-3 cursor-pointer group"
+                      >
                         <div
-                          className={`h-9 w-9 rounded-lg flex items-center justify-center font-bold text-xs border ${getAvatarBg(
+                          className={`h-9 w-9 rounded-lg flex items-center justify-center font-bold text-xs border transition-transform group-hover:scale-105 ${getAvatarBg(
                             empresa.nombre
                           )}`}
                         >
                           {initials || "EM"}
                         </div>
                         <div className="space-y-0.5">
-                          <div className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                          <div className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
                             {empresa.nombre}
                           </div>
                           <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-2">
@@ -445,7 +456,14 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
 
                     {/* Flota */}
                     <TableCell>
-                      <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground bg-muted/40 px-2.5 py-1 rounded-md border border-border">
+                      <div
+                        onClick={() => {
+                          setSelectedDetailEmpresaId(empresa.id);
+                          setIsDetailSheetOpen(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground bg-muted/40 px-2.5 py-1 rounded-md border border-border cursor-pointer hover:bg-muted/70 transition-colors"
+                        title="Ver flota en detalle"
+                      >
                         <Truck className="h-3.5 w-3.5 text-primary" />
                         <span>
                           {empresa.totalVehiculos}{" "}
@@ -507,6 +525,18 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
 
+                            {/* Ver Ficha 360° */}
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedDetailEmpresaId(empresa.id);
+                                setIsDetailSheetOpen(true);
+                              }}
+                              className="text-xs gap-2 cursor-pointer font-semibold text-primary"
+                            >
+                              <Building2 className="h-3.5 w-3.5" />
+                              Ver Ficha 360°
+                            </DropdownMenuItem>
+
                             {/* Superpoderes */}
                             <DropdownMenuItem
                               onClick={() => handleDirectSuperpoderes(empresa)}
@@ -548,7 +578,7 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                               disabled={isCurrentlyToggling}
                               className={`text-xs gap-2 cursor-pointer ${
                                 isActiva
-                                  ? "text-rose-600 dark:text-rose-400"
+                                    ? "text-rose-600 dark:text-rose-400"
                                   : "text-emerald-600 dark:text-emerald-400"
                               }`}
                             >
@@ -622,6 +652,26 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
           setEditingEmpresa(null);
         }}
       />
+
+      {/* 360 Tenant Detail Sheet instance */}
+      <EmpresaDetailSheet
+        empresaId={selectedDetailEmpresaId}
+        open={isDetailSheetOpen}
+        onOpenChange={setIsDetailSheetOpen}
+        onEditEmpresa={(empresaFormData) => {
+          setIsDetailSheetOpen(false);
+          setEditingEmpresa(empresaFormData);
+          setIsEditDialogOpen(true);
+        }}
+        onStatusChanged={(empId, newStatus) => {
+          setEmpresas((prev) =>
+            prev.map((e) =>
+              e.id === empId ? { ...e, estadoSuscripcion: newStatus } : e
+            )
+          );
+        }}
+      />
     </div>
   );
 }
+

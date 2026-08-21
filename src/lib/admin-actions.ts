@@ -392,3 +392,165 @@ export async function updateGpsInstallationStatus(formData: FormData) {
   await logAudit("UPDATE", "gpsInstallation", id, { estado });
   revalidatePath("/dashboard/instalaciones");
 }
+
+// ═══════════ 360° TENANT DETAIL & USER SECURITY ═══════════
+
+export interface EmpresaDetail360Data {
+  empresa: typeof empresas.$inferSelect;
+  subscription: {
+    id: number;
+    empresaId: number;
+    planId: number;
+    estado: string;
+    fechaInicio: Date;
+    fechaFin: Date | null;
+    metodoPago: string | null;
+    createdAt: Date;
+    planNombre?: string | null;
+    maxVehiculos?: number | null;
+    precioMensual?: number | null;
+    precioAnual?: number | null;
+  } | null;
+  vehicles: (typeof vehicles.$inferSelect)[];
+  users: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    role: string;
+    mustChangePassword: number;
+  }[];
+  alertConfig: typeof alertConfigs.$inferSelect | null;
+}
+
+export async function getEmpresaDetail360(empresaId: number): Promise<{
+  success: boolean;
+  data: EmpresaDetail360Data;
+}> {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") {
+    throw new Error("Unauthorized: Se requiere rol SUPER_ADMIN");
+  }
+
+  if (!empresaId || isNaN(empresaId)) {
+    throw new Error("ID de empresa inválido");
+  }
+
+  // 1. Empresa
+  const [empresa] = await db
+    .select()
+    .from(empresas)
+    .where(eq(empresas.id, empresaId))
+    .limit(1);
+
+  if (!empresa) {
+    throw new Error(`Empresa #${empresaId} no encontrada`);
+  }
+
+  // 2. Subscription with Plan details
+  const [subscription] = await db
+    .select({
+      id: empresaSubscriptions.id,
+      empresaId: empresaSubscriptions.empresaId,
+      planId: empresaSubscriptions.planId,
+      estado: empresaSubscriptions.estado,
+      fechaInicio: empresaSubscriptions.fechaInicio,
+      fechaFin: empresaSubscriptions.fechaFin,
+      metodoPago: empresaSubscriptions.metodoPago,
+      createdAt: empresaSubscriptions.createdAt,
+      planNombre: subscriptionPlans.nombre,
+      maxVehiculos: subscriptionPlans.maxVehiculos,
+      precioMensual: subscriptionPlans.precioMensual,
+      precioAnual: subscriptionPlans.precioAnual,
+    })
+    .from(empresaSubscriptions)
+    .leftJoin(
+      subscriptionPlans,
+      eq(empresaSubscriptions.planId, subscriptionPlans.id)
+    )
+    .where(eq(empresaSubscriptions.empresaId, empresaId))
+    .limit(1);
+
+  // 3. Vehicles
+  const tenantVehicles = await db
+    .select()
+    .from(vehicles)
+    .where(eq(vehicles.empresaId, empresaId));
+
+  // 4. Users (excluding password hashes for security)
+  const tenantUsers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      mustChangePassword: users.mustChangePassword,
+    })
+    .from(users)
+    .where(eq(users.empresaId, empresaId));
+
+  // 5. Alert Config
+  const [alertConfig] = await db
+    .select()
+    .from(alertConfigs)
+    .where(eq(alertConfigs.empresaId, empresaId))
+    .limit(1);
+
+  return {
+    success: true,
+    data: {
+      empresa,
+      subscription: subscription || null,
+      vehicles: tenantVehicles,
+      users: tenantUsers,
+      alertConfig: alertConfig || null,
+    },
+  };
+}
+
+export async function resetTenantUserPassword(formData: FormData) {
+  const session = await auth();
+  if (session?.user?.role !== "SUPER_ADMIN") {
+    throw new Error("Unauthorized: Se requiere rol SUPER_ADMIN");
+  }
+
+  const userId = (formData.get("userId") as string)?.trim();
+  const newPassword = (formData.get("newPassword") as string)?.trim();
+
+  if (!userId) {
+    throw new Error("ID de usuario requerido");
+  }
+
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error("La nueva contraseña debe tener al menos 8 caracteres");
+  }
+
+  const [userToUpdate] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!userToUpdate) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  const hash = await bcrypt.hash(newPassword, 10);
+
+  await db
+    .update(users)
+    .set({
+      passwordHash: hash,
+      mustChangePassword: 1,
+    })
+    .where(eq(users.id, userId));
+
+  await logAudit("UPDATE", "user_password_reset_superadmin", userId, {
+    userEmail: userToUpdate.email,
+    userName: userToUpdate.name,
+    empresaId: userToUpdate.empresaId,
+    performedBy: session.user.id || session.user.email,
+  });
+
+  return { success: true };
+}
+
