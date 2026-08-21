@@ -122,7 +122,7 @@ export function EmpresaCreatedDialog({
         "⚡ Superpoderes Activados"
       );
       // Immediate redirection to dashboard
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard/monitoreo/dashboard";
     } catch (err: any) {
       appAlert.error(err?.message || "Error al ingresar con superpoderes.");
       setIsEnteringSuperadmin(false);

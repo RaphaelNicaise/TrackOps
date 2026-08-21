@@ -36,6 +36,7 @@ import {
   Container,
   ExternalLink,
   Clock,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -148,13 +149,39 @@ export const navByRole: Record<string, NavGroup[]> = {
 
 interface AppSidebarProps {
   userRole?: string;
+  isImpersonating?: boolean;
+  impersonatedTenantNombre?: string | null;
 }
 
-export function AppSidebar({ userRole }: AppSidebarProps) {
+export function AppSidebar({
+  userRole,
+  isImpersonating,
+  impersonatedTenantNombre,
+}: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
-  const groups = (userRole && navByRole[userRole]) ? navByRole[userRole] : adminNav;
+
+  let groups: NavGroup[];
+  if (isImpersonating) {
+    groups = [
+      {
+        label: "⚡ Modo Superpoderes",
+        items: [
+          {
+            title: "Volver a SuperAdmin",
+            url: "/dashboard/superadmin/clientes",
+            icon: ShieldAlert,
+          },
+        ],
+      },
+      ...adminNav,
+    ];
+  } else if (userRole && navByRole[userRole]) {
+    groups = navByRole[userRole];
+  } else {
+    groups = adminNav;
+  }
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">

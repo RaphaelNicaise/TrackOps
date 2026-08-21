@@ -17,22 +17,26 @@ export default async function DashboardLayout({
   const tenantContext = await getEffectiveTenantContext();
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh max-h-svh overflow-hidden w-full">
       <ForcePasswordChangeModal
         mustChangePassword={session?.user?.mustChangePassword}
         userName={session?.user?.name || session?.user?.email}
       />
-      <AppSidebar userRole={session?.user?.role} />
-      <div className="flex-1 w-full bg-background min-h-screen flex flex-col min-w-0 overflow-x-hidden">
-        {/* Sticky Fixed Header & Impersonation Banner Container */}
-        <header className="sticky top-0 z-30 w-full flex flex-col shrink-0">
+      <AppSidebar
+        userRole={session?.user?.role}
+        isImpersonating={tenantContext?.isImpersonating}
+        impersonatedTenantNombre={tenantContext?.empresaNombre}
+      />
+      <div className="flex-1 flex flex-col h-svh max-h-svh overflow-hidden min-w-0 bg-background">
+        {/* Fixed Header & Impersonation Banner Container */}
+        <header className="shrink-0 z-30 w-full flex flex-col border-b bg-card">
           {tenantContext?.isImpersonating && tenantContext.empresaId && (
             <SuperadminImpersonationBanner
               empresaId={tenantContext.empresaId}
               empresaNombre={tenantContext.empresaNombre || `Empresa #${tenantContext.empresaId}`}
             />
           )}
-          <div className="h-14 flex items-center justify-between border-b bg-card/95 backdrop-blur-md px-4 md:px-6 shadow-2xs">
+          <div className="h-14 flex items-center justify-between px-4 md:px-6 shadow-2xs">
             <div className="flex items-center gap-3">
               <SidebarTrigger className="md:hidden h-10 w-10 [&>svg]:!size-6" />
               <div className="flex items-center gap-2 md:hidden">
@@ -65,9 +69,12 @@ export default async function DashboardLayout({
           </div>
         </header>
 
-        <DashboardMain>
-          {children}
-        </DashboardMain>
+        {/* Scrollable Viewport for Dashboard Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden w-full flex flex-col">
+          <DashboardMain>
+            {children}
+          </DashboardMain>
+        </div>
       </div>
     </SidebarProvider>
   );

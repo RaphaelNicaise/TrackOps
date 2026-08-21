@@ -187,7 +187,7 @@ export function EmpresaDetailSheet({
         `Ingresando a "${data.empresa.nombre}" en Modo Superpoderes...`,
         "⚡ Superpoderes Activados"
       );
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard/monitoreo/dashboard";
     } catch (err: any) {
       appAlert.error(err?.message || "Error al acceder como empresa.");
       setIsEnteringTenant(false);
