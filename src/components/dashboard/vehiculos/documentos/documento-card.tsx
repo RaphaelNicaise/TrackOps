@@ -43,6 +43,7 @@ import {
   VehicleDocumentItem,
   getCategoryColor,
 } from "./types";
+import { DocumentPreviewModal } from "./document-preview-modal";
 
 export interface DocumentoCardProps {
   doc: VehicleDocumentItem;
@@ -97,6 +98,7 @@ export function DocumentoCard({
 }: DocumentoCardProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData("text/plain", String(doc.id));
@@ -210,23 +212,19 @@ export function DocumentoCard({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1 shrink-0">
-          {/* Quick View Button */}
+          {/* Preview Modal Button */}
           <Button
-            asChild
             size="icon"
             variant="ghost"
             className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-            title="Ver en pestaña nueva"
+            title="Previsualizar"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPreview(true);
+            }}
           >
-            <a
-              href={`/api/documents/${doc.id}/view`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Eye className="h-4 w-4" />
-              <span className="sr-only">Ver documento</span>
-            </a>
+            <Eye className="h-4 w-4" />
+            <span className="sr-only">Previsualizar documento</span>
           </Button>
 
           {/* Download Button */}
@@ -319,6 +317,8 @@ export function DocumentoCard({
           </Button>
         </div>
       </div>
+
+      <DocumentPreviewModal doc={doc} open={showPreview} onOpenChange={setShowPreview} />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
