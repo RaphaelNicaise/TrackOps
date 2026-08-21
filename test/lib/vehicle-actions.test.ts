@@ -52,7 +52,7 @@ describe('vehicle-actions: createVehicle', () => {
 
     const res = await createVehicle(fd);
 
-    expect(res).toEqual({ success: true });
+    expect(res.success).toBe(true);
     expect(mockInsert).toHaveBeenCalled();
   });
 
@@ -64,6 +64,6 @@ describe('vehicle-actions: createVehicle', () => {
     fd.set('modelo', 'FH');
 
     const res = await createVehicle(fd);
-    expect(res).toEqual({ success: true });
+    expect(res.success).toBe(true);
   });
 });

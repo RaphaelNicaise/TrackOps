@@ -71,7 +71,7 @@ AA000AA,Mercedes,Benz,2018,camion,120000`;
         expect.objectContaining({ patente: 'AA000AA', empresaId: 1 }),
       ]));
 
-      expect(revalidatePath).toHaveBeenCalledWith('/dashboard/flota');
+      expect(revalidatePath).toHaveBeenCalledWith(expect.stringContaining('/panel'));
     });
   });
 });

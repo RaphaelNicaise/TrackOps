@@ -76,7 +76,7 @@ vi.mock("@/db", () => ({
 
 import { ClientesTable, EmpresaRow } from "@/components/superadmin/clientes-table";
 import { EmpresaFormDialog, PlanOption } from "@/components/superadmin/empresa-form-dialog";
-import SuperadminClientesPage from "@/app/dashboard/superadmin/clientes/page";
+import SuperadminClientesPage from "@/app/panel/superadmin/clientes/page";
 
 const MOCK_PLANS: PlanOption[] = [
   { id: 1, nombre: "Starter", maxVehiculos: 5, precioMensual: 49 },
@@ -139,14 +139,14 @@ describe("EmpresaFormDialog Component", () => {
     const html = renderToStaticMarkup(
       <EmpresaFormDialog open={true} plans={MOCK_PLANS} />
     );
-    expect(html).toContain("Registrar Nueva Empresa");
+    expect(html).toContain("Registrar Empresa");
     expect(html).toContain("Razón Social / Nombre Comercial");
     expect(html).toContain("CUIT / Identificación Tributaria");
-    expect(html).toContain("Plan de Suscripción Inicial");
+    expect(html).toContain("Plan SaaS");
     expect(html).toContain("Starter");
     expect(html).toContain("Pro");
     expect(html).toContain("Enterprise");
-    expect(html).toContain("Crear Empresa");
+    expect(html).toContain("Aprovisionar Empresa");
   });
 
   it("renders form content in open mode for editing existing empresa", () => {
