@@ -43,6 +43,13 @@
       "when": 1787196076629,
       "tag": "0005_charming_wonder_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787297810239,
+      "tag": "0006_next_beyonder",
+      "breakpoints": true
     }
   ]
 }
