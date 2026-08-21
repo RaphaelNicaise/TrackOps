@@ -328,6 +328,83 @@ async function createTablesIfNotExist() {
       );
     `;
 
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS dni varchar(20);`;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS choferes (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+        user_id text REFERENCES users(id) ON DELETE SET NULL,
+        nombre text NOT NULL,
+        apellido text NOT NULL,
+        dni varchar(20) NOT NULL,
+        telefono varchar(50),
+        email text,
+        licencia_numero varchar(50),
+        licencia_categoria varchar(20),
+        licencia_vencimiento timestamp,
+        estado varchar(30) DEFAULT 'ACTIVO' NOT NULL,
+        vehiculo_habitual_id integer REFERENCES vehicles(id) ON DELETE SET NULL,
+        notas text,
+        created_at timestamp DEFAULT now() NOT NULL,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS sitios (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+        nombre text NOT NULL,
+        tipo varchar(40) DEFAULT 'DEPOSITO' NOT NULL,
+        direccion text NOT NULL,
+        ciudad text,
+        provincia text,
+        lat double precision NOT NULL,
+        lng double precision NOT NULL,
+        radio_metros integer DEFAULT 100 NOT NULL,
+        contacto_nombre text,
+        contacto_telefono varchar(50),
+        activo integer DEFAULT 1 NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS viajes (
+        id serial PRIMARY KEY,
+        empresa_id integer NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+        codigo varchar(30) NOT NULL,
+        chofer_id integer REFERENCES choferes(id) ON DELETE SET NULL,
+        vehiculo_id integer REFERENCES vehicles(id) ON DELETE SET NULL,
+        origen_tipo varchar(20) DEFAULT 'SITIO' NOT NULL,
+        origen_sitio_id integer REFERENCES sitios(id) ON DELETE SET NULL,
+        origen_nombre text NOT NULL,
+        origen_direccion text NOT NULL,
+        origen_lat double precision NOT NULL,
+        origen_lng double precision NOT NULL,
+        destino_tipo varchar(20) DEFAULT 'SITIO' NOT NULL,
+        destino_sitio_id integer REFERENCES sitios(id) ON DELETE SET NULL,
+        destino_nombre text NOT NULL,
+        destino_direccion text NOT NULL,
+        destino_lat double precision NOT NULL,
+        destino_lng double precision NOT NULL,
+        distancia_estimada_km double precision,
+        fecha_salida_programada timestamp NOT NULL,
+        fecha_llegada_estimada timestamp,
+        fecha_inicio_real timestamp,
+        fecha_fin_real timestamp,
+        km_inicio integer,
+        km_fin integer,
+        estado varchar(30) DEFAULT 'PLANIFICADO' NOT NULL,
+        notas text,
+        creado_por text,
+        created_at timestamp DEFAULT now() NOT NULL,
+        updated_at timestamp DEFAULT now() NOT NULL
+      );
+    `;
+
     console.log("✓ Database tables verified/created successfully.");
   } finally {
     await sql.end();
