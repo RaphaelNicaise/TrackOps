@@ -392,13 +392,15 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
               </TableRow>
             ) : (
               filteredEmpresas.map((empresa) => {
-                const initials = empresa.nombre
-                  .split(" ")
-                  .map((w) => w[0])
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase();
+                const initials =
+                  ((empresa.nombre || "")
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((w) => (w ? w[0] : ""))
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()) || "EM";
 
                 const isActiva =
                   (empresa.estadoSuscripcion?.toLowerCase() || "activa") ===

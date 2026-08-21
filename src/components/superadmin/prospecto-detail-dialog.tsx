@@ -138,13 +138,15 @@ export function ProspectoDetailDialog({
     `Hola ${prospecto.nombre},\n\nGracias por tu interés en TrackOps.\n`
   )}`;
 
-  const initials = prospecto.nombre
-    .split(" ")
-    .map((n) => n[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const initials =
+    ((prospecto?.nombre || "")
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => (n ? n[0] : ""))
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()) || "LD";
 
   const handleSave = async () => {
     setIsSaving(true);

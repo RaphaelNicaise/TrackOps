@@ -388,15 +388,15 @@ export function EmpresaDetailSheet({
   }, [data?.vehicles, fleetSearch]);
 
   // Initials
-  const empresaInitials = data?.empresa.nombre
-    ? data.empresa.nombre
-        .split(" ")
-        .map((w) => w[0])
-        .filter(Boolean)
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "EM";
+  const empresaInitials =
+    ((data?.empresa?.nombre || "")
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => (w ? w[0] : ""))
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()) || "EM";
 
   const isActiva = (data?.subscription?.estado || "activa") === "activa";
 

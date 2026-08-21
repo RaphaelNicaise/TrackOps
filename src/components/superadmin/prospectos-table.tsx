@@ -295,13 +295,15 @@ export function ProspectosTable({ initialProspectos }: ProspectosTableProps) {
               </TableRow>
             ) : (
               filteredProspectos.map((lead) => {
-                const initials = lead.nombre
-                  .split(" ")
-                  .map((w) => w[0])
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase();
+                const initials =
+                  ((lead?.nombre || "")
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((w) => (w ? w[0] : ""))
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()) || "LD";
 
                 const cleanPhone = (lead.telefono || "").replace(/\D/g, "");
                 const waUrl = cleanPhone

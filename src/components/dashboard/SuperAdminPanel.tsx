@@ -46,8 +46,8 @@ export default async function SuperAdminPanel() {
     return acc;
   }, {} as Record<number, number>);
 
-  const totalEmpresas = totalEmpresasQuery[0]?.count || 0;
-  const totalVehicles = totalVehiclesQuery[0]?.count || 0;
+  const totalEmpresas = totalEmpresasQuery?.[0]?.count || 0;
+  const totalVehicles = totalVehiclesQuery?.[0]?.count || 0;
   const activas = empresasConSuscripcion.filter(e => e.estadoSuscripcion === "activa").length;
   const mrrEstimado = empresasConSuscripcion
     .filter(e => e.estadoSuscripcion === "activa")
