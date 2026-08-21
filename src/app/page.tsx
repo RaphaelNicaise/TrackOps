@@ -21,6 +21,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ScrollStack, { ScrollStackItem } from "@/components/ScrollStack";
 import BentoCard from "@/components/BentoCard";
+import { PublicSupportDialog } from "@/components/soporte/public-support-dialog";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
@@ -910,6 +911,7 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col gap-4">
               <h4 className="text-xs font-mono uppercase tracking-widest text-[#5C6B74]">Empresa</h4>
+              <PublicSupportDialog />
               <a href="#" className="text-sm text-[#EAEAEA] hover:text-white transition-colors">Contacto Ventas</a>
               <a href="#" className="text-sm text-[#EAEAEA] hover:text-white transition-colors">Términos y Privacidad</a>
             </div>
