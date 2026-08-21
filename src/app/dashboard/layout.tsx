@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { getEffectiveTenantContext } from "@/lib/impersonation";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardMain } from "@/components/layout/dashboard-main";
-import HideOnScroll from "@/components/layout/hide-on-scroll";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { ForcePasswordChangeModal } from "@/components/auth/ForcePasswordChangeModal";
@@ -24,15 +23,16 @@ export default async function DashboardLayout({
         userName={session?.user?.name || session?.user?.email}
       />
       <AppSidebar userRole={session?.user?.role} />
-      <main className="flex-1 w-full bg-background min-h-screen flex flex-col min-w-0 overflow-x-hidden">
-        {tenantContext.isImpersonating && tenantContext.empresaId && (
-          <SuperadminImpersonationBanner
-            empresaId={tenantContext.empresaId}
-            empresaNombre={tenantContext.empresaNombre || `Empresa #${tenantContext.empresaId}`}
-          />
-        )}
-        <HideOnScroll>
-          <div className="h-14 flex items-center justify-between border-b bg-card px-4 md:px-6 shadow-sm">
+      <div className="flex-1 w-full bg-background min-h-screen flex flex-col min-w-0 overflow-x-hidden">
+        {/* Sticky Fixed Header & Impersonation Banner Container */}
+        <header className="sticky top-0 z-30 w-full flex flex-col shrink-0">
+          {tenantContext?.isImpersonating && tenantContext.empresaId && (
+            <SuperadminImpersonationBanner
+              empresaId={tenantContext.empresaId}
+              empresaNombre={tenantContext.empresaNombre || `Empresa #${tenantContext.empresaId}`}
+            />
+          )}
+          <div className="h-14 flex items-center justify-between border-b bg-card/95 backdrop-blur-md px-4 md:px-6 shadow-2xs">
             <div className="flex items-center gap-3">
               <SidebarTrigger className="md:hidden h-10 w-10 [&>svg]:!size-6" />
               <div className="flex items-center gap-2 md:hidden">
@@ -63,11 +63,12 @@ export default async function DashboardLayout({
               </div>
             </div>
           </div>
-        </HideOnScroll>
+        </header>
+
         <DashboardMain>
           {children}
         </DashboardMain>
-      </main>
+      </div>
     </SidebarProvider>
   );
 }
