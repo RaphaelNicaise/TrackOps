@@ -65,7 +65,8 @@ export function getStorageKey(
   vehicleId: number,
   originalName: string
 ): string {
-  const ext = originalName.includes(".") ? originalName.split(".").pop() : "bin";
+  const sanitized = originalName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 100);
+  const ext = sanitized.includes(".") ? sanitized.split(".").pop() : "bin";
   const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   return `empresa_${empresaId}/vehiculos/vehiculo_${vehicleId}/${uniqueId}.${ext}`;
 }
@@ -105,12 +106,28 @@ export async function uploadVehicleDocument(params: {
   fileName: string;
   mimeType: string;
 }): Promise<{ fileKey: string; fileSize: number }> {
+  const { MAX_FILE_SIZE, ALLOWED_MIMES, ALLOWED_EXTENSIONS } = await import("@/lib/api-error");
+  const { AppError, sanitizeFileName } = await import("@/lib/api-error");
+
+  if (params.fileBuffer.length > MAX_FILE_SIZE) {
+    throw new AppError("PAYLOAD_TOO_LARGE", `El archivo supera los ${MAX_FILE_SIZE / (1024 * 1024)} MB`, 413);
+  }
+  const ext = ("." + params.fileName.split(".").pop()?.toLowerCase()) as string;
+  const mimeOk = (ALLOWED_MIMES as readonly string[]).includes(params.mimeType) || params.mimeType.startsWith("image/");
+  const extOk = (ALLOWED_EXTENSIONS as readonly string[]).includes(ext as never);
+  if (!mimeOk && !extOk) {
+    throw new AppError("VALIDATION_ERROR", `Tipo de archivo no permitido. Permitidos: ${ALLOWED_EXTENSIONS.join(", ")}`, 400, { file: ["Tipo no permitido"] });
+  }
+  if (!params.fileName || params.fileName.trim().length === 0) {
+    throw new AppError("VALIDATION_ERROR", "Nombre de archivo requerido", 400, { fileName: ["Requerido"] });
+  }
+  if (params.fileName.length > 255) {
+    throw new AppError("VALIDATION_ERROR", "Nombre de archivo muy largo (máx 255)", 400, { fileName: ["Máximo 255 caracteres"] });
+  }
+
   await ensureBucketExists();
-  const fileKey = getStorageKey(
-    params.empresaId,
-    params.vehicleId,
-    params.fileName
-  );
+  const cleanName = sanitizeFileName(params.fileName);
+  const fileKey = getStorageKey(params.empresaId, params.vehicleId, cleanName);
   await s3Client.send(
     new PutObjectCommand({
       Bucket: BUCKET_NAME,
