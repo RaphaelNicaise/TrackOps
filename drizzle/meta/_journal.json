@@ -50,6 +50,13 @@
       "when": 1787297810239,
       "tag": "0006_next_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787301832843,
+      "tag": "0007_aromatic_titania",
+      "breakpoints": true
     }
   ]
 }
