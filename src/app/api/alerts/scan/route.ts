@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { scanAllFleetAlerts } from "@/lib/alerts/triggers";
+import { AppError, toApiErrorResponse } from "@/lib/api-error";
 
 export async function GET(req: Request) {
   try {
@@ -8,80 +9,80 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const queryEmpresaId = url.searchParams.get("empresaId");
 
-    if (!session && !queryEmpresaId) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!session?.user) {
+      const { status, body } = toApiErrorResponse(new AppError("UNAUTHORIZED", "Tenés que iniciar sesión", 401));
+      return NextResponse.json(body, { status });
+    }
+    if (!session.user.empresaId && !queryEmpresaId) {
+      const { status, body } = toApiErrorResponse(new AppError("UNAUTHORIZED", "No autorizado: falta empresa", 401));
+      return NextResponse.json(body, { status });
     }
 
-    let empresaId = 1;
-    if (session?.user?.empresaId) {
-      empresaId = session.user.empresaId;
-    }
-
+    let empresaId = session.user.empresaId as number;
     if (queryEmpresaId) {
       const parsed = parseInt(queryEmpresaId, 10);
       if (!isNaN(parsed)) {
-        if (session?.user?.role === "SUPER_ADMIN" || !session) {
+        if (session.user.role === "SUPER_ADMIN") {
+          empresaId = parsed;
+        } else if (parsed !== empresaId) {
+          const { status, body } = toApiErrorResponse(new AppError("FORBIDDEN", "No tenés permiso para consultar otra empresa", 403));
+          return NextResponse.json(body, { status });
+        } else {
           empresaId = parsed;
         }
       }
     }
 
-    const summary = await scanAllFleetAlerts(empresaId);
+    if (!empresaId) {
+      const { status, body } = toApiErrorResponse(new AppError("UNAUTHORIZED", "Falta empresaId", 401));
+      return NextResponse.json(body, { status });
+    }
 
-    return NextResponse.json({
-      success: true,
-      count: summary.totalTriggered,
-      results: summary,
-    });
-  } catch (error: any) {
-    console.error("Error in GET /api/alerts/scan:", error);
-    return NextResponse.json(
-      { error: error?.message || "Error interno al escanear alertas" },
-      { status: 500 }
-    );
+    const summary = await scanAllFleetAlerts(empresaId);
+    return NextResponse.json({ success: true, data: summary, results: summary, count: summary.totalTriggered });
+  } catch (error: unknown) {
+    const { status, body } = toApiErrorResponse(error);
+    return NextResponse.json(body, { status });
   }
 }
 
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    let body: any = {};
+    let body: { empresaId?: number | string } = {};
     try {
       body = await req.json();
     } catch {
       // Empty body
     }
 
-    if (!session && !body.empresaId) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    if (!session?.user) {
+      const { status, body: errBody } = toApiErrorResponse(new AppError("UNAUTHORIZED", "Tenés que iniciar sesión", 401));
+      return NextResponse.json(errBody, { status });
     }
 
-    let empresaId = 1;
-    if (session?.user?.empresaId) {
-      empresaId = session.user.empresaId;
-    }
-
-    if (body.empresaId) {
-      const parsed = parseInt(body.empresaId, 10);
+    let empresaId = session.user.empresaId as number | undefined;
+    if (body.empresaId != null) {
+      const parsed = parseInt(String(body.empresaId), 10);
       if (!isNaN(parsed)) {
-        if (session?.user?.role === "SUPER_ADMIN" || !session || !session.user.empresaId) {
+        if (session.user.role === "SUPER_ADMIN") {
           empresaId = parsed;
+        } else if (parsed !== empresaId) {
+          const { status, body: errBody } = toApiErrorResponse(new AppError("FORBIDDEN", "No tenés permiso para consultar otra empresa", 403));
+          return NextResponse.json(errBody, { status });
         }
       }
     }
 
-    const summary = await scanAllFleetAlerts(empresaId);
+    if (!empresaId) {
+      const { status, body: errBody } = toApiErrorResponse(new AppError("UNAUTHORIZED", "No autorizado: falta empresa", 401));
+      return NextResponse.json(errBody, { status });
+    }
 
-    return NextResponse.json({
-      success: true,
-      count: summary.totalTriggered,
-      results: summary,
-    });
-  } catch (error: any) {
-    console.error("Error in POST /api/alerts/scan:", error);
-    return NextResponse.json(
-      { error: error?.message || "Error interno al ejecutar escaneo de alertas" },
-      { status: 500 }
-    );
+    const summary = await scanAllFleetAlerts(empresaId);
+    return NextResponse.json({ success: true, data: summary, results: summary, count: summary.totalTriggered });
+  } catch (error: unknown) {
+    const { status, body } = toApiErrorResponse(error);
+    return NextResponse.json(body, { status });
   }
 }
