@@ -50,6 +50,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   role: varchar("role", { length: 30 }).default("CHOFER").notNull(), // SUPER_ADMIN, ADMIN_EMPRESA, CHOFER, VENDEDOR_INSTALADOR
   empresaId: integer("empresa_id").references(() => empresas.id),
+  dni: varchar("dni", { length: 20 }),
   mustChangePassword: integer("must_change_password").default(0).notNull(),
 })
 
@@ -396,5 +397,86 @@ export const ticketsSoporte = pgTable("tickets_soporte", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// ═══════════════════════════════════════════════════════════
+// Flota y Logística: Choferes, Sitios y Viajes
+// ═══════════════════════════════════════════════════════════
+
+export const choferes = pgTable("choferes", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id, { onDelete: "cascade" }).notNull(),
+  userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+  nombre: text("nombre").notNull(),
+  apellido: text("apellido").notNull(),
+  dni: varchar("dni", { length: 20 }).notNull(),
+  telefono: varchar("telefono", { length: 50 }),
+  email: text("email"),
+  licenciaNumero: varchar("licencia_numero", { length: 50 }),
+  licenciaCategoria: varchar("licencia_categoria", { length: 20 }),
+  licenciaVencimiento: timestamp("licencia_vencimiento"),
+  estado: varchar("estado", { length: 30 }).default("ACTIVO").notNull(),
+  vehiculoHabitualId: integer("vehiculo_habitual_id").references(() => vehicles.id, { onDelete: "set null" }),
+  notas: text("notas"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const sitios = pgTable("sitios", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id, { onDelete: "cascade" }).notNull(),
+  nombre: text("nombre").notNull(),
+  tipo: varchar("tipo", { length: 40 }).default("DEPOSITO").notNull(),
+  direccion: text("direccion").notNull(),
+  ciudad: text("ciudad"),
+  provincia: text("provincia"),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
+  radioMetros: integer("radio_metros").default(100).notNull(),
+  contactoNombre: text("contacto_nombre"),
+  contactoTelefono: varchar("contacto_telefono", { length: 50 }),
+  activo: integer("activo").default(1).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const viajes = pgTable("viajes", {
+  id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id, { onDelete: "cascade" }).notNull(),
+  codigo: varchar("codigo", { length: 30 }).notNull(),
+  choferId: integer("chofer_id").references(() => choferes.id, { onDelete: "set null" }),
+  vehiculoId: integer("vehiculo_id").references(() => vehicles.id, { onDelete: "set null" }),
+  origenTipo: varchar("origen_tipo", { length: 20 }).default("SITIO").notNull(),
+  origenSitioId: integer("origen_sitio_id").references(() => sitios.id, { onDelete: "set null" }),
+  origenNombre: text("origen_nombre").notNull(),
+  origenDireccion: text("origen_direccion").notNull(),
+  origenLat: doublePrecision("origen_lat").notNull(),
+  origenLng: doublePrecision("origen_lng").notNull(),
+  destinoTipo: varchar("destino_tipo", { length: 20 }).default("SITIO").notNull(),
+  destinoSitioId: integer("destino_sitio_id").references(() => sitios.id, { onDelete: "set null" }),
+  destinoNombre: text("destino_nombre").notNull(),
+  destinoDireccion: text("destino_direccion").notNull(),
+  destinoLat: doublePrecision("destino_lat").notNull(),
+  destinoLng: doublePrecision("destino_lng").notNull(),
+  distanciaEstimadaKm: doublePrecision("distancia_estimada_km"),
+  fechaSalidaProgramada: timestamp("fecha_salida_programada").notNull(),
+  fechaLlegadaEstimada: timestamp("fecha_llegada_estimada"),
+  fechaInicioReal: timestamp("fecha_inicio_real"),
+  fechaFinReal: timestamp("fecha_fin_real"),
+  kmInicio: integer("km_inicio"),
+  kmFin: integer("km_fin"),
+  estado: varchar("estado", { length: 30 }).default("PLANIFICADO").notNull(),
+  notas: text("notas"),
+  creadoPor: text("creado_por"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Chofer = typeof choferes.$inferSelect;
+export type NewChofer = typeof choferes.$inferInsert;
+export type Sitio = typeof sitios.$inferSelect;
+export type NewSitio = typeof sitios.$inferInsert;
+export type Viaje = typeof viajes.$inferSelect;
+export type NewViaje = typeof viajes.$inferInsert;
+
 
 
