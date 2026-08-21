@@ -23,30 +23,11 @@ export const metadata = {
 };
 
 const FALLBACK_PLANS: SubscriptionPlanData[] = [
-  {
-    id: 1,
-    nombre: "Starter",
-    maxVehiculos: 5,
-    precioMensual: 49,
-    precioAnual: 490,
-    activo: 1,
-  },
-  {
-    id: 2,
-    nombre: "Pro",
-    maxVehiculos: 25,
-    precioMensual: 149,
-    precioAnual: 1490,
-    activo: 1,
-  },
-  {
-    id: 3,
-    nombre: "Enterprise",
-    maxVehiculos: 100,
-    precioMensual: 399,
-    precioAnual: 3990,
-    activo: 1,
-  },
+  { id: 1, nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 39990, precioAnual: 399900, activo: 1 },
+  { id: 2, nombre: "Crecimiento", minVehiculos: 6, maxVehiculos: 15, precioMensual: 64900, precioAnual: 649000, activo: 1 },
+  { id: 3, nombre: "Consolidada", minVehiculos: 16, maxVehiculos: 30, precioMensual: 99900, precioAnual: 999000, activo: 1 },
+  { id: 4, nombre: "Masiva", minVehiculos: 31, maxVehiculos: 49, precioMensual: 149900, precioAnual: 1499000, activo: 1 },
+  { id: 5, nombre: "Enterprise", minVehiculos: 50, maxVehiculos: null, precioMensual: 199900, precioAnual: 1999000, activo: 1 },
 ];
 
 const FALLBACK_RECORDS: BillingRecord[] = [
@@ -148,6 +129,7 @@ export default async function SuperadminFacturacionPage() {
       plansList = dbPlans.map((p) => ({
         id: p.id,
         nombre: p.nombre,
+        minVehiculos: (p as unknown as { minVehiculos: number }).minVehiculos ?? 1,
         maxVehiculos: p.maxVehiculos,
         precioMensual: p.precioMensual,
         precioAnual: p.precioAnual,

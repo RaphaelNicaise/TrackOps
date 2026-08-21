@@ -25,6 +25,7 @@ import {
   Car,
   CheckCircle2,
   Edit2,
+  Headphones,
   Key,
   Loader2,
   MoreHorizontal,
@@ -175,18 +176,18 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
     }
   };
 
-  // Direct Superpoderes Access
-  const handleDirectSuperpoderes = async (empresa: EmpresaRow) => {
+  // Direct Soporte Access
+  const handleDirectSoporte = async (empresa: EmpresaRow) => {
     setLoadingSuperadminId(empresa.id);
     try {
       await enterTenantAsSuperadmin(empresa.id);
       appAlert.success(
-        `Ingresando a "${empresa.nombre}" con Superpoderes...`,
-        "⚡ Superpoderes Activados"
+        `Ingresando a "${empresa.nombre}" en Modo Soporte...`,
+        "Modo Soporte Activado"
       );
       window.location.href = "/panel/monitoreo/dashboard";
     } catch (err: any) {
-      appAlert.error(err?.message || "Error al ingresar con superpoderes.");
+      appAlert.error(err?.message || "Error al ingresar en modo soporte.");
       setLoadingSuperadminId(null);
     }
   };
@@ -487,13 +488,13 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                     {/* Acciones */}
                     <TableCell className="text-right pr-6">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Botón de Superpoderes directo con loading indicator */}
+                        {/* Botón de Modo Soporte directo con loading indicator */}
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleDirectSuperpoderes(empresa)}
+                          onClick={() => handleDirectSoporte(empresa)}
                           disabled={isCurrentlySuperadmin}
-                          title="Acceder como Empresa (Modo Superpoderes)"
+                          title="Acceder como Empresa (Modo Soporte)"
                           className="h-8 px-2.5 text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:border-amber-500/50 gap-1.5 transition-all shadow-2xs"
                         >
                           {isCurrentlySuperadmin ? (
@@ -503,8 +504,8 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                             </>
                           ) : (
                             <>
-                              <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                              <span className="hidden sm:inline">Superpoderes</span>
+                              <Headphones className="h-3.5 w-3.5 text-amber-500" />
+                              <span className="hidden sm:inline">Modo Soporte</span>
                             </>
                           )}
                         </Button>
@@ -527,7 +528,7 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
 
-                            {/* Ver Ficha 360° */}
+                            {/* Ver Ficha */}
                             <DropdownMenuItem
                               onClick={() => {
                                 setSelectedDetailEmpresaId(empresa.id);
@@ -536,17 +537,17 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
                               className="text-xs gap-2 cursor-pointer font-semibold text-primary"
                             >
                               <Building2 className="h-3.5 w-3.5" />
-                              Ver Ficha 360°
+                              Ver Ficha
                             </DropdownMenuItem>
 
-                            {/* Superpoderes */}
+                            {/* Modo Soporte */}
                             <DropdownMenuItem
-                              onClick={() => handleDirectSuperpoderes(empresa)}
+                              onClick={() => handleDirectSoporte(empresa)}
                               disabled={isCurrentlySuperadmin}
                               className="text-xs gap-2 cursor-pointer font-medium text-amber-600 dark:text-amber-400"
                             >
-                              <Key className="h-3.5 w-3.5" />
-                              Acceder como Empresa
+                              <Headphones className="h-3.5 w-3.5" />
+                              Acceso de Soporte
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator />

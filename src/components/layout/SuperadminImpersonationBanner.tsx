@@ -24,7 +24,7 @@ export function SuperadminImpersonationBanner({
     try {
       setIsExiting(true);
       await exitSuperadminImpersonation();
-      appAlert.success("Sesión de soporte finalizada.", "Modo Superpoderes");
+      appAlert.success("Sesión de soporte finalizada.", "Modo Soporte");
       router.push("/panel/superadmin/clientes");
       router.refresh();
     } catch (error: any) {
@@ -41,7 +41,7 @@ export function SuperadminImpersonationBanner({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
           </span>
-          <span>⚡ MODO SUPERPODERES ACTIVO</span>
+          <span>MODO SOPORTE ACTIVO</span>
         </div>
         <span className="hidden sm:inline text-amber-500/60 font-bold">·</span>
         <div className="flex items-center gap-1.5 text-foreground flex-wrap">

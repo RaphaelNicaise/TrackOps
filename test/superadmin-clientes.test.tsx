@@ -213,8 +213,8 @@ describe("ClientesTable Component", () => {
     expect(html).toContain("Activa");
     expect(html).toContain("Suspendida");
 
-    // Check Superpoderes button
-    expect(html).toContain("Superpoderes");
+    // Check Modo Soporte button
+    expect(html).toContain("Modo Soporte");
   });
 
   it("renders empty state correctly when no empresas are provided", () => {

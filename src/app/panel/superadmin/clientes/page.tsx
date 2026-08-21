@@ -17,6 +17,7 @@ import {
   CreditCard,
   TrendingUp,
   ShieldCheck,
+  Headphones,
   Zap,
   Users,
   CheckCircle2,
@@ -25,7 +26,7 @@ import {
 export const metadata = {
   title: "Empresas Clientes | Superadmin TrackOps",
   description:
-    "Directorio consolidado de inquilinos, asignación de planes SaaS y acceso directo con superpoderes.",
+    "Directorio consolidado de inquilinos, asignación de planes SaaS y acceso directo en modo soporte.",
 };
 
 const FALLBACK_PLANS: PlanOption[] = [
@@ -202,7 +203,7 @@ export default async function SuperadminClientesPage() {
               SUPERADMIN · GESTIÓN SAAS
             </Badge>
             <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
-              <Zap className="h-3 w-3 fill-amber-500 text-amber-500" />
+              <Headphones className="h-3 w-3 text-amber-500" />
               Soporte Multi-Inquilino
             </span>
           </div>
@@ -210,7 +211,7 @@ export default async function SuperadminClientesPage() {
             Empresas Clientes
           </h1>
           <p className="text-sm text-muted-foreground">
-            Directorio consolidado de inquilinos, asignación de planes SaaS y acceso directo con superpoderes.
+            Directorio consolidado de inquilinos, asignación de planes SaaS y acceso directo en modo soporte.
           </p>
         </div>
 

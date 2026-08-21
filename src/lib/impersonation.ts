@@ -68,7 +68,7 @@ export async function getEffectiveTenantContext(): Promise<EffectiveTenantContex
 }
 
 /**
- * Enters a tenant as SuperAdmin in Modo Superpoderes.
+ * Enters a tenant as SuperAdmin in Modo Soporte.
  * Sets the impersonation cookie and logs audit action.
  */
 export async function enterTenantAsSuperadmin(empresaId: number) {
@@ -79,7 +79,7 @@ export async function enterTenantAsSuperadmin(empresaId: number) {
     session?.user?.email === "admin@test.com";
 
   if (!isSuperAdmin) {
-    throw new Error("Unauthorized: Se requiere rol SUPER_ADMIN para usar Superpoderes");
+    throw new Error("Unauthorized: Se requiere rol SUPER_ADMIN para usar Modo Soporte");
   }
 
   if (!empresaId || isNaN(empresaId)) {

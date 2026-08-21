@@ -38,6 +38,7 @@ import {
   Truck,
   Users,
   Bell,
+  Headphones,
   Key,
   ShieldCheck,
   Mail,
@@ -122,7 +123,7 @@ export function EmpresaDetailSheet({
   } | null>(null);
   const [hasCopied, setHasCopied] = useState(false);
 
-  // Load 360 data when opened
+  // Load data when opened
   const loadDetail = async (id: number) => {
     setIsLoading(true);
     setErrorMsg(null);
@@ -134,7 +135,7 @@ export function EmpresaDetailSheet({
         setErrorMsg("No se pudieron cargar los datos de la empresa.");
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || "Error al obtener la ficha 360°.");
+      setErrorMsg(err?.message || "Error al obtener la ficha.");
     } finally {
       setIsLoading(false);
     }
@@ -177,19 +178,19 @@ export function EmpresaDetailSheet({
     return colors[hash % colors.length];
   };
 
-  // Launch Superpoderes
+  // Launch Modo Soporte
   const handleLaunchSuperpoderes = async () => {
     if (!data?.empresa.id) return;
     setIsEnteringTenant(true);
     try {
       await enterTenantAsSuperadmin(data.empresa.id);
       appAlert.success(
-        `Ingresando a "${data.empresa.nombre}" en Modo Superpoderes...`,
-        "⚡ Superpoderes Activados"
+        `Ingresando a "${data.empresa.nombre}" en Modo Soporte...`,
+        "Modo Soporte Activado"
       );
       window.location.href = "/panel/monitoreo/dashboard";
     } catch (err: any) {
-      appAlert.error(err?.message || "Error al acceder como empresa.");
+      appAlert.error(err?.message || "Error al acceder en modo soporte.");
       setIsEnteringTenant(false);
     }
   };
@@ -478,7 +479,7 @@ export function EmpresaDetailSheet({
             <div className="flex-1 flex flex-col items-center justify-center space-y-3 p-12 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm font-medium text-foreground">
-                Cargando Ficha 360° del Tenant...
+                Cargando Ficha del Tenant...
               </p>
               <p className="text-xs text-muted-foreground">
                 Consultando base de datos, flota, suscripción y credenciales
@@ -565,7 +566,7 @@ export function EmpresaDetailSheet({
                     </div>
                   </div>
 
-                  {/* Right: Superpoderes Button */}
+                  {/* Right: Soporte Button */}
                   <div className="flex items-center gap-2 shrink-0">
                     <Button
                       size="sm"
@@ -580,8 +581,8 @@ export function EmpresaDetailSheet({
                         </>
                       ) : (
                         <>
-                          <Zap className="h-3.5 w-3.5 fill-current" />
-                          <span>⚡ Superpoderes</span>
+                          <Headphones className="h-3.5 w-3.5" />
+                          <span>Modo Soporte</span>
                         </>
                       )}
                     </Button>
@@ -1118,15 +1119,15 @@ export function EmpresaDetailSheet({
                   {/* TAB 5: CONTROL */}
                   <TabsContent value="control" className="m-0 space-y-4">
                     <div className="space-y-3">
-                      {/* Action 1: Superpoderes */}
+                      {/* Action 1: Soporte */}
                       <div className="p-4 rounded-xl border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-0.5">
                           <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                            <Zap className="h-4 w-4 text-amber-500" />
-                            Acceso como Tenant (Superpoderes)
+                            <Headphones className="h-4 w-4 text-amber-500" />
+                            Acceso como Tenant (Modo Soporte)
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            Inicia una sesión de impersonación administrativa para operar el tenant exactamente como su administrador.
+                            Inicia una sesión de soporte administrativo para operar el tenant exactamente como su administrador.
                           </p>
                         </div>
                         <Button

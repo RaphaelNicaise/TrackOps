@@ -6,11 +6,7 @@ Bypass de auth demo en producción. src/auth.ts:82 si !user || !user.passwordHas
 
 
 
-5. Validación inexistente (cero Zod). package.json:1 sin zod. src/lib/import-actions.ts:30 inserta row.patente sin trim().toUpperCase(), ni límite tamaño, ni duplicado intra-file. src/app/api/geofences/route.ts:73 acepta empresaId=1 sin session en test. storage.ts sin whitelist mime/size. Propuesta: zod schemas para vehículo/geofence/schedule, regex patente ^[A-Z]{2}\s?\d{3}\s?[A-Z]{2}$, y fileSize &lt;10MB.
-
-Seccion de Combustible + Funcionalidades para el chofer, carga de tickets (foto o manual) para gestionar tema combustible
-
-
+&nbsp;
 
 13. Sin TanStack Table ni paginación. Spec doc/design.md:10 pide TanStack Table data-dense. Tablas son &lt;Table&gt; shadcn con sort manual src/components/dashboard/vehiculos/vehiculos-table.tsx:1 sin sticky header ni limit. export/route.ts:19 hace select * en memoria. Decisión: migrar a @tanstack/react-table (ya tenés react-query/recharts) con 25/50 paginación o dejar simple hasta 500 vehículos.
 
@@ -25,3 +21,9 @@ Que el Chofer o el admin de la empresa, cuando quiera crear el viaje pueda elegi
 Ver el tema del cobro escalonado, porque hay que cobrar mensual pero puede pasar que en el medio de la mensualidad se agreguen vehiculos.
 
 Integrarle a cada vehiculo la columnas para verificar si tiene o no el gps instalado, que modelo, etc. Que eso iria conectado con la cuenta instalador vendedor, cuando instale el GPS, se tendria que reflejar en el vehiculo, que esta funcionando. 
+
+Seccion de Combustible + Funcionalidades para el chofer, carga de tickets (foto o manual) para gestionar tema combustible
+
+
+
+Fixear modo oscuro

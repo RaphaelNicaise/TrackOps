@@ -590,7 +590,7 @@ export function DevConfigView() {
                   Auditoría Inmutable Estricta
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Guarda en la base de datos el snapshot JSON de todas las acciones de creación, actualización y accesos con superpoderes.
+                  Guarda en la base de datos el snapshot JSON de todas las acciones de creación, actualización y accesos en modo soporte.
                 </p>
               </div>
               <Switch

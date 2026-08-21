@@ -20,13 +20,13 @@ import {
   Copy,
   Eye,
   EyeOff,
+  Headphones,
   KeyRound,
   Loader2,
   Mail,
   MessageCircle,
   ShieldAlert,
   Sparkles,
-  Zap,
 } from "lucide-react";
 
 export interface CreatedEmpresaInfo {
@@ -118,13 +118,13 @@ export function EmpresaCreatedDialog({
     try {
       await enterTenantAsSuperadmin(empresa.id);
       appAlert.success(
-        `Ingresando a "${empresa.nombre}" en Modo Superpoderes...`,
-        "⚡ Superpoderes Activados"
+        `Ingresando a "${empresa.nombre}" en Modo Soporte...`,
+        "Modo Soporte Activado"
       );
       // Immediate redirection to panel
       window.location.href = "/panel/monitoreo/dashboard";
     } catch (err: any) {
-      appAlert.error(err?.message || "Error al ingresar con superpoderes.");
+      appAlert.error(err?.message || "Error al ingresar en modo soporte.");
       setIsEnteringSuperadmin(false);
     }
   };
@@ -381,12 +381,12 @@ export function EmpresaCreatedDialog({
             {isEnteringSuperadmin ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Conectando Superpoderes...
+                Iniciando Soporte...
               </>
             ) : (
               <>
-                <Zap className="h-3.5 w-3.5 fill-amber-950" />
-                ⚡ Entrar con Superpoderes
+                <Headphones className="h-3.5 w-3.5 text-amber-950" />
+                Entrar en Modo Soporte
               </>
             )}
           </Button>
