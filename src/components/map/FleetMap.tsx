@@ -449,14 +449,16 @@ function VehicleClusterGroup({
   vehiculos,
   setFocusedVehicleId,
 }: {
-  vehiculos: any[];
+  vehiculos: MockVehiculo[];
   setFocusedVehicleId?: (id: number | null) => void;
 }) {
   const map = useMap();
-  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const clusterGroupRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !(map as any)._loaded || !(map as any)._mapPane) return;
 
     if (typeof (L as any).markerClusterGroup !== "function") {
       if (typeof window !== "undefined") {
@@ -476,7 +478,9 @@ function VehicleClusterGroup({
         const count = cluster.getChildCount();
         const size = count < 10 ? 38 : count < 50 ? 44 : 50;
         return L.divIcon({
-          html: `<div style="width: ${size}px; height: ${size}px; line-height: 1;" class="relative flex items-center justify-center rounded-full bg-[#1E2227] text-white font-bold text-xs shadow-xl border-2 border-[#F2B705] hover:scale-110 transition-transform duration-200 cursor-pointer">
+          html: `<div style="width: ${size}px; height: ${size}px; line-height: 1;" class="relative flex items-center justify-center rounded-full ${
+            isDark ? "bg-[#16191D] text-white border-[#F2B705]" : "bg-[#1E2227] text-white border-[#F2B705]"
+          } font-bold text-xs shadow-xl border-2 hover:scale-110 transition-transform duration-200 cursor-pointer">
             <span class="tracking-tight">${count}</span>
             <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#F2B705] border border-[#1E2227]"></span>
           </div>`,
@@ -508,18 +512,22 @@ function VehicleClusterGroup({
         bgClass = "bg-amber-500";
         textClass = "text-amber-500";
       } else if (v.estado === "Detenido") {
-        bgClass = "bg-slate-500";
-        textClass = "text-slate-500";
+        bgClass = "bg-slate-400";
+        textClass = "text-slate-400";
       }
       if (v.hasAlert) {
         bgClass = "bg-destructive";
         textClass = "text-destructive";
       }
 
+      // In dark theme, vehicle icon is white for high contrast against dark map
+      const strokeColor = isDark ? "#FFFFFF" : "currentColor";
+      const iconTextClass = isDark ? "text-white" : textClass;
+
       const isTruck = v.tipo === "Camión" || v.tipo === "Camioneta";
       const iconSvg = isTruck
-        ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${textClass}"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>`
-        : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${textClass}"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`;
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="${iconTextClass}"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${strokeColor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="${iconTextClass}"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`;
 
       const alertBadge = v.hasAlert
         ? `<div class="absolute -bottom-2 bg-destructive text-destructive-foreground text-[8px] font-bold px-1 rounded-sm shadow-sm flex items-center gap-0.5">
@@ -527,9 +535,13 @@ function VehicleClusterGroup({
           </div>`
         : "";
 
-      const iconHtml = `<div class="relative flex items-center justify-center w-8 h-8 rounded-full bg-card border shadow-lg cursor-pointer">
+      const iconHtml = `<div class="relative flex items-center justify-center w-8 h-8 rounded-full ${
+        isDark ? "bg-[#1E2227] border-[#374151] shadow-[0_4px_12px_rgba(0,0,0,0.6)]" : "bg-card border-border shadow-lg"
+      } border cursor-pointer">
         ${iconSvg}
-        <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-card ${bgClass}"></div>
+        <div class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 ${
+          isDark ? "border-[#1E2227]" : "border-card"
+        } ${bgClass}"></div>
         ${alertBadge}
       </div>`;
 
@@ -554,7 +566,7 @@ function VehicleClusterGroup({
     return () => {
       map.removeLayer(clusterGroup);
     };
-  }, [map, vehiculos, setFocusedVehicleId]);
+  }, [map, vehiculos, setFocusedVehicleId, isDark]);
 
   return null;
 }
