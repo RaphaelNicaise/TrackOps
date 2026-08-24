@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { getSitios } from "@/lib/flota-actions";
+import { isDemoSession } from "@/lib/demo-mode";
 import { SitiosTable } from "@/components/control-flota/sitios/sitios-table";
 import type { SitioRow } from "@/types/flota-viajes";
 
@@ -9,92 +10,94 @@ const mockSitiosFallback: SitioRow[] = [
   {
     id: 1,
     empresaId: 1,
-    nombre: "Planta Zárate (Central)",
+    nombre: "Planta Petroquímica Bahía Blanca",
     tipo: "PLANTA",
-    direccion: "Ruta Panamericana Km 85.5",
-    ciudad: "Zárate",
+    direccion: "Ruta Nacional 3 Km 678, Ing. White",
+    ciudad: "Bahía Blanca",
     provincia: "Buenos Aires",
-    lat: -34.0987,
-    lng: -59.0284,
-    radioMetros: 250,
-    contactoNombre: "Ing. Carlos Gómez",
-    contactoTelefono: "+54 9 3487 112233",
+    lat: -38.7885,
+    lng: -62.2745,
+    radioMetros: 300,
+    contactoNombre: "Ing. Martín Rodríguez",
+    contactoTelefono: "+5492914551122",
     activo: 1,
-    createdAt: new Date("2024-01-10"),
-    updatedAt: new Date("2024-01-10"),
+    createdAt: new Date("2026-01-15T08:00:00Z"),
+    updatedAt: new Date("2026-01-15T08:00:00Z"),
   },
   {
     id: 2,
     empresaId: 1,
-    nombre: "Depósito Logístico Rosario",
+    nombre: "Depósito Central Parque Industrial",
     tipo: "DEPOSITO",
-    direccion: "Av. Circunvalación 1200",
-    ciudad: "Rosario",
-    provincia: "Santa Fe",
-    lat: -32.9511,
-    lng: -60.6664,
-    radioMetros: 150,
-    contactoNombre: "Mariana López",
-    contactoTelefono: "+54 9 341 5566778",
+    direccion: "Parque Industrial Bahía Blanca, Parcela 12",
+    ciudad: "Bahía Blanca",
+    provincia: "Buenos Aires",
+    lat: -38.7490,
+    lng: -62.2150,
+    radioMetros: 200,
+    contactoNombre: "Roberto Gómez (Logística)",
+    contactoTelefono: "+5492914883344",
     activo: 1,
-    createdAt: new Date("2024-02-15"),
-    updatedAt: new Date("2024-02-15"),
+    createdAt: new Date("2026-01-20T09:30:00Z"),
+    updatedAt: new Date("2026-01-20T09:30:00Z"),
   },
   {
     id: 3,
     empresaId: 1,
-    nombre: "Cliente Cervecería Quilmes",
-    tipo: "CLIENTE",
-    direccion: "12 de Octubre 100",
-    ciudad: "Quilmes",
+    nombre: "Puerto Galván / Terminal Portuaria",
+    tipo: "PROVEEDOR",
+    direccion: "Acceso Puerto Galván S/N",
+    ciudad: "Bahía Blanca",
     provincia: "Buenos Aires",
-    lat: -34.7242,
-    lng: -58.2608,
-    radioMetros: 100,
-    contactoNombre: "Esteban Rossi (Recepción)",
-    contactoTelefono: "+54 9 11 4433 2211",
+    lat: -38.7870,
+    lng: -62.3020,
+    radioMetros: 400,
+    contactoNombre: "Control Cargas Puerto",
+    contactoTelefono: "+5492914598800",
     activo: 1,
-    createdAt: new Date("2024-03-01"),
-    updatedAt: new Date("2024-03-01"),
+    createdAt: new Date("2026-02-01T10:00:00Z"),
+    updatedAt: new Date("2026-02-01T10:00:00Z"),
   },
   {
     id: 4,
     empresaId: 1,
-    nombre: "Sucursal Córdoba Capital",
-    tipo: "SUCURSAL",
-    direccion: "Av. Colón 4500",
-    ciudad: "Córdoba",
-    provincia: "Córdoba",
-    lat: -31.4135,
-    lng: -64.181,
-    radioMetros: 100,
-    contactoNombre: "Laura Medina",
-    contactoTelefono: "+54 9 351 9887766",
+    nombre: "Centro de Distribución Don Bosco",
+    tipo: "CLIENTE",
+    direccion: "Don Bosco 1450",
+    ciudad: "Bahía Blanca",
+    provincia: "Buenos Aires",
+    lat: -38.7180,
+    lng: -62.2650,
+    radioMetros: 150,
+    contactoNombre: "Mariana Costa",
+    contactoTelefono: "+5492914227788",
     activo: 1,
-    createdAt: new Date("2024-04-10"),
-    updatedAt: new Date("2024-04-10"),
+    createdAt: new Date("2026-02-10T14:15:00Z"),
+    updatedAt: new Date("2026-02-10T14:15:00Z"),
   },
   {
     id: 5,
     empresaId: 1,
-    nombre: "Taller Mecánico Central",
-    tipo: "TALLER",
-    direccion: "Av. Gaona 3400",
-    ciudad: "Ciudadela",
+    nombre: "Sucursal Norte Av. Alem",
+    tipo: "SUCURSAL",
+    direccion: "Av. Alem 2200",
+    ciudad: "Bahía Blanca",
     provincia: "Buenos Aires",
-    lat: -34.6315,
-    lng: -58.5412,
-    radioMetros: 80,
-    contactoNombre: "Horacio Martínez",
-    contactoTelefono: "+54 9 11 6543 2100",
+    lat: -38.6950,
+    lng: -62.2480,
+    radioMetros: 100,
+    contactoNombre: "Carlos Menéndez",
+    contactoTelefono: "+5492914115566",
     activo: 1,
-    createdAt: new Date("2024-04-20"),
-    updatedAt: new Date("2024-04-20"),
+    createdAt: new Date("2026-02-15T11:00:00Z"),
+    updatedAt: new Date("2026-02-15T11:00:00Z"),
   },
 ];
 
 export default async function SitiosPage() {
   let siteRows: SitioRow[] = [];
+
+  const demo = await isDemoSession();
 
   try {
     const session = await auth();
@@ -104,12 +107,14 @@ export default async function SitiosPage() {
     const res = await getSitios(empresaId ? { empresaId } : undefined);
     if (res.success && res.data && res.data.length > 0) {
       siteRows = res.data;
-    } else {
+    } else if (demo) {
       siteRows = mockSitiosFallback;
     }
   } catch (error) {
     console.warn("SitiosPage DB fallback:", error);
-    siteRows = mockSitiosFallback;
+    if (demo) {
+      siteRows = mockSitiosFallback;
+    }
   }
 
   return <SitiosTable initialSitios={siteRows} />;

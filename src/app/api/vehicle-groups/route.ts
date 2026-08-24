@@ -8,6 +8,7 @@ import {
   dbRowToVehicleGroup,
   vehicleGroupToDbValues,
 } from "@/lib/mock-vehicle-groups";
+import { isDemoUser } from "@/lib/demo-mode";
 import { eq, inArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -51,10 +52,18 @@ export async function GET() {
       }
     } catch (dbError) {
       console.warn("DB query failed, using mock vehicle groups fallback:", dbError);
+      if (session?.user && isDemoUser(session.user)) {
+        const mocks = getMockVehicleGroups(session.user.empresaId || 1);
+        return NextResponse.json(mocks);
+      }
+      return NextResponse.json([]);
     }
 
-    const mocks = getMockVehicleGroups(session?.user?.empresaId || 1);
-    return NextResponse.json(mocks);
+    if (session?.user && isDemoUser(session.user)) {
+      const mocks = getMockVehicleGroups(session.user.empresaId || 1);
+      return NextResponse.json(mocks);
+    }
+    return NextResponse.json([]);
   } catch (error: any) {
     console.error("Error al obtener grupos de vehículos:", error);
     return NextResponse.json(
@@ -115,6 +124,13 @@ export async function POST(request: Request) {
         return NextResponse.json(dbRowToVehicleGroup(created, vehicleIds), { status: 201 });
       }
     } catch (dbError) {
+      if (!session?.user || !isDemoUser(session.user)) {
+        console.error("Error al insertar grupo de vehículos en DB:", dbError);
+        return NextResponse.json(
+          { error: "No se pudo crear el grupo de vehículos" },
+          { status: 500 }
+        );
+      }
       console.warn("DB insert failed, using mock creation fallback:", dbError);
     }
 

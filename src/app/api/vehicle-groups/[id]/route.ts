@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { db } from "@/db";
 import { vehicleGroups, vehicleGroupMembers } from "@/db/schema";
 import {
@@ -8,6 +9,7 @@ import {
   dbRowToVehicleGroup,
   vehicleGroupToDbValues,
 } from "@/lib/mock-vehicle-groups";
+import { isDemoSession } from "@/lib/demo-mode";
 import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +25,8 @@ export async function GET(
       return NextResponse.json({ error: "ID de grupo inválido" }, { status: 400 });
     }
 
+    const demo = await isDemoSession();
+
     try {
       const [group] = await db
         .select()
@@ -37,8 +41,17 @@ export async function GET(
         const vehicleIds = members.map((m) => m.vehicleId);
         return NextResponse.json(dbRowToVehicleGroup(group, vehicleIds));
       }
+      if (!demo) {
+        return NextResponse.json({ error: "Grupo de vehículos no encontrado" }, { status: 404 });
+      }
     } catch (dbError) {
       console.warn("DB query failed, using mock group fallback:", dbError);
+      if (!demo) {
+        return NextResponse.json(
+          { error: "No se pudo obtener el grupo de vehículos" },
+          { status: 500 }
+        );
+      }
     }
 
     const mockGroup = getMockVehicleGroup(id);
@@ -73,6 +86,8 @@ export async function PUT(
       ? body.vehicleIds.map((v: any) => Number(v)).filter((v: number) => !isNaN(v))
       : undefined;
 
+    const demo = await isDemoSession();
+
     try {
       const updateValues = vehicleGroupToDbValues(body);
       const [updated] = await db
@@ -106,8 +121,17 @@ export async function PUT(
 
         return NextResponse.json(dbRowToVehicleGroup(updated, vehicleIds || []));
       }
+      if (!demo) {
+        return NextResponse.json({ error: "Grupo de vehículos no encontrado" }, { status: 404 });
+      }
     } catch (dbError) {
       console.warn("DB update failed, using mock update fallback:", dbError);
+      if (!demo) {
+        return NextResponse.json(
+          { error: "No se pudo actualizar el grupo de vehículos" },
+          { status: 500 }
+        );
+      }
     }
 
     const updatedMock = updateMockVehicleGroup(id, {
@@ -139,6 +163,8 @@ export async function DELETE(
       return NextResponse.json({ error: "ID de grupo inválido" }, { status: 400 });
     }
 
+    const demo = await isDemoSession();
+
     try {
       const deletedRows = await db
         .delete(vehicleGroups)
@@ -149,8 +175,17 @@ export async function DELETE(
         deleteMockVehicleGroup(id);
         return NextResponse.json({ success: true });
       }
+      if (!demo) {
+        return NextResponse.json({ error: "Grupo de vehículos no encontrado" }, { status: 404 });
+      }
     } catch (dbError) {
       console.warn("DB delete failed, using mock delete fallback:", dbError);
+      if (!demo) {
+        return NextResponse.json(
+          { error: "No se pudo eliminar el grupo de vehículos" },
+          { status: 500 }
+        );
+      }
     }
 
     const success = deleteMockVehicleGroup(id);

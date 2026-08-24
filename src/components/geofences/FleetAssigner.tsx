@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { GeofenceTargetType } from "@/types/geofence";
-import { mockVehiculos, MockVehiculo } from "@/lib/mock-vehicles";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
@@ -23,6 +23,7 @@ export interface FleetAssignerProps {
   targetVehicles?: number[];
   targetCategories?: string[];
   targetGroups?: string[];
+  availableVehicles?: MockVehiculo[];
   onChange: (updates: {
     targetType: GeofenceTargetType;
     targetVehicles?: number[];
@@ -69,11 +70,12 @@ export function FleetAssigner({
   targetVehicles = [],
   targetCategories = [],
   targetGroups = [],
+  availableVehicles = [],
   onChange,
 }: FleetAssignerProps) {
   const [vehicleSearch, setVehicleSearch] = useState("");
 
-  // Categories computed dynamically from vehicle mock data
+  // Categories computed dynamically from the provided fleet
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
       Auto: 0,
@@ -81,33 +83,33 @@ export function FleetAssigner({
       Utilitario: 0,
       Camión: 0,
     };
-    mockVehiculos.forEach((v) => {
+    availableVehicles.forEach((v) => {
       const type = v.tipo || "Auto";
       counts[type] = (counts[type] || 0) + 1;
     });
     return counts;
-  }, []);
+  }, [availableVehicles]);
 
   const availableCategories = Object.keys(categoryCounts);
 
   // Filtered vehicles for specific vehicle list
   const filteredVehicles = useMemo(() => {
     const q = vehicleSearch.toLowerCase().trim();
-    if (!q) return mockVehiculos;
-    return mockVehiculos.filter((v) => {
+    if (!q) return availableVehicles;
+    return availableVehicles.filter((v) => {
       return (
         v.patente.toLowerCase().includes(q) ||
-        v.marca.toLowerCase().includes(q) ||
-        v.modelo.toLowerCase().includes(q) ||
-        v.tipo.toLowerCase().includes(q)
+        (v.marca || "").toLowerCase().includes(q) ||
+        (v.modelo || "").toLowerCase().includes(q) ||
+        (v.tipo || "").toLowerCase().includes(q)
       );
     });
-  }, [vehicleSearch]);
+  }, [vehicleSearch, availableVehicles]);
 
   // Selected vehicles objects for chip display
   const selectedVehicleObjects = useMemo(() => {
-    return mockVehiculos.filter((v) => targetVehicles.includes(v.id));
-  }, [targetVehicles]);
+    return availableVehicles.filter((v) => targetVehicles.includes(v.id));
+  }, [targetVehicles, availableVehicles]);
 
   // Toggle Category
   const handleToggleCategory = (cat: string) => {
@@ -240,7 +242,7 @@ export function FleetAssigner({
                 Asignación Global a Toda la Flota
               </h4>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Esta geocerca se aplicará automáticamente a los {mockVehiculos.length} vehículos activos
+                Esta geocerca se aplicará automáticamente a los {availableVehicles.length} vehículos activos
                 de la empresa, incluyendo los móviles que se den de alta en el futuro.
               </p>
             </div>

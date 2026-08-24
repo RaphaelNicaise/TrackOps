@@ -10,6 +10,7 @@ import {
 } from "@/lib/mock-geofences";
 import { eq } from "drizzle-orm";
 import { geofenceSchema } from "@/lib/schemas/geofence.schema";
+import { isDemoUser } from "@/lib/demo-mode";
 import { AppError, toApiErrorResponse } from "@/lib/api-error";
 import { z } from "zod";
 
@@ -30,6 +31,7 @@ export async function GET() {
       const { status, body } = toApiErrorResponse(new AppError("UNAUTHORIZED", "No autorizado: falta empresa", 401));
       return NextResponse.json(body, { status });
     }
+    const demo = isDemoUser(session.user);
     const empresaId = session.user.empresaId;
     try {
       const rows = await db.select().from(geofences).where(eq(geofences.empresaId, empresaId));
@@ -37,7 +39,7 @@ export async function GET() {
       return NextResponse.json([]);
     } catch (dbError) {
       console.warn("DB query failed, using mock geofences fallback:", dbError);
-      return NextResponse.json(getMockGeofences());
+      return NextResponse.json(demo ? getMockGeofences() : []);
     }
   } catch (error: unknown) {
     const { status, body } = toApiErrorResponse(error);
@@ -93,6 +95,8 @@ export async function POST(request: Request) {
       const [created] = await db.insert(geofences).values(dbValues as never).returning();
       if (created) return NextResponse.json(dbRowToGeofence(created), { status: 201 });
     } catch (dbError) {
+      const canMock = (session?.user && isDemoUser(session.user)) || (!session?.user && isTest);
+      if (!canMock) throw dbError;
       console.warn("DB insert failed, using mock creation fallback:", dbError);
     }
 

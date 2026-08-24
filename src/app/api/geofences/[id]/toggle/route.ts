@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { geofences } from "@/db/schema";
 import { toggleMockGeofence, dbRowToGeofence } from "@/lib/mock-geofences";
+import { isDemoSession } from "@/lib/demo-mode";
 import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,9 @@ export async function PATCH(
     if (isNaN(id)) {
       return NextResponse.json({ error: "ID de geocerca inválido" }, { status: 400 });
     }
+
+    const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+    const demo = (await isDemoSession()) || isTest;
 
     try {
       const [existing] = await db
@@ -39,8 +43,17 @@ export async function PATCH(
           return NextResponse.json(dbRowToGeofence(updated));
         }
       }
+      if (!demo) {
+        return NextResponse.json({ error: "Geocerca no encontrada" }, { status: 404 });
+      }
     } catch (dbError) {
       console.warn("DB toggle failed, using mock toggle fallback:", dbError);
+      if (!demo) {
+        return NextResponse.json(
+          { error: "No se pudo cambiar el estado de la geocerca" },
+          { status: 500 }
+        );
+      }
     }
 
     const updated = toggleMockGeofence(id);

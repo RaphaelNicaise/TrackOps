@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Geofence, GeofenceFormData, DrawingMode } from "@/types/geofence";
-import { INITIAL_MOCK_GEOFENCES } from "@/lib/mock-geofences";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 import { GeofenceCard } from "@/components/geofences/GeofenceCard";
 import { GeofenceForm } from "@/components/geofences/GeofenceForm";
 
@@ -42,7 +42,8 @@ type PageMode = "list" | "create" | "edit";
 type TypeFilter = "Todos" | "Polígono" | "Círculo" | "Activas" | "Inactivas";
 
 export default function GeocercasPage() {
-  const [geofences, setGeofences] = useState<Geofence[]>(INITIAL_MOCK_GEOFENCES);
+  const [geofences, setGeofences] = useState<Geofence[]>([]);
+  const [availableVehicles, setAvailableVehicles] = useState<MockVehiculo[]>([]);
   const [mode, setMode] = useState<PageMode>("list");
   const [isListOpen, setIsListOpen] = useState(true);
   const [focusedGeofenceId, setFocusedGeofenceId] = useState<number | null>(null);
@@ -72,9 +73,25 @@ export default function GeocercasPage() {
     }
   }, []);
 
+  // Fetch real fleet for the assigner
+  const fetchVehicles = useCallback(async () => {
+    try {
+      const res = await fetch("/api/vehicles");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setAvailableVehicles(data);
+        }
+      }
+    } catch (error) {
+      console.warn("Could not fetch vehicles from API:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchGeofences();
-  }, [fetchGeofences]);
+    fetchVehicles();
+  }, [fetchGeofences, fetchVehicles]);
 
   // Filtered geofences list
   const filteredGeofences = useMemo(() => {
@@ -312,6 +329,7 @@ export default function GeocercasPage() {
             drawingMode={drawingMode}
             setDrawingMode={setDrawingMode}
             isSaving={isSaving}
+            availableVehicles={availableVehicles}
           />
         )}
 

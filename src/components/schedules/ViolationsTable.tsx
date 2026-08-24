@@ -23,6 +23,7 @@ import { ScheduleViolation } from "@/types/schedule";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Table,
   TableHeader,
@@ -159,21 +160,23 @@ export function ViolationsTable({
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           {/* Schedule Select Filter */}
           {distinctSchedules.length > 0 && (
-            <select
-              value={scheduleFilter}
-              onChange={(e) => {
-                setScheduleFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="h-9 px-3 rounded-xl border border-input bg-card text-xs font-medium text-foreground cursor-pointer outline-hidden hover:bg-muted transition-colors"
-            >
-              <option value="ALL">Todas las reglas horarias</option>
-              {distinctSchedules.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
+            <div className="w-48 sm:w-56">
+              <NativeSelect
+                value={scheduleFilter}
+                onChange={(e) => {
+                  setScheduleFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                sizeVariant="default"
+              >
+                <option value="ALL">Todas las reglas horarias</option>
+                {distinctSchedules.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
           )}
 
           {/* Severity Filter */}

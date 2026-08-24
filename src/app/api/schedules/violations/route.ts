@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { scheduleViolations } from "@/db/schema";
 import { getMockScheduleViolations, dbRowToViolation } from "@/lib/mock-schedules";
+import { isDemoUser } from "@/lib/demo-mode";
 import { eq, and, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +57,13 @@ export async function GET(request: Request) {
       }
     } catch (dbError) {
       console.warn("DB query failed, using mock schedule violations fallback:", dbError);
+      if (!session?.user || !isDemoUser(session.user)) {
+        return NextResponse.json([]);
+      }
+    }
+
+    if (!session?.user || !isDemoUser(session.user)) {
+      return NextResponse.json([]);
     }
 
     const mocks = getMockScheduleViolations({

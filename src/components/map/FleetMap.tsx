@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, ZoomControl, useMap, Polygon, Circle, Popup } from "react-leaflet";
+import React, { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, ZoomControl, useMap, Polygon, Circle, Popup, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
@@ -85,12 +85,16 @@ if (typeof window !== "undefined") {
   }
 }
 
+import type { SitioRow } from "@/types/flota-viajes";
+
 const defaultCenter = { lat: -38.7183, lng: -62.2663 }; // Bahia Blanca
 
 interface FleetMapProps {
   vehiculos?: any[];
   geofences?: Geofence[];
   showGeofences?: boolean;
+  sitios?: SitioRow[];
+  showSitios?: boolean;
   isListOpen?: boolean;
   focusedVehicleId?: number | null;
   setFocusedVehicleId?: (id: number | null) => void;
@@ -300,6 +304,146 @@ function GeofencesGroup({
   );
 }
 
+const SITIO_COLORS: Record<string, string> = {
+  PLANTA: "#3b82f6",     // blue
+  DEPOSITO: "#10b981",   // emerald
+  CLIENTE: "#8b5cf6",    // purple
+  SUCURSAL: "#0ea5e9",   // sky
+  PROVEEDOR: "#f59e0b",   // amber
+  TALLER: "#ef4444",      // red
+  OTRO: "#64748b",        // slate
+};
+
+function getSitioIconSvg(tipo: string): string {
+  switch (tipo) {
+    case "PLANTA":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>`;
+    case "DEPOSITO":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`;
+    case "CLIENTE":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/></svg>`;
+    case "SUCURSAL":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>`;
+    case "PROVEEDOR":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>`;
+    case "TALLER":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
+    default:
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>`;
+  }
+}
+
+function createSitioPinIcon(tipo: string, nombre: string, color: string): L.DivIcon {
+  const iconSvg = getSitioIconSvg(tipo);
+  const html = `
+    <div style="position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; user-select:none;">
+      <!-- Pin Balloon Bubble -->
+      <div style="background-color: ${color}; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.35); border: 2.5px solid #ffffff; z-index: 2;">
+        ${iconSvg}
+      </div>
+      <!-- Pin Point Pointer Tip -->
+      <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid ${color}; margin-top: -3px; z-index: 1;"></div>
+      <!-- Ground Shadow Point -->
+      <div style="width: 12px; height: 4px; background: rgba(0,0,0,0.28); border-radius: 50%; margin-top: 1px;"></div>
+    </div>
+  `;
+
+  return L.divIcon({
+    html,
+    className: "bg-transparent border-none",
+    iconSize: [36, 44],
+    iconAnchor: [18, 41],
+    popupAnchor: [0, -36],
+  });
+}
+
+function SitiosGroup({
+  sitios = [],
+  showSitios = true,
+}: {
+  sitios?: SitioRow[];
+  showSitios?: boolean;
+}) {
+  if (!showSitios || !sitios || sitios.length === 0) return null;
+
+  return (
+    <>
+      {sitios.map((s) => {
+        if (!s || isNaN(s.lat) || isNaN(s.lng)) return null;
+        const color = SITIO_COLORS[s.tipo] || "#10b981";
+        const radius = s.radioMetros && s.radioMetros > 0 ? s.radioMetros : 100;
+        const pinIcon = createSitioPinIcon(s.tipo, s.nombre, color);
+
+        return (
+          <React.Fragment key={`sitio-wrapper-${s.id}`}>
+            {/* Radio de geocerca perimetral */}
+            <Circle
+              center={[s.lat, s.lng]}
+              radius={radius}
+              pathOptions={{
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.12,
+                weight: 1.5,
+                dashArray: "4, 4",
+              }}
+            />
+
+            {/* Punto de ubicación / Pin interactivo */}
+            <Marker position={[s.lat, s.lng]} icon={pinIcon}>
+              <Popup closeButton={false}>
+                <div className="p-1 min-w-[210px] text-slate-900 dark:text-slate-100 font-sans">
+                  <div className="flex items-center justify-between gap-2 mb-1.5 pb-1 border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 font-bold text-xs truncate">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-sm"
+                        style={{ backgroundColor: color }}
+                      />
+                      <span className="truncate">{s.nombre}</span>
+                    </div>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-foreground">
+                      {s.tipo}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground line-clamp-2 mb-1.5">
+                    📍 {s.direccion}
+                    {s.ciudad ? `, ${s.ciudad}` : ""}
+                  </p>
+                  <div className="space-y-0.5 text-[11px]">
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span>Radio de cobertura:</span>
+                      <span className="font-semibold text-foreground">{radius}m</span>
+                    </div>
+                    {s.contactoNombre && (
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Contacto:</span>
+                        <span className="font-medium text-foreground">{s.contactoNombre}</span>
+                      </div>
+                    )}
+                    {s.contactoTelefono && (
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Teléfono:</span>
+                        <a
+                          href={`https://wa.me/${s.contactoTelefono.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+                        >
+                          {s.contactoTelefono}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          </React.Fragment>
+        );
+      })}
+    </>
+  );
+}
+
 function VehicleClusterGroup({
   vehiculos,
   setFocusedVehicleId,
@@ -470,6 +614,8 @@ export default function FleetMap({
   vehiculos = [],
   geofences = [],
   showGeofences = true,
+  sitios = [],
+  showSitios = true,
   isListOpen = true,
   focusedVehicleId = null,
   setFocusedVehicleId,
@@ -507,6 +653,7 @@ export default function FleetMap({
         <MapFullscreenHandler isFullscreen={isFullscreen} />
         <MapBounds vehiculos={vehiculos} isListOpen={isListOpen} focusedVehicleId={focusedVehicleId} />
         <GeofencesGroup geofences={geofences} showGeofences={showGeofences} />
+        <SitiosGroup sitios={sitios} showSitios={showSitios} />
         <VehicleClusterGroup vehiculos={vehiculos} setFocusedVehicleId={setFocusedVehicleId} />
       </MapContainer>
 

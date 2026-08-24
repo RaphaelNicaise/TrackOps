@@ -5,96 +5,10 @@ import { sitios } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { AppError, toApiErrorResponse } from "@/lib/api-error";
 import type { SitioRow } from "@/types/flota-viajes";
+import { MOCK_SITIOS_BAHIA_BLANCA } from "@/lib/sitios-mock";
+import { isDemoUser } from "@/lib/demo-mode";
 
 export const dynamic = "force-dynamic";
-
-export const MOCK_SITIOS_BAHIA_BLANCA: SitioRow[] = [
-  {
-    id: 1,
-    empresaId: 1,
-    nombre: "Planta Petroquímica Bahía Blanca",
-    tipo: "PLANTA",
-    direccion: "Ruta Nacional 3 Km 678, Ing. White",
-    ciudad: "Bahía Blanca",
-    provincia: "Buenos Aires",
-    lat: -38.7885,
-    lng: -62.2745,
-    radioMetros: 300,
-    contactoNombre: "Ing. Martín Rodríguez",
-    contactoTelefono: "+5492914551122",
-    activo: 1,
-    createdAt: new Date("2026-01-15T08:00:00Z"),
-    updatedAt: new Date("2026-01-15T08:00:00Z"),
-  },
-  {
-    id: 2,
-    empresaId: 1,
-    nombre: "Depósito Central Parque Industrial",
-    tipo: "DEPOSITO",
-    direccion: "Parque Industrial Bahía Blanca, Parcela 12",
-    ciudad: "Bahía Blanca",
-    provincia: "Buenos Aires",
-    lat: -38.7490,
-    lng: -62.2150,
-    radioMetros: 200,
-    contactoNombre: "Roberto Gómez (Logística)",
-    contactoTelefono: "+5492914883344",
-    activo: 1,
-    createdAt: new Date("2026-01-20T09:30:00Z"),
-    updatedAt: new Date("2026-01-20T09:30:00Z"),
-  },
-  {
-    id: 3,
-    empresaId: 1,
-    nombre: "Puerto Galván / Terminal Portuaria",
-    tipo: "PROVEEDOR",
-    direccion: "Acceso Puerto Galván S/N",
-    ciudad: "Bahía Blanca",
-    provincia: "Buenos Aires",
-    lat: -38.7870,
-    lng: -62.3020,
-    radioMetros: 400,
-    contactoNombre: "Control Cargas Puerto",
-    contactoTelefono: "+5492914598800",
-    activo: 1,
-    createdAt: new Date("2026-02-01T10:00:00Z"),
-    updatedAt: new Date("2026-02-01T10:00:00Z"),
-  },
-  {
-    id: 4,
-    empresaId: 1,
-    nombre: "Centro de Distribución Don Bosco",
-    tipo: "CLIENTE",
-    direccion: "Don Bosco 1450",
-    ciudad: "Bahía Blanca",
-    provincia: "Buenos Aires",
-    lat: -38.7180,
-    lng: -62.2650,
-    radioMetros: 150,
-    contactoNombre: "Mariana Costa",
-    contactoTelefono: "+5492914227788",
-    activo: 1,
-    createdAt: new Date("2026-02-10T14:15:00Z"),
-    updatedAt: new Date("2026-02-10T14:15:00Z"),
-  },
-  {
-    id: 5,
-    empresaId: 1,
-    nombre: "Sucursal Norte Av. Alem",
-    tipo: "SUCURSAL",
-    direccion: "Av. Alem 2200",
-    ciudad: "Bahía Blanca",
-    provincia: "Buenos Aires",
-    lat: -38.6950,
-    lng: -62.2480,
-    radioMetros: 100,
-    contactoNombre: "Carlos Menéndez",
-    contactoTelefono: "+5492914115566",
-    activo: 1,
-    createdAt: new Date("2026-02-15T11:00:00Z"),
-    updatedAt: new Date("2026-02-15T11:00:00Z"),
-  },
-];
 
 export async function GET() {
   try {
@@ -111,6 +25,7 @@ export async function GET() {
       return NextResponse.json(body, { status });
     }
 
+    const demo = isDemoUser(session.user);
     const isSuperAdmin = session.user.role === "SUPER_ADMIN";
     const empresaId = session.user.empresaId || (isSuperAdmin ? 1 : null);
 
@@ -123,10 +38,10 @@ export async function GET() {
 
         if (rows.length > 0) return NextResponse.json(rows);
       }
-      return NextResponse.json(MOCK_SITIOS_BAHIA_BLANCA);
+      return NextResponse.json(demo ? MOCK_SITIOS_BAHIA_BLANCA : []);
     } catch (dbError) {
       console.warn("DB query failed in /api/sitios, using Bahía Blanca fallback:", dbError);
-      return NextResponse.json(MOCK_SITIOS_BAHIA_BLANCA);
+      return NextResponse.json(demo ? MOCK_SITIOS_BAHIA_BLANCA : []);
     }
   } catch (error: unknown) {
     const { status, body } = toApiErrorResponse(error);

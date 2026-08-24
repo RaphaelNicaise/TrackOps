@@ -16,12 +16,7 @@ import {
   ScheduleViolation,
   VehicleGroup,
 } from "@/types/schedule";
-import {
-  INITIAL_MOCK_SCHEDULES,
-  INITIAL_MOCK_VIOLATIONS,
-} from "@/lib/mock-schedules";
-import { INITIAL_MOCK_GROUPS } from "@/lib/mock-vehicle-groups";
-import { mockVehiculos, MockVehiculo } from "@/lib/mock-vehicles";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 import {
   ScheduleCard,
   ScheduleModal,
@@ -34,10 +29,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function UsageSchedulesPage() {
   // State
-  const [schedules, setSchedules] = useState<Schedule[]>(INITIAL_MOCK_SCHEDULES);
-  const [violations, setViolations] = useState<ScheduleViolation[]>(INITIAL_MOCK_VIOLATIONS);
-  const [groups, setGroups] = useState<VehicleGroup[]>(INITIAL_MOCK_GROUPS);
-  const [vehicles] = useState<MockVehiculo[]>(mockVehiculos);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [violations, setViolations] = useState<ScheduleViolation[]>([]);
+  const [groups, setGroups] = useState<VehicleGroup[]>([]);
+  const [vehicles, setVehicles] = useState<MockVehiculo[]>([]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingViolations, setIsLoadingViolations] = useState(false);
@@ -103,16 +98,32 @@ export default function UsageSchedulesPage() {
     }
   }, []);
 
+  // Fetch real fleet from API
+  const fetchVehicles = useCallback(async () => {
+    try {
+      const res = await fetch("/api/vehicles");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setVehicles(data);
+        }
+      }
+    } catch (error) {
+      console.warn("Could not fetch vehicles from API:", error);
+    }
+  }, []);
+
   // Initial load
   useEffect(() => {
     fetchSchedules();
     fetchViolations();
     fetchGroups();
-  }, [fetchSchedules, fetchViolations, fetchGroups]);
+    fetchVehicles();
+  }, [fetchSchedules, fetchViolations, fetchGroups, fetchVehicles]);
 
   // Refresh all
   const handleRefresh = async () => {
-    await Promise.all([fetchSchedules(), fetchViolations(), fetchGroups()]);
+    await Promise.all([fetchSchedules(), fetchViolations(), fetchGroups(), fetchVehicles()]);
   };
 
   // KPI Calculations

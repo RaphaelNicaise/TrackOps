@@ -17,7 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { VehicleGroup } from "@/types/schedule";
-import { mockVehiculos } from "@/lib/mock-vehicles";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,6 +31,7 @@ import {
 
 export interface VehicleGroupCardProps {
   group: VehicleGroup;
+  vehicles?: MockVehiculo[];
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -61,19 +62,20 @@ export function getGroupIcon(
 
 export function VehicleGroupCard({
   group,
+  vehicles = [],
   onEdit,
   onDelete,
 }: VehicleGroupCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const IconComponent = getGroupIcon(group.icono);
 
-  // Resolve vehicles from mock data
+  // Resolve vehicles from the provided fleet
   const assignedVehicles = (group.vehicleIds || []).map((id) => {
-    const found = mockVehiculos.find((v) => v.id === id);
+    const found = vehicles.find((v) => v.id === id);
     return {
       id,
       patente: found ? found.patente : `Móvil #${id}`,
-      modelo: found ? `${found.marca} ${found.modelo}` : "",
+      modelo: found ? `${found.marca || ""} ${found.modelo || ""}`.trim() : "",
       tipo: found?.tipo || "Vehículo",
       online: found?.online ?? false,
     };

@@ -15,15 +15,15 @@ import {
   Sparkles,
 } from "lucide-react";
 import { VehicleGroup } from "@/types/schedule";
-import { INITIAL_MOCK_GROUPS } from "@/lib/mock-vehicle-groups";
-import { mockVehiculos } from "@/lib/mock-vehicles";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 import { VehicleGroupCard, VehicleGroupModal } from "@/components/groups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export default function VehicleGroupsPage() {
-  const [groups, setGroups] = useState<VehicleGroup[]>(INITIAL_MOCK_GROUPS);
+  const [groups, setGroups] = useState<VehicleGroup[]>([]);
+  const [fleetVehicles, setFleetVehicles] = useState<MockVehiculo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,9 +50,25 @@ export default function VehicleGroupsPage() {
     }
   }, []);
 
+  // Fetch real fleet from API
+  const fetchFleetVehicles = useCallback(async () => {
+    try {
+      const res = await fetch("/api/vehicles");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setFleetVehicles(data);
+        }
+      }
+    } catch (error) {
+      console.warn("Could not fetch vehicles from API:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchGroups();
-  }, [fetchGroups]);
+    fetchFleetVehicles();
+  }, [fetchGroups, fetchFleetVehicles]);
 
   // Filtered groups by search query
   const filteredGroups = useMemo(() => {
@@ -76,7 +92,7 @@ export default function VehicleGroupsPage() {
   }, [groups]);
 
   const vehiclesInGroups = uniqueAssignedVehicleIds.size;
-  const totalFleetVehicles = mockVehiculos.length;
+  const totalFleetVehicles = fleetVehicles.length;
   const vehiclesWithoutGroup = Math.max(
     0,
     totalFleetVehicles - vehiclesInGroups
@@ -357,6 +373,7 @@ export default function VehicleGroupsPage() {
             <VehicleGroupCard
               key={group.id}
               group={group}
+              vehicles={fleetVehicles}
               onEdit={() => handleOpenEditModal(group)}
               onDelete={() => handleDeleteGroup(group.id)}
             />
@@ -374,6 +391,7 @@ export default function VehicleGroupsPage() {
         group={selectedGroupForEdit}
         onSave={handleSaveGroup}
         isSaving={isSaving}
+        availableVehicles={fleetVehicles}
       />
     </div>
   );

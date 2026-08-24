@@ -10,6 +10,7 @@ import {
 } from "@/lib/mock-schedules";
 import { eq } from "drizzle-orm";
 import { scheduleSchema } from "@/lib/schemas/schedule.schema";
+import { isDemoUser } from "@/lib/demo-mode";
 import { AppError, toApiErrorResponse } from "@/lib/api-error";
 import { z } from "zod";
 
@@ -41,7 +42,7 @@ export async function GET() {
       return NextResponse.json([]);
     } catch (dbError) {
       console.warn("DB query failed, using mock schedules fallback:", dbError);
-      return NextResponse.json(getMockSchedules(empresaId));
+      return NextResponse.json(isDemoUser(session.user) ? getMockSchedules(empresaId) : []);
     }
   } catch (error: unknown) {
     const { status, body } = toApiErrorResponse(error);
@@ -88,6 +89,8 @@ export async function POST(request: Request) {
       const [created] = await db.insert(schedules).values(dbValues as never).returning();
       if (created) return NextResponse.json(dbRowToSchedule(created), { status: 201 });
     } catch (dbError) {
+      const canMock = (session?.user && isDemoUser(session.user)) || (!session?.user && isTest);
+      if (!canMock) throw dbError;
       console.warn("DB insert failed, using mock creation fallback:", dbError);
     }
 

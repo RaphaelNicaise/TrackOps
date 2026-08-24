@@ -17,8 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { ScheduleTargetType, VehicleGroup } from "@/types/schedule";
-import { mockVehiculos, MockVehiculo } from "@/lib/mock-vehicles";
-import { INITIAL_MOCK_GROUPS } from "@/lib/mock-vehicle-groups";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,8 +56,8 @@ export function ScheduleFleetAssigner({
   targetCategories = [],
   targetGroups = [],
   onChange,
-  availableGroups = INITIAL_MOCK_GROUPS,
-  availableVehicles = mockVehiculos,
+  availableGroups = [],
+  availableVehicles = [],
   disabled = false,
 }: ScheduleFleetAssignerProps) {
   const [vehicleSearch, setVehicleSearch] = useState("");

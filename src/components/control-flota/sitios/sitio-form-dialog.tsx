@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { appAlert } from "@/lib/alerts";
 import { createSitio, updateSitio, deleteSitio } from "@/lib/flota-actions";
 import type {
@@ -257,18 +258,18 @@ export function SitioFormDialog({
                 <Label htmlFor="sitio-tipo" className="text-xs font-medium">
                   Tipo de Sitio <span className="text-destructive">*</span>
                 </Label>
-                <select
+                <NativeSelect
                   id="sitio-tipo"
                   value={tipo}
                   onChange={(e) => setTipo(e.target.value as SitioTipo)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                  sizeVariant="lg"
                 >
                   {SITIO_TIPOS.map((item) => (
                     <option key={item.value} value={item.value}>
                       {item.label}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
           </div>

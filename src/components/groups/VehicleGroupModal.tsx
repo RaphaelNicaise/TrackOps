@@ -22,7 +22,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { VehicleGroup } from "@/types/schedule";
-import { mockVehiculos } from "@/lib/mock-vehicles";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +42,7 @@ export interface VehicleGroupModalProps {
   group?: VehicleGroup | null;
   onSave: (groupData: Partial<VehicleGroup>) => Promise<void> | void;
   isSaving?: boolean;
+  availableVehicles?: MockVehiculo[];
 }
 
 export const GROUP_COLOR_PRESETS = [
@@ -73,6 +74,7 @@ export function VehicleGroupModal({
   group,
   onSave,
   isSaving = false,
+  availableVehicles = [],
 }: VehicleGroupModalProps) {
   const isEditing = Boolean(group?.id);
 
@@ -109,21 +111,21 @@ export function VehicleGroupModal({
   // Filtered vehicles based on search
   const filteredVehicles = useMemo(() => {
     const q = vehicleSearch.toLowerCase().trim();
-    if (!q) return mockVehiculos;
-    return mockVehiculos.filter((v) => {
+    if (!q) return availableVehicles;
+    return availableVehicles.filter((v) => {
       return (
         v.patente.toLowerCase().includes(q) ||
-        v.marca.toLowerCase().includes(q) ||
-        v.modelo.toLowerCase().includes(q) ||
-        v.tipo.toLowerCase().includes(q)
+        (v.marca || "").toLowerCase().includes(q) ||
+        (v.modelo || "").toLowerCase().includes(q) ||
+        (v.tipo || "").toLowerCase().includes(q)
       );
     });
-  }, [vehicleSearch]);
+  }, [vehicleSearch, availableVehicles]);
 
   // Selected vehicle items for chip preview
   const selectedVehicles = useMemo(() => {
     return vehicleIds.map((id) => {
-      const found = mockVehiculos.find((v) => v.id === id);
+      const found = availableVehicles.find((v) => v.id === id);
       return {
         id,
         patente: found ? found.patente : `Móvil #${id}`,
@@ -131,7 +133,7 @@ export function VehicleGroupModal({
         modelo: found?.modelo || "",
       };
     });
-  }, [vehicleIds]);
+  }, [vehicleIds, availableVehicles]);
 
   // Toggle vehicle selection
   const handleToggleVehicle = (id: number) => {
@@ -325,7 +327,7 @@ export function VehicleGroupModal({
                 </p>
               </div>
               <Badge variant="secondary" className="font-mono text-xs">
-                {vehicleIds.length} de {mockVehiculos.length} seleccionados
+                {vehicleIds.length} de {availableVehicles.length} seleccionados
               </Badge>
             </div>
 
