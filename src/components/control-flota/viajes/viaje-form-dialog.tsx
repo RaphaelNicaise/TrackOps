@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { appAlert } from "@/lib/alerts";
 import { createViaje, cancelarViaje } from "@/lib/flota-actions";
 import { LocationSelector, type SelectedLocation } from "./location-selector";
@@ -201,7 +202,7 @@ export function ViajeFormDialog({
           {trigger || (
             <Button size="sm" className="gap-2 shadow-xs">
               <Plus className="h-4 w-4" />
-              + Nuevo Viaje
+              Nuevo Viaje
             </Button>
           )}
         </DialogTrigger>
@@ -287,11 +288,11 @@ export function ViajeFormDialog({
                 <Label htmlFor="viaje-chofer" className="text-xs font-medium">
                   Chofer Asignado
                 </Label>
-                <select
+                <NativeSelect
                   id="viaje-chofer"
                   value={choferId}
                   onChange={(e) => handleChoferChange(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                  sizeVariant="lg"
                 >
                   <option value="">-- Sin chofer asignado (Pendiente) --</option>
                   {choferes.map((c) => (
@@ -299,18 +300,18 @@ export function ViajeFormDialog({
                       {c.nombre} {c.apellido} {c.licenciaNumero ? `(Lic: ${c.licenciaNumero})` : ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="viaje-vehiculo" className="text-xs font-medium">
                   Vehículo Asignado
                 </Label>
-                <select
+                <NativeSelect
                   id="viaje-vehiculo"
                   value={vehiculoId}
                   onChange={(e) => setVehiculoId(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                  sizeVariant="lg"
                 >
                   <option value="">-- Sin vehículo asignado (Pendiente) --</option>
                   {vehicles.map((v) => (
@@ -318,7 +319,7 @@ export function ViajeFormDialog({
                       {v.patente} {v.marca || v.modelo ? `(${[v.marca, v.modelo].filter(Boolean).join(" ")})` : ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
           </div>

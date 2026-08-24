@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { vehicles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getViajes, getChoferes, getSitios } from "@/lib/flota-actions";
+import { isDemoSession } from "@/lib/demo-mode";
 import { ViajesTable } from "@/components/control-flota/viajes/viajes-table";
 import type { ViajeRow, SitioRow, ChoferRow } from "@/types/flota-viajes";
 
@@ -227,6 +228,8 @@ export default async function ViajesPage() {
   let siteRows: SitioRow[] = [];
   let vehicleRows: { id: number; patente: string; marca?: string; modelo?: string }[] = [];
 
+  const demo = await isDemoSession();
+
   try {
     const session = await auth();
     const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
@@ -236,7 +239,7 @@ export default async function ViajesPage() {
     const viajesRes = await getViajes(empresaId ? { empresaId } : undefined);
     if (viajesRes.success && viajesRes.data && viajesRes.data.length > 0) {
       tripRows = viajesRes.data;
-    } else {
+    } else if (demo) {
       tripRows = mockViajesFallback;
     }
 
@@ -244,7 +247,7 @@ export default async function ViajesPage() {
     const choferesRes = await getChoferes(empresaId ? { empresaId } : undefined);
     if (choferesRes.success && choferesRes.data && choferesRes.data.length > 0) {
       driverRows = choferesRes.data;
-    } else {
+    } else if (demo) {
       driverRows = mockChoferesFallback;
     }
 
@@ -252,7 +255,7 @@ export default async function ViajesPage() {
     const sitiosRes = await getSitios(empresaId ? { empresaId } : undefined);
     if (sitiosRes.success && sitiosRes.data && sitiosRes.data.length > 0) {
       siteRows = sitiosRes.data;
-    } else {
+    } else if (demo) {
       siteRows = mockSitiosFallback;
     }
 
@@ -271,7 +274,7 @@ export default async function ViajesPage() {
 
       if (vList && vList.length > 0) {
         vehicleRows = vList;
-      } else {
+      } else if (demo) {
         vehicleRows = [
           { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
           { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
@@ -279,20 +282,24 @@ export default async function ViajesPage() {
       }
     } catch (vErr) {
       console.warn("ViajesPage vehicles DB fallback:", vErr);
+      if (demo) {
+        vehicleRows = [
+          { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
+          { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
+        ];
+      }
+    }
+  } catch (error) {
+    console.warn("ViajesPage DB fallback:", error);
+    if (demo) {
+      tripRows = mockViajesFallback;
+      driverRows = mockChoferesFallback;
+      siteRows = mockSitiosFallback;
       vehicleRows = [
         { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
         { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
       ];
     }
-  } catch (error) {
-    console.warn("ViajesPage DB fallback:", error);
-    tripRows = mockViajesFallback;
-    driverRows = mockChoferesFallback;
-    siteRows = mockSitiosFallback;
-    vehicleRows = [
-      { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
-      { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
-    ];
   }
 
   return (

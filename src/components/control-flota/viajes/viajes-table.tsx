@@ -1,14 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import {
   Search,
   Route,
   MapPin,
   ExternalLink,
   ArrowRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
   Truck,
   User,
   Calendar,
@@ -36,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +62,18 @@ import {
   CancelViajeDialog,
   type VehicleOption,
 } from "./viaje-form-dialog";
+import { DateRangePicker } from "./date-range-picker";
+import {
+  DEFAULT_PAGE_SIZE,
+  DEFAULT_SORT,
+  PAGE_SIZE_OPTIONS,
+  filterViajes,
+  paginate,
+  sortViajes,
+  toggleSort,
+  type SortableField,
+  type ViajeSort,
+} from "./viajes-table-utils";
 
 export interface ViajesTableProps {
   initialViajes?: ViajeRow[];
@@ -121,6 +140,36 @@ function getStatusBadge(estado: ViajeEstado) {
   }
 }
 
+interface SortableHeadProps {
+  label: string;
+  field: SortableField;
+  sort: ViajeSort;
+  onSort: (field: SortableField) => void;
+  className?: string;
+}
+
+function SortableHead({ label, field, sort, onSort, className }: SortableHeadProps) {
+  const active = sort.field === field;
+  const Icon = !active ? ArrowUpDown : sort.direction === "asc" ? ArrowUp : ArrowDown;
+
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        aria-label={`Ordenar por ${label}`}
+        className={cn(
+          "inline-flex items-center gap-1 rounded font-medium transition-colors hover:text-foreground",
+          active ? "text-foreground" : "text-muted-foreground"
+        )}
+      >
+        <span>{label}</span>
+        <Icon className="h-3.5 w-3.5" />
+      </button>
+    </TableHead>
+  );
+}
+
 export function ViajesTable({
   initialViajes,
   viajes: viajesProp,
@@ -133,6 +182,12 @@ export function ViajesTable({
 
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<StatusTab>("TODOS");
+  /** "ALL" = todos; "NONE" = sin asignar; string numérico = id de chofer */
+  const [choferFilter, setChoferFilter] = useState("ALL");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [sort, setSort] = useState<ViajeSort>(DEFAULT_SORT);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [cancelingViaje, setCancelingViaje] = useState<ViajeRow | null>(null);
 
   // Dynamic status counts
@@ -153,42 +208,63 @@ export function ViajesTable({
     return { total, planificados, enCurso, completados, cancelados };
   }, [tripList]);
 
-  // Filtering
-  const filtered = useMemo(() => {
-    let result = tripList;
+  // Filtering + sorting + pagination
+  const filtered = useMemo(
+    () =>
+      filterViajes(tripList, {
+        estado: tab,
+        query,
+        choferId:
+          choferFilter === "ALL"
+            ? undefined
+            : choferFilter === "NONE"
+              ? null
+              : Number(choferFilter),
+        fechaDesde: dateRange?.from ?? null,
+        fechaHasta: dateRange?.to ?? dateRange?.from ?? null,
+      }),
+    [tripList, tab, query, choferFilter, dateRange]
+  );
 
-    if (tab !== "TODOS") {
-      result = result.filter((v) => v.estado === tab);
-    }
+  const sorted = useMemo(() => sortViajes(filtered, sort), [filtered, sort]);
 
-    const q = query.trim().toLowerCase();
-    if (q) {
-      result = result.filter((v) =>
-        [
-          v.codigo,
-          v.origenNombre,
-          v.origenDireccion,
-          v.destinoNombre,
-          v.destinoDireccion,
-          v.choferNombre ?? "",
-          v.vehiculoPatente ?? "",
-          v.notas ?? "",
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(q)
-      );
-    }
+  const { items: pageItems, page: currentPage, totalPages } = useMemo(
+    () => paginate(sorted, page, pageSize),
+    [sorted, page, pageSize]
+  );
 
-    return result;
-  }, [tripList, tab, query]);
+  // Al cambiar cualquier filtro, orden o tamaño de página volvemos a la primera página
+  useEffect(() => {
+    setPage(1);
+  }, [query, tab, choferFilter, dateRange, sort, pageSize]);
+
+  const choferOptions = useMemo(
+    () =>
+      choferes
+        .map((c) => ({ id: c.id, label: `${c.nombre} ${c.apellido}`.trim() }))
+        .sort((a, b) => a.label.localeCompare(b.label, "es")),
+    [choferes]
+  );
 
   function handleResetFilters() {
     setQuery("");
     setTab("TODOS");
+    setChoferFilter("ALL");
+    setDateRange(undefined);
+    setSort(DEFAULT_SORT);
   }
 
-  const hasActiveFilters = query.trim() !== "" || tab !== "TODOS";
+  function handleSort(field: SortableField) {
+    setSort((current) => toggleSort(current, field));
+  }
+
+  const hasActiveFilters =
+    query.trim() !== "" ||
+    tab !== "TODOS" ||
+    choferFilter !== "ALL" ||
+    !!dateRange?.from ||
+    sort.field !== DEFAULT_SORT.field ||
+    sort.direction !== DEFAULT_SORT.direction;
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -208,7 +284,7 @@ export function ViajesTable({
           trigger={
             <Button size="sm" className="gap-2 shadow-xs">
               <Plus className="h-4 w-4" />
-              + Nuevo Viaje
+              Nuevo Viaje
             </Button>
           }
         />
@@ -310,10 +386,10 @@ export function ViajesTable({
 
       {/* 3. Contenedor de Tabla con Barra de Filtros Rápida */}
       <Card className="overflow-hidden border bg-card text-card-foreground shadow-xs">
-        {/* Barra de Búsqueda */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 border-b bg-muted/20">
-          <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="relative flex-1 max-w-md">
+        {/* Barra de Búsqueda y Filtros */}
+        <div className="flex items-center justify-between gap-3 p-4 border-b bg-muted/20">
+          <div className="flex flex-1 flex-wrap items-center gap-2.5">
+            <div className="relative w-full sm:w-auto sm:flex-1 sm:max-w-xs md:max-w-sm">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
@@ -333,6 +409,25 @@ export function ViajesTable({
               )}
             </div>
 
+            <DateRangePicker value={dateRange} onChange={setDateRange} />
+
+            <NativeSelect
+              value={choferFilter}
+              onChange={(e) => setChoferFilter(e.target.value)}
+              sizeVariant="default"
+              containerClassName="w-full sm:w-[190px]"
+              className="h-9 text-sm"
+              aria-label="Filtrar por chofer"
+            >
+              <option value="ALL">Todos los choferes</option>
+              {choferOptions.map((c) => (
+                <option key={c.id} value={String(c.id)}>
+                  {c.label}
+                </option>
+              ))}
+              <option value="NONE">Sin asignar</option>
+            </NativeSelect>
+
             {hasActiveFilters && (
               <Button
                 variant="ghost"
@@ -345,10 +440,6 @@ export function ViajesTable({
               </Button>
             )}
           </div>
-
-          <div className="hidden lg:flex items-center text-xs text-muted-foreground">
-            Mostrando {filtered.length} de {tripList.length} viajes
-          </div>
         </div>
 
         {/* Tabla Enriquecida */}
@@ -356,16 +447,16 @@ export function ViajesTable({
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow className="hover:bg-transparent">
-                <TableHead>Código & Estado</TableHead>
+                <SortableHead label="Código & Estado" field="codigo" sort={sort} onSort={handleSort} />
                 <TableHead>Trayecto (Origen ➔ Destino)</TableHead>
-                <TableHead>Chofer & Vehículo</TableHead>
-                <TableHead>Programación & Horarios</TableHead>
-                <TableHead>Odómetro / Km</TableHead>
+                <SortableHead label="Chofer & Vehículo" field="choferNombre" sort={sort} onSort={handleSort} />
+                <SortableHead label="Programación & Horarios" field="fechaSalidaProgramada" sort={sort} onSort={handleSort} />
+                <SortableHead label="Odómetro / Km" field="distanciaEstimadaKm" sort={sort} onSort={handleSort} />
                 <TableHead className="text-right pr-4">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.length === 0 ? (
+              {pageItems.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={6} className="h-48 text-center">
                     <div className="flex flex-col items-center justify-center gap-2 py-6">
@@ -377,7 +468,7 @@ export function ViajesTable({
                       </p>
                       <p className="text-sm text-muted-foreground max-w-sm">
                         {hasActiveFilters
-                          ? "No hay viajes que coincidan con la búsqueda o filtro de estado aplicado."
+                          ? "No hay viajes que coincidan con la búsqueda o los filtros de estado, fechas o chofer aplicados."
                           : "No hay viajes programados en tu empresa. Creá el primer viaje para comenzar a despachar."}
                       </p>
                       {hasActiveFilters ? (
@@ -403,7 +494,7 @@ export function ViajesTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((v) => {
+                pageItems.map((v) => {
                   const statusInfo = getStatusBadge(v.estado);
                   const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${v.origenLat},${v.origenLng}&destination=${v.destinoLat},${v.destinoLng}`;
 
@@ -628,6 +719,65 @@ export function ViajesTable({
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Paginación */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t bg-muted/20 px-4 py-3">
+          <div className="text-xs text-muted-foreground order-2 sm:order-1">
+            Mostrando{" "}
+            {sorted.length === 0
+              ? 0
+              : (currentPage - 1) * pageSize + 1}
+            –{(currentPage - 1) * pageSize + pageItems.length} de {sorted.length} viajes
+          </div>
+
+          <div className="flex items-center gap-4 sm:gap-6 order-1 sm:order-2">
+            <div className="flex items-center gap-2">
+              <span className="hidden md:inline text-xs text-muted-foreground">
+                Filas por página
+              </span>
+              <NativeSelect
+                value={String(pageSize)}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                sizeVariant="sm"
+                containerClassName="w-[70px]"
+                className="text-xs"
+                aria-label="Filas por página"
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={String(size)}>
+                    {size}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                Página {currentPage} de {totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Página anterior</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+                <span className="sr-only">Página siguiente</span>
+              </Button>
+            </div>
+          </div>
         </div>
       </Card>
 

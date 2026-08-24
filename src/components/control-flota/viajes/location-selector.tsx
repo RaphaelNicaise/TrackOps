@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
 import type { SitioRow, SitioTipo, UbicacionTipo } from "@/types/flota-viajes";
 
@@ -284,21 +285,19 @@ export function LocationSelector({
       {/* Modo 1: Sitio Preconfigurado */}
       {mode === "SITIO" && (
         <div className="space-y-2">
-          <div className="relative">
-            <select
-              value={selected?.tipo === "SITIO" && selected.sitioId ? String(selected.sitioId) : ""}
-              onChange={(e) => handleSelectSite(e.target.value)}
-              disabled={disabled}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary disabled:opacity-50"
-            >
-              <option value="">-- Seleccionar sitio registrado --</option>
-              {sitios.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nombre} ({s.tipo}) - {s.direccion}
-                </option>
-              ))}
-            </select>
-          </div>
+          <NativeSelect
+            value={selected?.tipo === "SITIO" && selected.sitioId ? String(selected.sitioId) : ""}
+            onChange={(e) => handleSelectSite(e.target.value)}
+            disabled={disabled}
+            sizeVariant="lg"
+          >
+            <option value="">-- Seleccionar sitio registrado --</option>
+            {sitios.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.nombre} ({s.tipo}) - {s.direccion}
+              </option>
+            ))}
+          </NativeSelect>
           {sitios.length === 0 && (
             <p className="text-[11px] text-muted-foreground italic">
               No hay sitios preconfigurados registrados. Podés usar la pestaña de Búsqueda en Mapa o agregar uno en Sitios.
