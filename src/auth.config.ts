@@ -22,13 +22,18 @@ export const authConfig = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }: any) {
       if (user) {
         // user object is only passed on initial sign in
         token.role = user.role;
         token.empresaId = user.empresaId ?? undefined;
         token.id = user.id;
         token.mustChangePassword = user.mustChangePassword ?? 0;
+      }
+      if (trigger === "update" && session) {
+        if (typeof session.mustChangePassword === "number") {
+          token.mustChangePassword = session.mustChangePassword;
+        }
       }
       return token;
     },

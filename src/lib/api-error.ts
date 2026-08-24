@@ -8,6 +8,7 @@ export type ApiErrorCode =
   | "CONFLICT"
   | "PAYLOAD_TOO_LARGE"
   | "UNPROCESSABLE"
+  | "SERVICE_UNAVAILABLE"
   | "INTERNAL_ERROR";
 
 export type ApiResponse<T> =
@@ -153,6 +154,7 @@ export function errorResponse(
     CONFLICT: 409,
     PAYLOAD_TOO_LARGE: 413,
     UNPROCESSABLE: 422,
+    SERVICE_UNAVAILABLE: 503,
     INTERNAL_ERROR: 500,
   };
   return {

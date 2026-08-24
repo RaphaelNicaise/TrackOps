@@ -158,6 +158,55 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   adapter: DrizzleAdapter(db),
   session: { strategy: "jwt" },
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user, trigger, session }: any) {
+      if (user) {
+        token.role = user.role;
+        token.empresaId = user.empresaId ?? undefined;
+        token.id = user.id;
+        token.mustChangePassword = user.mustChangePassword ?? 0;
+      }
+
+      if (trigger === "update" && session) {
+        if (typeof session.mustChangePassword === "number") {
+          token.mustChangePassword = session.mustChangePassword;
+        }
+        if (session.user?.role) {
+          token.role = session.user.role;
+        }
+      }
+
+      // If token still flags mustChangePassword === 1, check database to immediately clear it
+      // once the user updates their password in changeInitialPassword.
+      if (token.id && token.mustChangePassword === 1) {
+        try {
+          const [userRecord] = await db
+            .select({ mustChangePassword: users.mustChangePassword })
+            .from(users)
+            .where(eq(users.id, token.id as string));
+
+          if (userRecord) {
+            token.mustChangePassword = userRecord.mustChangePassword ?? 0;
+          }
+        } catch (e) {
+          // Keep current token value if database lookup fails
+        }
+      }
+
+      return token;
+    },
+    async session({ session, token }: any) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.empresaId = token.empresaId as number | undefined;
+        session.user.mustChangePassword =
+          typeof token.mustChangePassword === "number" ? token.mustChangePassword : 0;
+      }
+      return session;
+    },
+  },
   providers: [
     Credentials({
       name: "Credentials",

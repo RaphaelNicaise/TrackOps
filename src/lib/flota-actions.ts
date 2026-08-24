@@ -78,13 +78,17 @@ export async function getChoferes(
         estado: choferes.estado,
         vehiculoHabitualId: choferes.vehiculoHabitualId,
         notas: choferes.notas,
+        fotoDniFrente: choferes.fotoDniFrente,
+        fotoDniDorso: choferes.fotoDniDorso,
         createdAt: choferes.createdAt,
         updatedAt: choferes.updatedAt,
         vehiculoHabitualPatente: vehicles.patente,
         vehiculoHabitualModelo: vehicles.modelo,
+        userEmail: users.email,
       })
       .from(choferes)
-      .leftJoin(vehicles, eq(choferes.vehiculoHabitualId, vehicles.id));
+      .leftJoin(vehicles, eq(choferes.vehiculoHabitualId, vehicles.id))
+      .leftJoin(users, eq(choferes.userId, users.id));
 
     const rows =
       conditions.length > 0
@@ -109,16 +113,6 @@ export async function createChofer(
       return { success: false, error: "No autorizado" };
     }
 
-    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
-    const targetEmpresaId =
-      isSuperAdmin && data.empresaId
-        ? data.empresaId
-        : session.user.empresaId || data.empresaId;
-
-    if (!targetEmpresaId) {
-      return { success: false, error: "Empresa no especificada" };
-    }
-
     if (!data.nombre?.trim() || !data.apellido?.trim() || !data.dni?.trim()) {
       return {
         success: false,
@@ -126,7 +120,15 @@ export async function createChofer(
       };
     }
 
-    // Check DNI uniqueness in company
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const targetEmpresaId =
+      data.empresaId || (!isSuperAdmin ? session.user.empresaId : null);
+
+    if (!targetEmpresaId) {
+      return { success: false, error: "Empresa no especificada" };
+    }
+
+    // Check unique DNI within company
     const existing = await db
       .select({ id: choferes.id })
       .from(choferes)
@@ -140,12 +142,13 @@ export async function createChofer(
     if (existing.length > 0) {
       return {
         success: false,
-        error: "Ya existe un chofer registrado con este DNI en la empresa",
+        error: `Ya existe un chofer registrado con el DNI ${data.dni.trim()}`,
       };
     }
 
     let linkedUserId: string | null = data.userId || null;
 
+    // Optional user account creation for driver login
     if (createLoginUser) {
       const emailToUse = data.email?.trim() || `${data.dni.trim()}@flota.local`;
 
@@ -206,6 +209,8 @@ export async function createChofer(
         estado: data.estado || "ACTIVO",
         vehiculoHabitualId: data.vehiculoHabitualId || null,
         notas: data.notas?.trim() || null,
+        fotoDniFrente: data.fotoDniFrente || null,
+        fotoDniDorso: data.fotoDniDorso || null,
       })
       .returning();
 
@@ -255,12 +260,26 @@ export async function updateChofer(
     if (data.notas !== undefined)
       updatePayload.notas = data.notas?.trim() || null;
     if (data.userId !== undefined) updatePayload.userId = data.userId;
+    if (data.fotoDniFrente !== undefined)
+      updatePayload.fotoDniFrente = data.fotoDniFrente;
+    if (data.fotoDniDorso !== undefined)
+      updatePayload.fotoDniDorso = data.fotoDniDorso;
+
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(choferes.id, choferId)
+      : and(eq(choferes.id, choferId), eq(choferes.empresaId, empresaId!));
 
     const [updatedChofer] = await db
       .update(choferes)
       .set(updatePayload)
-      .where(eq(choferes.id, choferId))
+      .where(whereClause)
       .returning();
+
+    if (!updatedChofer) {
+      return { success: false, error: "Chofer no encontrado o sin permisos" };
+    }
 
     revalidatePath("/panel/control-flota/choferes");
     revalidatePath("/panel/chofer");
@@ -280,12 +299,98 @@ export async function deleteChofer(
       return { success: false, error: "No autorizado" };
     }
 
-    await db.delete(choferes).where(eq(choferes.id, choferId));
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(choferes.id, choferId)
+      : and(eq(choferes.id, choferId), eq(choferes.empresaId, empresaId!));
+
+    const deleted = await db.delete(choferes).where(whereClause).returning({ id: choferes.id });
+    if (deleted.length === 0) {
+      return { success: false, error: "Chofer no encontrado o sin permisos" };
+    }
     revalidatePath("/panel/control-flota/choferes");
     return { success: true };
   } catch (error: any) {
     console.error("Error in deleteChofer:", error);
     return { success: false, error: error.message || "Error al eliminar chofer" };
+  }
+}
+
+export async function updateChoferCredentials(
+  choferId: number,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return { success: false, error: "No autorizado" };
+    }
+
+    if (!newPassword || newPassword.trim().length < 4) {
+      return {
+        success: false,
+        error: "La contraseña debe tener al menos 4 caracteres",
+      };
+    }
+
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(choferes.id, choferId)
+      : and(eq(choferes.id, choferId), eq(choferes.empresaId, empresaId!));
+
+    const [chofer] = await db
+      .select()
+      .from(choferes)
+      .where(whereClause);
+
+    if (!chofer) {
+      return { success: false, error: "Chofer no encontrado o sin permisos" };
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
+
+    if (chofer.userId) {
+      // User exists, update password
+      await db
+        .update(users)
+        .set({ passwordHash })
+        .where(eq(users.id, chofer.userId));
+    } else {
+      // Create user account for driver
+      const emailToUse =
+        chofer.email?.trim() || `${chofer.dni.trim()}@flota.local`;
+
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          name: `${chofer.nombre} ${chofer.apellido}`,
+          email: emailToUse,
+          dni: chofer.dni.trim(),
+          role: "CHOFER",
+          empresaId: chofer.empresaId,
+          passwordHash,
+          mustChangePassword: 0,
+        })
+        .returning();
+
+      if (newUser) {
+        await db
+          .update(choferes)
+          .set({ userId: newUser.id, updatedAt: new Date() })
+          .where(eq(choferes.id, choferId));
+      }
+    }
+
+    revalidatePath("/panel/control-flota/choferes");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in updateChoferCredentials:", error);
+    return {
+      success: false,
+      error: error.message || "Error al actualizar credenciales",
+    };
   }
 }
 
@@ -439,11 +544,21 @@ export async function updateSitio(
       updatePayload.contactoTelefono = data.contactoTelefono?.trim() || null;
     if (data.activo !== undefined) updatePayload.activo = data.activo;
 
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(sitios.id, sitioId)
+      : and(eq(sitios.id, sitioId), eq(sitios.empresaId, empresaId!));
+
     const [updatedSitio] = await db
       .update(sitios)
       .set(updatePayload)
-      .where(eq(sitios.id, sitioId))
+      .where(whereClause)
       .returning();
+
+    if (!updatedSitio) {
+      return { success: false, error: "Sitio no encontrado o sin permisos" };
+    }
 
     revalidatePath("/panel/control-flota/sitios");
     return { success: true, data: updatedSitio as SitioRow };
@@ -462,7 +577,17 @@ export async function deleteSitio(
       return { success: false, error: "No autorizado" };
     }
 
-    await db.delete(sitios).where(eq(sitios.id, sitioId));
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(sitios.id, sitioId)
+      : and(eq(sitios.id, sitioId), eq(sitios.empresaId, empresaId!));
+
+    const deleted = await db.delete(sitios).where(whereClause).returning({ id: sitios.id });
+    if (deleted.length === 0) {
+      return { success: false, error: "Sitio no encontrado o sin permisos" };
+    }
+
     revalidatePath("/panel/control-flota/sitios");
     return { success: true };
   } catch (error: any) {
@@ -679,6 +804,12 @@ export async function iniciarViajeChofer(
       return { success: false, error: "No autorizado" };
     }
 
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(viajes.id, viajeId)
+      : and(eq(viajes.id, viajeId), eq(viajes.empresaId, empresaId!));
+
     const [updatedViaje] = await db
       .update(viajes)
       .set({
@@ -687,14 +818,21 @@ export async function iniciarViajeChofer(
         kmInicio,
         updatedAt: new Date(),
       })
-      .where(eq(viajes.id, viajeId))
+      .where(whereClause)
       .returning();
 
+    if (!updatedViaje) {
+      return { success: false, error: "Viaje no encontrado o sin permisos" };
+    }
+
     if (updatedViaje?.vehiculoId && typeof kmInicio === "number") {
+      const updateVehicleWhere = isSuperAdmin
+        ? eq(vehicles.id, updatedViaje.vehiculoId)
+        : and(eq(vehicles.id, updatedViaje.vehiculoId), eq(vehicles.empresaId, updatedViaje.empresaId));
       await db
         .update(vehicles)
         .set({ kilometrajeActual: kmInicio })
-        .where(eq(vehicles.id, updatedViaje.vehiculoId));
+        .where(updateVehicleWhere);
     }
 
     revalidatePath("/panel/chofer");
@@ -717,6 +855,12 @@ export async function finalizarViajeChofer(
       return { success: false, error: "No autorizado" };
     }
 
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(viajes.id, viajeId)
+      : and(eq(viajes.id, viajeId), eq(viajes.empresaId, empresaId!));
+
     const updateSet: Record<string, any> = {
       estado: "COMPLETADO",
       fechaFinReal: new Date(),
@@ -731,14 +875,21 @@ export async function finalizarViajeChofer(
     const [updatedViaje] = await db
       .update(viajes)
       .set(updateSet)
-      .where(eq(viajes.id, viajeId))
+      .where(whereClause)
       .returning();
 
+    if (!updatedViaje) {
+      return { success: false, error: "Viaje no encontrado o sin permisos" };
+    }
+
     if (updatedViaje?.vehiculoId && typeof kmFin === "number") {
+      const updateVehicleWhere = isSuperAdmin
+        ? eq(vehicles.id, updatedViaje.vehiculoId)
+        : and(eq(vehicles.id, updatedViaje.vehiculoId), eq(vehicles.empresaId, updatedViaje.empresaId));
       await db
         .update(vehicles)
         .set({ kilometrajeActual: kmFin })
-        .where(eq(vehicles.id, updatedViaje.vehiculoId));
+        .where(updateVehicleWhere);
     }
 
     revalidatePath("/panel/chofer");
@@ -760,6 +911,12 @@ export async function cancelarViaje(
       return { success: false, error: "No autorizado" };
     }
 
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    const empresaId = session.user.empresaId;
+    const whereClause = isSuperAdmin
+      ? eq(viajes.id, viajeId)
+      : and(eq(viajes.id, viajeId), eq(viajes.empresaId, empresaId!));
+
     const updateSet: Record<string, any> = {
       estado: "CANCELADO",
       updatedAt: new Date(),
@@ -772,8 +929,12 @@ export async function cancelarViaje(
     const [updatedViaje] = await db
       .update(viajes)
       .set(updateSet)
-      .where(eq(viajes.id, viajeId))
+      .where(whereClause)
       .returning();
+
+    if (!updatedViaje) {
+      return { success: false, error: "Viaje no encontrado o sin permisos" };
+    }
 
     revalidatePath("/panel/control-flota/viajes");
     revalidatePath("/panel/chofer");

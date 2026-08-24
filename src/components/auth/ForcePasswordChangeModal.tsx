@@ -105,6 +105,8 @@ export function ForcePasswordChangeModal({
       const res = await changeInitialPassword(formData);
       if (res.success) {
         setIsSuccess(true);
+        // El reload re-lee la sesión desde el servidor; el callback jwt de auth.ts
+        // refresca mustChangePassword desde la BD (queda en 0 tras el cambio).
         setTimeout(() => {
           window.location.reload();
         }, 1200);

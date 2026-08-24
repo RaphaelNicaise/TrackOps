@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SupportTicketHeaderButton } from "@/components/soporte/support-ticket-header-button";
 import { ForcePasswordChangeModal } from "@/components/auth/ForcePasswordChangeModal";
 import { SuperadminImpersonationBanner } from "@/components/layout/SuperadminImpersonationBanner";
+import { UserNavDropdown } from "@/components/layout/user-nav-dropdown";
 import Image from "next/image";
 
 export default async function PanelLayout({
@@ -63,16 +64,11 @@ export default async function PanelLayout({
               <span className="bg-accent text-accent-foreground px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider hidden sm:inline-flex">
                 {session?.user?.role || "GUEST"}
               </span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground text-sm hidden sm:block">
-                  {session?.user?.name || session?.user?.email}
-                </span>
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 sm:hidden">
-                  <span className="font-bold text-xs text-primary">
-                    {(session?.user?.name || session?.user?.email || "U").charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              </div>
+              <UserNavDropdown
+                name={session?.user?.name}
+                email={session?.user?.email}
+                role={session?.user?.role}
+              />
             </div>
           </div>
         </header>
