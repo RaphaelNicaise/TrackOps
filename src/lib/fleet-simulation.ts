@@ -425,6 +425,31 @@ class FleetSimulationEngine {
           detail: { alert },
         })
       );
+
+      // Persist alert to database / logs
+      try {
+        fetch("/api/alerts/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            empresaId: 1,
+            modulo: "GEOCERCAS",
+            tipo: alert.tipo,
+            severidad: alert.severidad,
+            titulo: alert.titulo,
+            mensaje: alert.mensaje,
+            patente: alert.patente,
+            vehiculoId: alert.vehicleId,
+            metadata: {
+              geofenceNombre: alert.geofenceNombre,
+              velocidadActual: alert.velocidadActual,
+              limiteVelocidad: alert.limiteVelocidad,
+              lat: alert.lat,
+              lng: alert.lng,
+            },
+          }),
+        }).catch(() => {});
+      } catch {}
     }
   }
 

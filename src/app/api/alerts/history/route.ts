@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getAlertLogs } from "@/lib/alerts/dispatcher";
+import { getAlertLogs, dispatchAlert } from "@/lib/alerts/dispatcher";
 import { isDemoUser } from "@/lib/demo-mode";
 import type { AlertFilterOptions } from "@/types/alerts";
 
@@ -84,6 +84,48 @@ export async function GET(req: Request) {
     console.error("Error in GET /api/alerts/history:", error);
     return NextResponse.json(
       { error: error?.message || "Error al obtener historial de alertas" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    let session = null;
+    try {
+      session = await auth();
+    } catch {
+      // Session fallback
+    }
+
+    let empresaId = 1;
+    if (session?.user?.empresaId) {
+      empresaId = session.user.empresaId;
+    }
+
+    const body = await req.json();
+    const finalEmpresaId = body.empresaId ?? empresaId;
+
+    const result = await dispatchAlert({
+      empresaId: finalEmpresaId,
+      modulo: body.modulo || "GEOCERCAS",
+      tipo: body.tipo || "SPEED_LIMIT",
+      severidad: body.severidad || "MEDIA",
+      titulo: body.titulo,
+      mensaje: body.mensaje,
+      patente: body.patente,
+      vehiculoId: body.vehiculoId,
+      metadata: body.metadata,
+    });
+
+    return NextResponse.json({
+      success: true,
+      result,
+    });
+  } catch (error: any) {
+    console.error("Error in POST /api/alerts/history:", error);
+    return NextResponse.json(
+      { error: error?.message || "Error al registrar alerta" },
       { status: 500 }
     );
   }
