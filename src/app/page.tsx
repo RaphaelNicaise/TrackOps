@@ -10,7 +10,7 @@ import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import Lenis from "lenis";
 import * as Slider from "@radix-ui/react-slider";
 import * as Switch from "@radix-ui/react-switch";
-import { ArrowRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu, Satellite, FolderOpen, Smartphone, Sparkles, Receipt, FileWarning, Wrench, ClipboardList } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Activity, Map, Phone, Users, Shield, Zap, CheckCircle2, ChevronDown, Anchor, Truck, Package, Globe, Briefcase, XCircle, Plus, Minus, Bell, Database, CheckCheck, Clock, Gauge, Fuel, Check, X, ShieldAlert, FileText, Settings, Navigation, AlertTriangle, Menu, Satellite, FolderOpen, Smartphone, Sparkles, Receipt, FileWarning, Wrench, ClipboardList } from "lucide-react";
 
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import LogoLoop from "@/components/LogoLoop";
@@ -250,7 +250,7 @@ export default function LandingPage() {
         },
         ease: "none",
         scrollTrigger: {
-          trigger: "#funciones",
+          trigger: "#soluciones",
           start: "top bottom",
           end: "bottom top",
           scrub: 1
@@ -299,29 +299,72 @@ export default function LandingPage() {
         style={{ transform: 'translateY(0)' }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent`}
       >
-        <header ref={headerRef} className={`w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-300 h-24 md:h-24`}>
-          <Link href="/" className="block relative h-12 md:h-16 group z-50">
+        <header ref={headerRef} className={`w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between transition-all duration-300 h-20 md:h-24`}>
+          {/* Izquierda: Logo */}
+          <Link href="/" className="block relative h-10 md:h-14 group z-50 shrink-0">
             <img src="/trackopslogo.png" alt="TrackOps" className="h-full w-auto object-contain object-left transition-transform group-hover:opacity-90" />
           </Link>
           
-          <nav className="hidden md:flex items-center gap-8 bg-white/50 backdrop-blur-sm border border-transparent px-6 py-2 rounded-full transition-all">
-            <a href="#industrias" onClick={(e) => handleSmoothScroll(e, '#industrias')} className="text-sm font-medium text-[#787774] hover:text-[#1E2227] relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#F2B705] after:transition-all after:duration-300 py-1">Industrias</a>
-            <a href="#funciones" onClick={(e) => handleSmoothScroll(e, '#funciones')} className="text-sm font-medium text-[#787774] hover:text-[#1E2227] relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#F2B705] after:transition-all after:duration-300 py-1">Funcionalidades</a>
-            <a href="#comparativa" onClick={(e) => handleSmoothScroll(e, '#comparativa')} className="text-sm font-medium text-[#787774] hover:text-[#1E2227] relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-[#F2B705] after:transition-all after:duration-300 py-1">Sin vs Con TrackOps</a>
+          {/* Centro: Píldora de Navegación */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 bg-white/80 backdrop-blur-md border border-[#EAEAEA] px-4 py-1.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+            <a
+              href="#soluciones"
+              onClick={(e) => handleSmoothScroll(e, '#soluciones')}
+              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
+            >
+              Soluciones
+            </a>
+            <a
+              href="#como-funciona"
+              onClick={(e) => handleSmoothScroll(e, '#como-funciona')}
+              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
+            >
+              Cómo funciona
+            </a>
+            <a
+              href="#por-que-trackops"
+              onClick={(e) => handleSmoothScroll(e, '#por-que-trackops')}
+              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
+            >
+              Por qué TrackOps
+            </a>
+            <a
+              href="#precios"
+              onClick={(e) => handleSmoothScroll(e, '#precios')}
+              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
+            >
+              Precios
+            </a>
+            <a
+              href="#faq"
+              onClick={(e) => handleSmoothScroll(e, '#faq')}
+              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
+            >
+              FAQ
+            </a>
           </nav>
           
-          <div className="flex items-center gap-2 md:gap-4 relative z-50">
-            <Link href="/login" className="hidden lg:flex items-center gap-2 text-sm font-semibold text-[#1E2227] hover:text-[#787774] transition-colors">
-              <Users size={16} /> Cliente
+          {/* Derecha: Acceso & Conversión */}
+          <div className="flex items-center gap-2 sm:gap-3 relative z-50 shrink-0">
+            <Link
+              href="/auth/login"
+              className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#1E2227] hover:text-[#787774] px-3 py-2 rounded-lg hover:bg-black/5 transition-colors"
+            >
+              <Users size={16} className="text-[#787774]" />
+              <span>Ingresar</span>
             </Link>
-            <a href="#precios" onClick={(e) => handleSmoothScroll(e, '#precios')} className="hidden md:flex bg-transparent text-[#1E2227] text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-black/5 transition-all duration-200 border border-[#1E2227]/20">
-              Ver Precios
-            </a>
-            <Link href="/demo" className="hidden md:flex bg-[#F2B705] text-[#1E2227] text-xs md:text-sm font-bold px-4 py-2 md:px-5 md:py-2.5 rounded-lg hover:bg-[#e0aa04] hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap">
-              Probar Demo ¡Ya!
+            <Link
+              href="/demo"
+              className="bg-[#F2B705] text-[#1E2227] text-xs sm:text-sm font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl hover:bg-[#e0aa04] hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap"
+            >
+              Probar Demo
             </Link>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-[#1E2227] p-2 ml-2 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors">
-              {mobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden text-[#1E2227] p-2 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors"
+              aria-label="Abrir menú de navegación"
+            >
+              {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
           </div>
         </header>
@@ -334,12 +377,22 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl pt-24 px-6 flex flex-col gap-6 md:hidden border-b border-[#EAEAEA] shadow-2xl h-[400px]"
+            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl pt-28 px-6 flex flex-col gap-3 lg:hidden border-b border-[#EAEAEA] shadow-2xl h-auto pb-8 overflow-y-auto"
           >
-            <a href="#industrias" onClick={(e) => handleSmoothScroll(e, '#industrias')} className="text-xl font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-4">Soluciones por Industria</a>
-            <a href="#funciones" onClick={(e) => handleSmoothScroll(e, '#funciones')} className="text-xl font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-4">Funcionalidades</a>
-            <a href="#comparativa" onClick={(e) => handleSmoothScroll(e, '#comparativa')} className="text-xl font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-4">TrackOps vs GPS</a>
-            <a href="/login" onClick={() => setMobileMenuOpen(false)} className="text-xl font-medium text-[#787774] pb-4">Iniciar Sesión</a>
+            <a href="#soluciones" onClick={(e) => handleSmoothScroll(e, '#soluciones')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Soluciones</a>
+            <a href="#como-funciona" onClick={(e) => handleSmoothScroll(e, '#como-funciona')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Cómo funciona</a>
+            <a href="#por-que-trackops" onClick={(e) => handleSmoothScroll(e, '#por-que-trackops')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Por qué TrackOps</a>
+            <a href="#precios" onClick={(e) => handleSmoothScroll(e, '#precios')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Precios</a>
+            <a href="#faq" onClick={(e) => handleSmoothScroll(e, '#faq')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Preguntas Frecuentes</a>
+            
+            <div className="flex flex-col gap-3 pt-3">
+              <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 text-sm font-semibold text-[#1E2227] py-3 rounded-xl border border-[#EAEAEA] bg-[#F6F4EE]">
+                <Users size={16} /> Ingresar
+              </Link>
+              <Link href="/demo" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center text-sm font-bold text-[#1E2227] py-3 rounded-xl bg-[#F2B705] hover:bg-[#e0aa04]">
+                Probar Demo
+              </Link>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -349,11 +402,11 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-[#F2B705]/10 to-transparent rounded-full blur-[120px] pointer-events-none -z-10" />
         
         <div ref={heroTextRef} className="max-w-5xl w-full text-center relative z-10">
-          <h1 className="font-[var(--font-playfair)] text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] tracking-tight text-[#1E2227] mb-6 max-w-4xl mx-auto">
+          <h1 className="font-sans font-extrabold text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] tracking-tight text-[#1E2227] mb-6 max-w-4xl mx-auto">
             Control total de tu flota,<br className="hidden md:block" /> en tiempo real.
           </h1>
           
-          <p className="text-lg md:text-xl text-[#787774] max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="font-sans font-normal text-lg md:text-xl text-[#787774] max-w-2xl mx-auto mb-10 leading-relaxed">
             Rastreo satelital, alertas inteligentes, mantenimiento preventivo y control de combustible en una sola plataforma. Soporte humano y cobertura en todo el país.
           </p>
           
@@ -366,12 +419,12 @@ export default function LandingPage() {
             </a>
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#1E2227] font-medium bg-[#F6F4EE] py-3 px-6 rounded-full inline-flex mx-auto border border-[#EAEAEA]">
-            <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-[#346538]" /> +15% Ahorro de combustible</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-mono uppercase tracking-wider text-[#1E2227] bg-[#F6F4EE] py-3 px-6 rounded-full inline-flex mx-auto border border-[#EAEAEA] tabular-nums">
+            <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-[#346538]" /> +15% Ahorro Combustible</span>
             <span className="hidden md:block text-[#EAEAEA]">|</span>
-            <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-[#346538]" /> 100% Control de mantenimientos</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-[#346538]" /> 100% Control Mantenimientos</span>
             <span className="hidden md:block text-[#EAEAEA]">|</span>
-            <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-[#346538]" /> Cero multas por vencimientos</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-[#346538]" /> 0 Multas por Vencimientos</span>
           </div>
         </div>
 
@@ -489,15 +542,15 @@ export default function LandingPage() {
       </section>
 
       {/* 3 Simples Pasos (Implementación) - Editorial & Sticky */}
-      <section id="implementacion" className="py-32 md:py-48 px-6 bg-[#FBFBFA] border-b border-[#EAEAEA] relative">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-16 md:gap-24 items-start">
+      <section id="como-funciona" className="py-32 md:py-48 px-6 bg-[#FBFBFA] border-b border-[#EAEAEA] relative">
+        <div id="implementacion" className="max-w-6xl mx-auto flex flex-col md:flex-row gap-16 md:gap-24 items-start">
           
           {/* Sticky Left Column */}
           <div className="md:w-5/12 md:sticky top-32">
-            <h2 className="font-[var(--font-playfair)] text-5xl md:text-6xl text-[#1E2227] mb-6 leading-[1.1] tracking-tight">
+            <h2 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl text-[#1E2227] mb-6 leading-[1.1] tracking-tight">
               De los papeles al control total.
             </h2>
-            <p className="text-[#787774] text-xl leading-relaxed mb-8">
+            <p className="font-sans font-normal text-[#787774] text-xl leading-relaxed mb-8">
               Sin implementaciones eternas. Diseñado para que arranques a gestionar tu flota hoy mismo, en 3 simples pasos.
             </p>
             <div className="hidden md:block w-full h-[1px] bg-[#EAEAEA] mt-12"></div>
@@ -508,7 +561,7 @@ export default function LandingPage() {
             
             {/* Paso 1 */}
             <div className="reveal-up group relative">
-              <div className="step-number text-[100px] md:text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+              <div className="step-number text-[100px] md:text-[120px] leading-none font-mono font-extrabold tabular-nums text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
                 01
               </div>
               <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -522,7 +575,7 @@ export default function LandingPage() {
 
             {/* Paso 2 */}
             <div className="reveal-up group relative">
-              <div className="step-number text-[100px] md:text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+              <div className="step-number text-[100px] md:text-[120px] leading-none font-mono font-extrabold tabular-nums text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
                 02
               </div>
               <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -536,7 +589,7 @@ export default function LandingPage() {
 
             {/* Paso 3 */}
             <div className="reveal-up group relative">
-              <div className="step-number text-[100px] md:text-[120px] leading-none font-[var(--font-playfair)] text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
+              <div className="step-number text-[100px] md:text-[120px] leading-none font-mono font-extrabold tabular-nums text-[#EAEAEA] absolute -top-10 md:-top-12 left-0 md:-left-8 -z-10 group-hover:text-[#F2B705]/20 transition-colors duration-700 select-none">
                 03
               </div>
               <div className="w-16 h-16 bg-white border border-[#EAEAEA] rounded-full flex items-center justify-center mb-8 text-[#1E2227] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
@@ -553,11 +606,11 @@ export default function LandingPage() {
       </section>
 
       {/* Geolocker Style Comparison Table */}
-      <section id="comparativa" className="py-24 md:py-32 px-6 bg-[#1E2227] text-white">
-        <div className="max-w-4xl mx-auto">
+      <section id="por-que-trackops" className="py-24 md:py-32 px-6 bg-[#1E2227] text-white">
+        <div id="comparativa" className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl mb-6">No somos solo un GPS.</h2>
-            <p className="text-[#A1A1AA] text-lg">La diferencia entre saber dónde está un camión y tener el control absoluto de tu operación logística y financiera.</p>
+            <h2 className="font-sans font-extrabold text-4xl md:text-5xl mb-6 tracking-tight">No somos solo un GPS.</h2>
+            <p className="font-sans font-normal text-[#A1A1AA] text-lg">La diferencia entre saber dónde está un camión y tener el control absoluto de tu operación logística y financiera.</p>
           </div>
 
           <div className="bg-[#181B1F] border border-[#333] rounded-2xl overflow-hidden shadow-2xl">
@@ -621,7 +674,8 @@ export default function LandingPage() {
       </section>
 
       {/* Módulos (Features) */}
-      <section id="funciones" className="py-24 md:py-32 px-6 bg-[#F6F4EE] border-b border-[#EAEAEA] relative overflow-hidden">
+      <section id="soluciones" className="py-24 md:py-32 px-6 bg-[#F6F4EE] border-b border-[#EAEAEA] relative overflow-hidden">
+        <div id="funciones" className="hidden" />
         {/* Animated Dashed Route Background */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40 hidden md:block">
           <svg className="w-full h-full" viewBox="0 0 1440 800" preserveAspectRatio="none">
@@ -635,8 +689,8 @@ export default function LandingPage() {
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="mb-16 md:mb-24 text-center max-w-3xl mx-auto">
-            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl lg:text-6xl mb-6 text-[#1E2227]">Todo lo que necesitás para que tu flota deje de perder plata.</h2>
-            <p className="text-[#787774] text-lg">Módulos diseñados para atacar los focos de pérdida en logística: combustible, roturas y multas.</p>
+            <h2 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl mb-6 text-[#1E2227] tracking-tight">Todo lo que necesitás para que tu flota deje de perder plata.</h2>
+            <p className="font-sans font-normal text-[#787774] text-lg">Módulos diseñados para atacar los focos de pérdida en logística: combustible, roturas y multas.</p>
           </div>
           
           {/* Mobile Scroll Stack (Visually hidden on desktop) */}
@@ -655,7 +709,7 @@ export default function LandingPage() {
                 <div className="absolute top-4 right-4 bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20 z-10">
                   <Sparkles size={10} /> NUEVO
                 </div>
-                <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-4 text-[#9F2F2D]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <Receipt size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2 pr-16">Carga con IA</h3>
@@ -665,7 +719,7 @@ export default function LandingPage() {
               </ScrollStackItem>
 
               <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-[#F2B705]/10 rounded flex items-center justify-center mb-4 text-[#F2B705]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <FileWarning size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Cero multas</h3>
@@ -675,7 +729,7 @@ export default function LandingPage() {
               </ScrollStackItem>
 
               <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-[#E1F3FE] rounded flex items-center justify-center mb-4 text-[#1F6C9F]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <Wrench size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Service Automático</h3>
@@ -685,7 +739,7 @@ export default function LandingPage() {
               </ScrollStackItem>
 
               <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-4 text-purple-700">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <Map size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Telemetría 24/7</h3>
@@ -695,7 +749,7 @@ export default function LandingPage() {
               </ScrollStackItem>
 
               <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-[#1E2227] rounded flex items-center justify-center mb-4 text-white">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <ClipboardList size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Auditoría Ficha Única</h3>
@@ -711,10 +765,13 @@ export default function LandingPage() {
             
             {/* Tarjeta 1 */}
             <BentoCard className="reveal-up col-span-1 md:col-span-2 lg:col-span-2">
-              <div className="absolute top-6 right-6 bg-[#E7FFDB] text-[#075E54] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20 z-10">
-                <Sparkles size={12} /> NUEVO
+              <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
+                <div className="bg-[#E7FFDB] text-[#075E54] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20">
+                  <Sparkles size={12} /> NUEVO
+                </div>
+                <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
               </div>
-              <div className="w-12 h-12 bg-[#FDEBEC] rounded flex items-center justify-center mb-6 text-[#9F2F2D] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <Receipt size={24} />
               </div>
               <h3 className="text-2xl font-semibold text-[#1E2227] mb-3 pr-24 transition-colors duration-300 group-hover:text-[#111]">Carga de tickets con Inteligencia Artificial</h3>
@@ -723,7 +780,10 @@ export default function LandingPage() {
 
             {/* Tarjeta 2 */}
             <BentoCard className="reveal-up col-span-1">
-              <div className="w-12 h-12 bg-[#F2B705]/10 rounded flex items-center justify-center mb-6 text-[#F2B705] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+              <div className="absolute top-6 right-6 z-10">
+                <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+              </div>
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <FileWarning size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Cero multas por papeles vencidos</h3>
@@ -732,7 +792,10 @@ export default function LandingPage() {
 
             {/* Tarjeta 3 */}
             <BentoCard className="reveal-up col-span-1">
-              <div className="w-12 h-12 bg-[#E1F3FE] rounded flex items-center justify-center mb-6 text-[#1F6C9F] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+              <div className="absolute top-6 right-6 z-10">
+                <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+              </div>
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <Wrench size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Mantenimiento Predictivo Automático</h3>
@@ -741,7 +804,10 @@ export default function LandingPage() {
 
             {/* Tarjeta 4 */}
             <BentoCard className="reveal-up col-span-1">
-              <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-6 text-purple-700 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+              <div className="absolute top-6 right-6 z-10">
+                <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+              </div>
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <Map size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Historial, Geocercas y Telemetría 24/7</h3>
@@ -750,7 +816,10 @@ export default function LandingPage() {
 
             {/* Tarjeta 5 */}
             <BentoCard className="reveal-up col-span-1 md:col-span-2 lg:col-span-1">
-              <div className="w-12 h-12 bg-[#1E2227] rounded flex items-center justify-center mb-6 text-white transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+              <div className="absolute top-6 right-6 z-10">
+                <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
+              </div>
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <ClipboardList size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Auditoría y Ficha Única del Vehículo</h3>
@@ -765,8 +834,8 @@ export default function LandingPage() {
       <section id="precios" className="py-24 md:py-40 px-6 bg-white relative">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="font-[var(--font-playfair)] text-4xl md:text-5xl text-[#1E2227] mb-6">Inversión con Retorno Inmediato</h2>
-            <p className="text-[#787774] text-lg">Pagas según tu flota real. La instalación del hardware GPS está <strong className="text-[#1E2227]">incluida en el alta</strong>.</p>
+            <h2 className="font-sans font-extrabold text-4xl md:text-5xl text-[#1E2227] mb-6 tracking-tight">Inversión con Retorno Inmediato</h2>
+            <p className="font-sans font-normal text-[#787774] text-lg">Pagas según tu flota real. La instalación del hardware GPS está <strong className="text-[#1E2227]">incluida en el alta</strong>.</p>
           </div>
 
 
@@ -776,7 +845,7 @@ export default function LandingPage() {
               <div>
                 <label className="text-[#1E2227] font-medium text-lg mb-2 block flex justify-between items-center">
                   <span>Tamaño de tu flota</span>
-                  <span className="bg-[#1E2227] text-white text-sm font-mono px-3 py-1 rounded">
+                  <span className="bg-[#1E2227] text-white text-sm font-mono px-3 py-1 rounded tabular-nums">
                     {vehicles[0] === 50 ? '+50' : vehicles[0]} {vehicles[0] === 1 ? 'vehículo' : 'vehículos'}
                   </span>
                 </label>
@@ -823,7 +892,7 @@ export default function LandingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="font-[var(--font-playfair)] text-5xl md:text-6xl font-semibold text-[#1E2227]"
+                    className="font-mono font-extrabold text-5xl md:text-6xl text-[#1E2227] tracking-tight tabular-nums"
                   >
                     {new Intl.NumberFormat('es-AR').format(currentPrice)}
                   </motion.span>
@@ -868,9 +937,9 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section with Shadcn Accordion */}
-      <section className="py-24 px-6 bg-[#F6F4EE] border-t border-[#EAEAEA]">
+      <section id="faq" className="py-24 px-6 bg-[#F6F4EE] border-t border-[#EAEAEA]">
         <div className="max-w-3xl mx-auto">
-          <h2 className="font-[var(--font-playfair)] text-4xl text-[#1E2227] mb-12 text-center">Preguntas Frecuentes</h2>
+          <h2 className="font-sans font-extrabold text-4xl text-[#1E2227] mb-12 text-center tracking-tight">Preguntas Frecuentes</h2>
           
           <Accordion type="single" collapsible className="w-full bg-white rounded-2xl border border-[#EAEAEA] shadow-sm p-2">
             {[

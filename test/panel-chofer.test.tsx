@@ -149,7 +149,6 @@ const mockTripsTest: ViajeRow[] = [
     choferNombre: "Juan Carlos Pérez",
     vehiculoId: 1,
     vehiculoPatente: "AB 123 CD",
-    vehiculoModelo: "Ford Ranger",
     origenTipo: "SITIO",
     origenSitioId: 1,
     origenNombre: "Planta Zárate (Central)",
@@ -183,7 +182,6 @@ const mockTripsTest: ViajeRow[] = [
     choferNombre: "Juan Carlos Pérez",
     vehiculoId: 1,
     vehiculoPatente: "AB 123 CD",
-    vehiculoModelo: "Ford Ranger",
     origenTipo: "SITIO",
     origenSitioId: 2,
     origenNombre: "Depósito Logístico Rosario",
@@ -217,7 +215,6 @@ const mockTripsTest: ViajeRow[] = [
     choferNombre: "Juan Carlos Pérez",
     vehiculoId: 1,
     vehiculoPatente: "AB 123 CD",
-    vehiculoModelo: "Ford Ranger",
     origenTipo: "SITIO",
     origenSitioId: 1,
     origenNombre: "Planta Zárate (Central)",
@@ -359,8 +356,8 @@ describe("Driver Dashboard & Panel Chofer (/panel/chofer)", () => {
       const page = await ChoferPage();
       const html = renderToStaticMarkup(page);
 
-      expect(html).toContain("Juan Carlos");
       expect(html).toContain("Combustible");
+      expect(html).toContain("Viaje en Curso");
     });
   });
 

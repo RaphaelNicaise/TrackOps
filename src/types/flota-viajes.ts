@@ -32,6 +32,8 @@ export interface ChoferRow {
   estado: ChoferEstado;
   vehiculoHabitualId?: number | null;
   notas?: string | null;
+  fotoDniFrente?: string | null;
+  fotoDniDorso?: string | null;
   createdAt: Date;
   updatedAt: Date;
   // Joins opcionales para vistas
@@ -54,10 +56,12 @@ export interface CreateChoferInput {
   estado?: ChoferEstado;
   vehiculoHabitualId?: number | null;
   notas?: string | null;
+  fotoDniFrente?: string | null;
+  fotoDniDorso?: string | null;
 }
 
 export interface UpdateChoferInput extends Partial<CreateChoferInput> {
-  id: number;
+  id?: number;
 }
 
 export interface SitioRow {
@@ -94,7 +98,7 @@ export interface CreateSitioInput {
 }
 
 export interface UpdateSitioInput extends Partial<CreateSitioInput> {
-  id: number;
+  id?: number;
 }
 
 export interface ViajeRow {

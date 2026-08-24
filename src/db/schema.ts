@@ -8,6 +8,8 @@ import {
   varchar,
   doublePrecision,
   customType,
+  uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "next-auth/adapters"
 
@@ -103,7 +105,7 @@ export const verificationTokens = pgTable(
 export const vehicles = pgTable("vehicles", {
   id: serial("id").primaryKey(),
   empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
-  patente: varchar("patente", { length: 20 }).notNull().unique(),
+  patente: varchar("patente", { length: 20 }).notNull(),
   modelo: text("modelo").notNull(),
   marca: text("marca").notNull(),
   anio: integer("anio"),
@@ -112,10 +114,14 @@ export const vehicles = pgTable("vehicles", {
   kilometrajeActual: integer("kilometraje_actual").default(0).notNull(),
   rto: timestamp("rto"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  empresaPatenteIdx: uniqueIndex("vehicles_empresa_patente_idx").on(table.empresaId, table.patente),
+  empresaIdx: index("vehicles_empresa_idx").on(table.empresaId),
+}));
 
 export const maintenanceLogs = pgTable("maintenance_logs", {
   id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
   vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
   fecha: timestamp("fecha").notNull(),
   kilometraje: integer("kilometraje").notNull(),
@@ -123,19 +129,27 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
   taller: text("taller"),
   descripcion: text("descripcion"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  empresaIdx: index("maintenance_logs_empresa_idx").on(table.empresaId),
+  vehicleIdx: index("maintenance_logs_vehicle_idx").on(table.vehicleId),
+}));
 
 export const gpsLogs = pgTable("gps_logs", {
   id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
   vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
   lat: doublePrecision("lat").notNull(),
   lng: doublePrecision("lng").notNull(),
   speed: doublePrecision("speed").default(0),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
-});
+}, (table) => ({
+  empresaIdx: index("gps_logs_empresa_idx").on(table.empresaId),
+  vehicleIdx: index("gps_logs_vehicle_idx").on(table.vehicleId),
+}));
 
 export const fuelTickets = pgTable("fuel_tickets", {
   id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
   vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
   fecha: timestamp("fecha").notNull(),
   litros: doublePrecision("litros").notNull(),
@@ -143,20 +157,27 @@ export const fuelTickets = pgTable("fuel_tickets", {
   kilometraje: integer("kilometraje").notNull(),
   ticketUrl: text("ticket_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  empresaIdx: index("fuel_tickets_empresa_idx").on(table.empresaId),
+  vehicleIdx: index("fuel_tickets_vehicle_idx").on(table.vehicleId),
+}));
 
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
   vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
   tipoDocumento: varchar("tipo_documento", { length: 50 }).notNull(), // vtv, seguro, ruta
   fechaVencimiento: timestamp("fecha_vencimiento").notNull(),
   fileUrl: text("file_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
+}, (table) => ({
+  empresaIdx: index("documents_empresa_idx").on(table.empresaId),
+  vehicleIdx: index("documents_vehicle_idx").on(table.vehicleId),
+}));
 
 export const shiftLogs = pgTable("shift_logs", {
   id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
   vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
   userId: text("user_id").references(() => users.id).notNull(),
   startTime: timestamp("start_time").notNull(),
@@ -164,16 +185,23 @@ export const shiftLogs = pgTable("shift_logs", {
   startKm: integer("start_km").notNull(),
   endKm: integer("end_km"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  empresaIdx: index("shift_logs_empresa_idx").on(table.empresaId),
+  vehicleIdx: index("shift_logs_vehicle_idx").on(table.vehicleId),
+}));
 
 export const maintenancePlans = pgTable("maintenance_plans", {
   id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
   vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
   componente: varchar("componente", { length: 100 }).notNull(), // ej. "Aceite y Filtros", "Pastillas de Freno"
   intervaloKm: integer("intervalo_km").notNull(), // ej. 10000
   ultimoServiceKm: integer("ultimo_service_km").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  empresaIdx: index("maintenance_plans_empresa_idx").on(table.empresaId),
+  vehicleIdx: index("maintenance_plans_vehicle_idx").on(table.vehicleId),
+}));
 
 // ═══════════════════════════════════════════════════════════
 // Nuevas tablas — Reestructuración MVP
@@ -251,6 +279,7 @@ export type NewAlertConfig = typeof alertConfigs.$inferInsert;
 
 export const gpsInstallations = pgTable("gps_installations", {
   id: serial("id").primaryKey(),
+  empresaId: integer("empresa_id").references(() => empresas.id).notNull(),
   vehicleId: integer("vehicle_id").references(() => vehicles.id).notNull(),
   instaladorId: text("instalador_id").references(() => users.id),
   dispositivoModelo: text("dispositivo_modelo"),
@@ -259,7 +288,10 @@ export const gpsInstallations = pgTable("gps_installations", {
   fechaInstalacion: timestamp("fecha_instalacion"),
   notas: text("notas"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  empresaIdx: index("gps_installations_empresa_idx").on(table.empresaId),
+  vehicleIdx: index("gps_installations_vehicle_idx").on(table.vehicleId),
+}));
 
 export const documentCategories = pgTable("document_categories", {
   id: serial("id").primaryKey(),
@@ -417,6 +449,8 @@ export const choferes = pgTable("choferes", {
   estado: varchar("estado", { length: 30 }).default("ACTIVO").notNull(),
   vehiculoHabitualId: integer("vehiculo_habitual_id").references(() => vehicles.id, { onDelete: "set null" }),
   notas: text("notas"),
+  fotoDniFrente: text("foto_dni_frente"),
+  fotoDniDorso: text("foto_dni_dorso"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
-import { Outfit, Playfair_Display } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { UmamiAnalytics } from "@/components/umami-analytics";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 
-const outfit = Outfit({ 
+const plusJakarta = Plus_Jakarta_Sans({ 
   subsets: ["latin"],
-  variable: "--font-outfit",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
-const playfair = Playfair_Display({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning className={`${outfit.variable} ${playfair.variable}`}>
+    <html lang="es" suppressHydrationWarning className={`${plusJakarta.variable} ${jetbrainsMono.variable} font-sans`}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -35,7 +39,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="overflow-x-hidden w-full max-w-full font-sans">
+      <body className="overflow-x-hidden w-full max-w-full font-sans antialiased bg-[#F6F4EE] text-[#1E2227] dark:bg-[#1E2227] dark:text-[#F6F4EE]">
         <ThemeProvider>
           {children}
           <AppAlertProvider />

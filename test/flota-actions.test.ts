@@ -109,6 +109,7 @@ import {
   createChofer,
   updateChofer,
   deleteChofer,
+  updateChoferCredentials,
   getSitios,
   createSitio,
   updateSitio,
@@ -376,6 +377,45 @@ describe("Flota Server Actions (flota-actions.ts)", () => {
 
         expect(res.success).toBe(true);
         expect(mockDelete).toHaveBeenCalled();
+        expect(revalidatePath).toHaveBeenCalledWith("/panel/control-flota/choferes");
+      });
+    });
+
+    describe("updateChoferCredentials", () => {
+      it("should fail if password is shorter than 4 characters", async () => {
+        const res = await updateChoferCredentials(1, "123");
+        expect(res.success).toBe(false);
+        expect(res.error).toContain("4 caracteres");
+      });
+
+      it("should update password of existing linked user", async () => {
+        mockWhere.mockImplementationOnce(() => ({
+          then: (resolve: any) =>
+            Promise.resolve([
+              { id: 1, userId: "usr-chofer-1", nombre: "Juan", apellido: "Pérez", dni: "30111222" },
+            ]).then(resolve),
+        }));
+
+        const res = await updateChoferCredentials(1, "nueva_clave_segura");
+
+        expect(res.success).toBe(true);
+        expect(mockUpdate).toHaveBeenCalled();
+        expect(revalidatePath).toHaveBeenCalledWith("/panel/control-flota/choferes");
+      });
+
+      it("should create a new user account if chofer has no linked userId", async () => {
+        mockWhere.mockImplementationOnce(() => ({
+          then: (resolve: any) =>
+            Promise.resolve([
+              { id: 1, userId: null, nombre: "Juan", apellido: "Pérez", dni: "30111222", empresaId: 10 },
+            ]).then(resolve),
+        }));
+        mockInsertReturning.mockResolvedValueOnce([{ id: "new-user-123" }]);
+
+        const res = await updateChoferCredentials(1, "clave1234");
+
+        expect(res.success).toBe(true);
+        expect(mockInsert).toHaveBeenCalled();
         expect(revalidatePath).toHaveBeenCalledWith("/panel/control-flota/choferes");
       });
     });
