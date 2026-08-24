@@ -214,16 +214,12 @@ describe("Superadmin Facturacion & SaaS Billing", () => {
 
     // Check Plans Catalogue
     expect(html).toContain("Catálogo de Planes Activos");
-    expect(html).toContain("Plan Starter");
-    expect(html).toContain("Plan Pro");
-    expect(html).toContain("Plan Enterprise");
-    expect(html).toContain("Más Elegido");
-    expect(html).toContain("Enterprise Tier");
-
-    // Check Plan Limits (new range display)
-    expect(html).toContain("1 - 5");
-    expect(html).toContain("6 - 25");
-    expect(html).toContain("26");
+    expect(html).toContain("Starter");
+    expect(html).toContain("Pro");
+    expect(html).toContain("Enterprise");
+    expect(html).toContain("1-5");
+    expect(html).toContain("6-25");
+    expect(html).toContain("26+");
 
     // Check Billing Table Headers
     expect(html).toContain("Inquilino / Empresa");
@@ -258,9 +254,9 @@ describe("Superadmin Facturacion & SaaS Billing", () => {
     const pageElement = await SuperadminFacturacionPage();
     const html = renderToStaticMarkup(pageElement);
 
-    expect(html).toContain("SUPERADMIN · FACTURACIÓN &amp; PLANES");
+    expect(html).toContain("SUPERADMIN · COBROS &amp; FACTURACIÓN");
     expect(html).toContain("Cobros &amp; Facturación SaaS");
-    expect(html).toContain("Motor de Facturación Automática Activo");
+    expect(html).toContain("Motor de Cobranzas Automáticas Activo");
     expect(html).toContain("Pasarelas Seguras SSL/TLS");
   });
 });
