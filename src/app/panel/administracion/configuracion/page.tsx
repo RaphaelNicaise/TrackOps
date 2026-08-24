@@ -2,6 +2,7 @@ import React from "react";
 import { auth } from "@/auth";
 import { getAlertConfigAction } from "@/lib/alert-config-actions";
 import { AlertsConfigForm } from "@/components/configuracion/AlertsConfigForm";
+import { FleetSimulationControl } from "@/components/configuracion/FleetSimulationControl";
 import { Badge } from "@/components/ui/badge";
 import { Settings } from "lucide-react";
 
@@ -38,6 +39,9 @@ export default async function ConfiguracionPage() {
           </div>
         </div>
       </div>
+
+      {/* Simulator Control Card */}
+      <FleetSimulationControl />
 
       {/* Main Alerts Configuration Form */}
       <AlertsConfigForm initialConfig={config} />

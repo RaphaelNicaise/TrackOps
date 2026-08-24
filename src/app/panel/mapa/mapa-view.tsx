@@ -23,12 +23,19 @@ import {
   Minimize2,
   Shield,
   MapPin,
+  Radio,
+  Play,
+  RotateCcw,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import type { MockVehiculo } from "@/lib/mock-vehicles";
 import { Geofence } from "@/types/geofence";
 import type { SitioRow } from "@/types/flota-viajes";
+import { simulationEngine, type SimulatedAlert } from "@/lib/fleet-simulation";
+import { appAlert } from "@/lib/alerts";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,6 +109,52 @@ export function MapaView({
   const [vehicles, setVehicles] = useState<MapVehicle[]>(() =>
     (initialVehicles ?? []).map(normalizeVehicle)
   );
+  const [isSimRunning, setIsSimRunning] = useState<boolean>(false);
+  const [activeSimAlert, setActiveSimAlert] = useState<SimulatedAlert | null>(null);
+
+  // Sync with Simulation Engine on mount & listen to live ticks
+  useEffect(() => {
+    setIsSimRunning(simulationEngine.getIsRunning());
+
+    if (typeof window !== "undefined" && localStorage.getItem("trackops_sim_active") === "true") {
+      if (!simulationEngine.getIsRunning()) {
+        simulationEngine.start();
+        setIsSimRunning(true);
+      }
+    }
+
+    const handleVehiclesUpdated = (e: any) => {
+      if (e.detail?.vehicles && Array.isArray(e.detail.vehicles)) {
+        setVehicles(e.detail.vehicles.map(normalizeVehicle));
+      }
+    };
+
+    const handleSimulationState = (e: any) => {
+      if (e.detail) {
+        setIsSimRunning(e.detail.isRunning);
+      }
+    };
+
+    const handleSimAlert = (e: any) => {
+      if (e.detail?.alert) {
+        const alert: SimulatedAlert = e.detail.alert;
+        setActiveSimAlert(alert);
+        setTimeout(() => {
+          setActiveSimAlert((current) => (current?.id === alert.id ? null : current));
+        }, 5500);
+      }
+    };
+
+    window.addEventListener("trackops:vehicles-updated", handleVehiclesUpdated);
+    window.addEventListener("trackops:simulation-state-change", handleSimulationState);
+    window.addEventListener("trackops:simulation-alert", handleSimAlert);
+
+    return () => {
+      window.removeEventListener("trackops:vehicles-updated", handleVehiclesUpdated);
+      window.removeEventListener("trackops:simulation-state-change", handleSimulationState);
+      window.removeEventListener("trackops:simulation-alert", handleSimAlert);
+    };
+  }, []);
 
   // Fetch real fleet from DB on mount (la cuenta demo recibe su flota simulada)
   useEffect(() => {
@@ -122,6 +175,7 @@ export function MapaView({
       .then((data) => {
         if (Array.isArray(data)) {
           setGeofences(data);
+          simulationEngine.setGeofences(data);
         }
       })
       .catch((err) => console.error("Error fetching geofences:", err));
@@ -210,8 +264,35 @@ export function MapaView({
         />
       </div>
 
-      {/* Top Right Controls: Fullscreen, Geocercas & Sitios */}
+      {/* Top Right Controls: Fullscreen, Geocercas, Sitios & Simulación */}
       <div className="absolute top-4 right-4 z-20 flex flex-col items-center gap-2">
+        {/* Toggle Live Fleet Simulation Button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className={`h-10 w-10 rounded-xl shadow-lg transition-all backdrop-blur-md select-none hover:scale-105 ${
+            isSimRunning
+              ? "bg-emerald-500/15 border-emerald-500/60 text-emerald-500 ring-2 ring-emerald-500/30 hover:bg-emerald-500/20"
+              : "bg-background/95 border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+          }`}
+          onClick={() => {
+            simulationEngine.toggle();
+            const nextState = !isSimRunning;
+            if (nextState) {
+              appAlert.success("Simulación de telemetría en vivo iniciada (Bahía Blanca)");
+            } else {
+              appAlert.info("Simulación de movimiento pausada");
+            }
+          }}
+          title={isSimRunning ? "Pausar simulación en vivo (Bahía Blanca)" : "Iniciar simulación de telemetría en vivo (Bahía Blanca)"}
+        >
+          <Radio
+            className={`w-4 h-4 transition-transform ${
+              isSimRunning ? "animate-pulse text-emerald-500" : ""
+            }`}
+          />
+        </Button>
+
         {/* Fullscreen Button */}
         <Button
           variant="outline"
@@ -265,6 +346,36 @@ export function MapaView({
           />
         </Button>
       </div>
+
+      {/* Live Simulation Floating Alert Banner */}
+      {activeSimAlert && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 max-w-md w-[90%] pointer-events-auto transition-all animate-in fade-in slide-in-from-top-4 duration-300">
+          <div
+            className={`p-3 rounded-2xl shadow-2xl border backdrop-blur-md flex items-start gap-3 ${
+              activeSimAlert.severidad === "CRITICA" || activeSimAlert.severidad === "ALTA"
+                ? "bg-destructive/90 border-destructive/80 text-destructive-foreground shadow-destructive/20"
+                : activeSimAlert.tipo === "SPEED_LIMIT"
+                ? "bg-amber-600/90 border-amber-500/80 text-white shadow-amber-500/20"
+                : "bg-blue-600/90 border-blue-500/80 text-white shadow-blue-500/20"
+            }`}
+          >
+            <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <Radio className="h-4 w-4 animate-pulse" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-xs tracking-tight truncate">{activeSimAlert.titulo}</span>
+                <span className="text-[10px] font-mono opacity-80 shrink-0">
+                  {activeSimAlert.timestamp.toLocaleTimeString("es-AR")}
+                </span>
+              </div>
+              <p className="text-[11px] mt-0.5 opacity-90 line-clamp-2">
+                {activeSimAlert.mensaje}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Toggle Button (if closed) */}
       {!isListOpen && (
