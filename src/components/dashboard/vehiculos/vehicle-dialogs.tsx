@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { updateVehicle, deleteVehicle, createVehicle } from "@/lib/vehicle-actions";
 
 export type VehiculoEditable = {
@@ -93,17 +94,17 @@ export function EditVehicleDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="tipo">Tipo</Label>
-              <select
+              <NativeSelect
                 id="tipo"
                 name="tipo"
                 defaultValue={vehicle.tipo ?? ""}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                sizeVariant="lg"
               >
                 <option value="">—</option>
                 {TIPOS.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-2">
               <Label htmlFor="marca">Marca</Label>
@@ -253,11 +254,11 @@ export function CreateVehicleDialog() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-tipo">Tipo</Label>
-              <select
+              <NativeSelect
                 id="create-tipo"
                 name="tipo"
                 defaultValue="Camión"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                sizeVariant="lg"
               >
                 <option value="">—</option>
                 {TIPOS.map((t) => (
@@ -265,7 +266,7 @@ export function CreateVehicleDialog() {
                     {t}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-marca">Marca</Label>

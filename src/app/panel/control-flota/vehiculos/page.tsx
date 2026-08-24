@@ -3,12 +3,15 @@ import { db } from "@/db";
 import { vehicles, vehicleDocuments } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { mockVehiculos } from "@/lib/mock-vehicles";
+import { isDemoSession } from "@/lib/demo-mode";
 import { VehiculosTable } from "@/components/dashboard/vehiculos/vehiculos-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function VehiculosPage() {
   let rows;
+
+  const demo = await isDemoSession();
 
   try {
     const session = await auth();
@@ -33,13 +36,15 @@ export default async function VehiculosPage() {
       .groupBy(vehicles.id)
       .orderBy(vehicles.patente);
 
-    if (!rows || rows.length === 0) {
+    if (demo && (!rows || rows.length === 0)) {
       rows = mockVehiculos;
     }
   } catch (error) {
     console.warn("VehiculosPage DB fallback:", error);
-    rows = mockVehiculos;
+    if (demo) {
+      rows = mockVehiculos;
+    }
   }
 
-  return <VehiculosTable vehicles={rows} />;
+  return <VehiculosTable vehicles={rows ?? []} />;
 }

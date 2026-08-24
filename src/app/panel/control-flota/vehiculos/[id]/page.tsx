@@ -4,6 +4,7 @@ import { vehicles } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getMockVehiculo } from "@/lib/mock-vehicles";
+import { isDemoSession } from "@/lib/demo-mode";
 import { VehiculoDetail } from "@/components/dashboard/vehiculos/vehiculo-detail";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export default async function VehiculoDetailPage({
   params: { id: string };
 }) {
   const id = parseInt(params.id);
+  const demo = await isDemoSession();
 
   try {
     const session = await auth();
@@ -32,8 +34,10 @@ export default async function VehiculoDetailPage({
 
     if (vehicle) return <VehiculoDetail vehicle={vehicle} />;
   } catch {
-    // BD no disponible → fallback a datos mock
+    // BD no disponible → solo la cuenta demo cae a datos simulados
   }
+
+  if (!demo) notFound();
 
   const mock = getMockVehiculo(id);
   if (!mock) notFound();

@@ -52,8 +52,11 @@ export async function GET(
       );
     }
 
-    if (session.user.empresaId && doc.empresaId !== session.user.empresaId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    if (!isSuperAdmin) {
+      if (!session.user.empresaId || doc.empresaId !== session.user.empresaId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const { stream, contentType, contentLength } = await getDocumentStream(

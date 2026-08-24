@@ -5,6 +5,7 @@ import { vehicleDocuments, documentCategories, vehicles } from "@/db/schema";
 import { uploadVehicleDocument } from "@/lib/storage";
 import { eq, desc, and } from "drizzle-orm";
 import { getMockDocuments, addMockDocument } from "@/lib/mock-documents";
+import { isDemoUser } from "@/lib/demo-mode";
 import { AppError, toApiErrorResponse, MAX_FILE_SIZE, MAX_FILES_PER_REQUEST, ALLOWED_MIMES, ALLOWED_EXTENSIONS } from "@/lib/api-error";
 import { z } from "zod";
 
@@ -68,7 +69,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json(formattedDocs);
     } catch (dbError) {
       console.warn("DB not reachable for documents GET, falling back to mock store:", dbError);
-      return NextResponse.json(getMockDocuments(vehicleId));
+      return NextResponse.json(isDemoUser(session.user) ? getMockDocuments(vehicleId) : []);
     }
   } catch (error: unknown) {
     const { status, body } = toApiErrorResponse(error);
@@ -213,6 +214,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         const [created] = await db.insert(vehicleDocuments).values({ vehicleId, empresaId, categoryId, title, fileName, fileKey, fileSize, mimeType, fechaVencimiento, notas }).returning();
         createdDocs.push(created);
       } catch (dbError) {
+        if (!isDemoUser(session.user)) throw dbError;
         console.warn("DB insert error, falling back to in-memory mock store:", dbError);
         const mockDoc = addMockDocument({ vehicleId, empresaId, categoryId, title, fileName, fileKey, fileSize, mimeType, fechaVencimiento, notas });
         createdDocs.push(mockDoc);

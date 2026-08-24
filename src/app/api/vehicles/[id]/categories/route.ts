@@ -27,18 +27,24 @@ export async function GET(
 
     // Determine empresaId
     let empresaId = session.user.empresaId;
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+
     if (!empresaId) {
-      const [vehicle] = await db
-        .select()
-        .from(vehicles)
-        .where(eq(vehicles.id, vehicleId));
-      if (!vehicle) {
-        return NextResponse.json(
-          { error: "Vehículo no encontrado" },
-          { status: 404 }
-        );
+      if (isSuperAdmin) {
+        const [vehicle] = await db
+          .select()
+          .from(vehicles)
+          .where(eq(vehicles.id, vehicleId));
+        if (!vehicle) {
+          return NextResponse.json(
+            { error: "Vehículo no encontrado" },
+            { status: 404 }
+          );
+        }
+        empresaId = vehicle.empresaId;
+      } else {
+        return NextResponse.json({ error: "Unauthorized: falta empresa" }, { status: 401 });
       }
-      empresaId = vehicle.empresaId;
     } else {
       const [vehicle] = await db
         .select()
@@ -105,18 +111,24 @@ export async function POST(
     }
 
     let empresaId = session.user.empresaId;
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+
     if (!empresaId) {
-      const [vehicle] = await db
-        .select()
-        .from(vehicles)
-        .where(eq(vehicles.id, vehicleId));
-      if (!vehicle) {
-        return NextResponse.json(
-          { error: "Vehículo no encontrado" },
-          { status: 404 }
-        );
+      if (isSuperAdmin) {
+        const [vehicle] = await db
+          .select()
+          .from(vehicles)
+          .where(eq(vehicles.id, vehicleId));
+        if (!vehicle) {
+          return NextResponse.json(
+            { error: "Vehículo no encontrado" },
+            { status: 404 }
+          );
+        }
+        empresaId = vehicle.empresaId;
+      } else {
+        return NextResponse.json({ error: "Unauthorized: falta empresa" }, { status: 401 });
       }
-      empresaId = vehicle.empresaId;
     } else {
       const [vehicle] = await db
         .select()

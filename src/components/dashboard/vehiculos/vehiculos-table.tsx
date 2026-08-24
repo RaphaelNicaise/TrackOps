@@ -46,6 +46,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
 import {
   CreateVehicleDialog,
@@ -66,7 +67,7 @@ export type VehiculoRow = {
   docCount: number;
 };
 
-type SortKey = "patente" | "anio" | "chasis" | "kilometrajeActual" | "rto" | "docCount";
+type SortKey = "patente" | "anio" | "chasis" | "tipo" | "kilometrajeActual" | "rto" | "docCount";
 type SortState = { key: SortKey; dir: "asc" | "desc" };
 type StatusTab = "todos" | "vigente" | "vencido" | "sinRto";
 
@@ -365,17 +366,17 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
 
             {/* Selector de Tipo de Vehículo */}
             <div className="w-full sm:w-48">
-              <select
+              <NativeSelect
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-2xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                sizeVariant="default"
               >
                 {VEHICLE_TYPES.map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             {/* Botón Limpiar Filtros */}

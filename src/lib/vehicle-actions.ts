@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 import { updateMockVehiculo, deleteMockVehiculo, addMockVehiculo } from "./mock-vehicles";
+import { isDemoUser } from "./demo-mode";
 import { vehicleFormSchema } from "@/lib/schemas/vehicle.schema";
 import { AppError, zodToFieldErrors, type ApiResponse } from "@/lib/api-error";
 import { z } from "zod";
@@ -76,6 +77,9 @@ export async function createVehicle(formData: FormData): Promise<ApiResponse<{ i
     if (msg.includes("unique") || msg.includes("duplicate") || msg.includes("patente")) {
       throw new AppError("CONFLICT", "Ya existe un vehículo con esa patente", 409, { patente: ["Patente duplicada"] });
     }
+    if (!isDemoUser(session.user)) {
+      throw new AppError("SERVICE_UNAVAILABLE", "No se pudo crear el vehículo. Intentá de nuevo más tarde.", 503);
+    }
     addMockVehiculo(data as never);
     revalidatePath(VEHICULOS_PATH);
     revalidatePath("/panel/flota");
@@ -131,6 +135,9 @@ export async function updateVehicle(formData: FormData): Promise<ApiResponse<nul
     await db.update(vehicles).set(data).where(and(eq(vehicles.id, id), eq(vehicles.empresaId, empresaId)));
   } catch (e) {
     if (e instanceof AppError) throw e;
+    if (!isDemoUser(session.user)) {
+      throw new AppError("SERVICE_UNAVAILABLE", "No se pudo actualizar el vehículo. Intentá de nuevo más tarde.", 503);
+    }
     updateMockVehiculo(id, data as never);
   }
 
@@ -153,6 +160,9 @@ export async function deleteVehicle(formData: FormData): Promise<ApiResponse<nul
     await db.delete(vehicles).where(and(eq(vehicles.id, id), eq(vehicles.empresaId, empresaId)));
   } catch (e) {
     if (e instanceof AppError) throw e;
+    if (!isDemoUser(session.user)) {
+      throw new AppError("SERVICE_UNAVAILABLE", "No se pudo eliminar el vehículo. Intentá de nuevo más tarde.", 503);
+    }
     deleteMockVehiculo(id);
   }
 

@@ -45,9 +45,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       const { status, body } = toApiErrorResponse(new AppError("NOT_FOUND", "Documento no encontrado", 404));
       return NextResponse.json(body, { status });
     }
-    if (session.user.empresaId && doc.empresaId !== session.user.empresaId) {
-      const { status, body } = toApiErrorResponse(new AppError("FORBIDDEN", "No tenés permiso", 403));
-      return NextResponse.json(body, { status });
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    if (!isSuperAdmin) {
+      if (!session.user.empresaId || doc.empresaId !== session.user.empresaId) {
+        const { status, body } = toApiErrorResponse(new AppError("FORBIDDEN", "No tenés permiso", 403));
+        return NextResponse.json(body, { status });
+      }
     }
 
     const body = await request.json();
@@ -101,9 +104,12 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       const { status, body } = toApiErrorResponse(new AppError("NOT_FOUND", "Documento no encontrado", 404));
       return NextResponse.json(body, { status });
     }
-    if (session.user.empresaId && doc.empresaId !== session.user.empresaId) {
-      const { status, body } = toApiErrorResponse(new AppError("FORBIDDEN", "No tenés permiso", 403));
-      return NextResponse.json(body, { status });
+    const isSuperAdmin = session.user.role === "SUPER_ADMIN";
+    if (!isSuperAdmin) {
+      if (!session.user.empresaId || doc.empresaId !== session.user.empresaId) {
+        const { status, body } = toApiErrorResponse(new AppError("FORBIDDEN", "No tenés permiso", 403));
+        return NextResponse.json(body, { status });
+      }
     }
     try {
       await deleteVehicleDocument(doc.fileKey);
