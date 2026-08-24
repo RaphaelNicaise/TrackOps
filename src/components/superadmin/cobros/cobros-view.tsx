@@ -30,14 +30,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import {
   CreditCard,
   DollarSign,
   TrendingUp,
@@ -724,42 +716,59 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
         </div>
       </div>
 
-      {/* SHEET HISTORIAL DE PAGOS DE LA EMPRESA */}
-      <Sheet open={historySheetOpen} onOpenChange={setHistorySheetOpen}>
-        <SheetContent className="sm:max-w-xl w-full p-0 flex flex-col">
+      {/* MODAL CENTRADO: HISTORIAL DE PAGOS DE LA EMPRESA */}
+      <Dialog open={historySheetOpen} onOpenChange={setHistorySheetOpen}>
+        <DialogContent className="sm:max-w-4xl max-h-[88vh] overflow-hidden p-0 flex flex-col">
           {historyRecord && (
             <>
-              <SheetHeader className="p-6 pb-4 border-b bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
-                    <Building2 className="h-5 w-5" />
+              <DialogHeader className="p-6 pb-4 border-b bg-muted/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+                      <Building2 className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-xl font-extrabold text-foreground flex items-center gap-2">
+                        {historyRecord.empresaNombre}
+                      </DialogTitle>
+                      <DialogDescription className="text-xs font-mono mt-0.5">
+                        CUIT: {historyRecord.cuit || "Sin CUIT"} • ID #{historyRecord.empresaId} • {historyRecord.totalVehiculos} vehículos activos
+                      </DialogDescription>
+                    </div>
                   </div>
-                  <div>
-                    <SheetTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                      {historyRecord.empresaNombre}
-                    </SheetTitle>
-                    <SheetDescription className="text-xs font-mono">
-                      CUIT: {historyRecord.cuit || "Sin CUIT"} • ID #{historyRecord.empresaId}
-                    </SheetDescription>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs"
+                      onClick={() => handleOpenRegisterPayment(historyRecord)}
+                    >
+                      <DollarSign className="h-4 w-4" />
+                      <span>Registrar Cobro</span>
+                    </Button>
                   </div>
                 </div>
 
-                {/* SUMMARY CHIPS */}
-                <div className="grid grid-cols-3 gap-2 pt-4">
-                  <div className="p-2.5 rounded-lg bg-card border text-xs">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Plan Actual</span>
-                    <span className="font-bold text-foreground">{historyRecord.planNombre}</span>
+                {/* RESUMEN DE SUSCRIPCIÓN EN TARJETAS COMPACTAS */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4">
+                  <div className="p-3 rounded-lg bg-card border text-xs shadow-2xs">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Plan Contratado</span>
+                    <span className="font-bold text-foreground text-sm">{historyRecord.planNombre}</span>
                     <span className="block text-[11px] text-muted-foreground font-mono">
-                      ${historyRecord.precioMensual.toLocaleString("es-AR")} USD/m
+                      ${historyRecord.precioMensual.toLocaleString("es-AR")} USD/mes
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-card border text-xs">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Estado Cuenta</span>
-                    <div className="mt-0.5">{getBillingStatusBadge(historyRecord.estadoPago)}</div>
+                  <div className="p-3 rounded-lg bg-card border text-xs shadow-2xs">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Estado de Cuenta</span>
+                    <div className="mt-1">{getBillingStatusBadge(historyRecord.estadoPago)}</div>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-card border text-xs">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Próx. Vencimiento</span>
-                    <span className="font-bold text-foreground font-mono">
+                  <div className="p-3 rounded-lg bg-card border text-xs shadow-2xs">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Método Activo</span>
+                    <div className="mt-1">{getPaymentMethodBadge(historyRecord.metodoPago)}</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-card border text-xs shadow-2xs">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Próx. Vencimiento</span>
+                    <span className="font-bold text-foreground font-mono text-sm block">
                       {formatDate(historyRecord.fechaProximoVencimiento)}
                     </span>
                     <span className="block text-[10px] text-muted-foreground">
@@ -767,26 +776,32 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                     </span>
                   </div>
                 </div>
-              </SheetHeader>
+              </DialogHeader>
 
-              {/* LISTA / TABLA DE PAGOS HISTÓRICOS */}
+              {/* LISTA / TABLA COMPLETA DE PAGOS HISTÓRICOS */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <History className="h-4 w-4 text-primary" />
-                    Comprobantes & Pagos Registrados
-                  </h3>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <History className="h-4 w-4 text-primary" />
+                      Historial Completo de Pagos & Comprobantes Fiscales
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Registro cronológico de cuotas mensuales abonadas y pendientes de la empresa
+                    </p>
+                  </div>
                   <Badge variant="outline" className="font-mono text-xs">
-                    {(historyRecord.historialPagos || []).length} pagos
+                    {(historyRecord.historialPagos || []).length} comprobantes
                   </Badge>
                 </div>
 
                 <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
                   <Table>
-                    <TableHeader className="bg-muted/40">
+                    <TableHeader className="bg-muted/50">
                       <TableRow>
-                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Comprobante</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Período / Fecha</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider font-semibold">N° Comprobante</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Período Fiscal</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Fecha de Pago</TableHead>
                         <TableHead className="text-xs uppercase tracking-wider font-semibold text-right">Monto</TableHead>
                         <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Método</TableHead>
                         <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Estado</TableHead>
@@ -801,12 +816,14 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                               {pay.referenciaFactura}
                             </div>
                             <div className="text-[10px] text-muted-foreground">
-                              {pay.notas || "Abono de servicio"}
+                              {pay.notas || "Abono de suscripción mensual"}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium text-xs text-foreground">{pay.periodo}</div>
-                            <div className="text-[10px] text-muted-foreground font-mono">
+                            <span className="font-semibold text-xs text-foreground">{pay.periodo}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs font-mono text-foreground">
                               {formatDate(pay.fechaPago)}
                             </div>
                           </TableCell>
@@ -830,13 +847,13 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                           <TableCell className="text-right pr-4">
                             <Button
                               size="sm"
-                              variant="ghost"
-                              className="h-7 px-2 text-xs gap-1 text-primary hover:bg-primary/10"
+                              variant="outline"
+                              className="h-7 px-2.5 text-xs gap-1.5 text-primary border-primary/30 hover:bg-primary/10 font-semibold"
                               onClick={() => handleViewReceiptFromHistoryItem(historyRecord, pay)}
-                              title="Ver Comprobante"
+                              title="Ver Comprobante de Pago"
                             >
                               <Receipt className="h-3.5 w-3.5" />
-                              <span>Ver</span>
+                              <span>Ver Recibo</span>
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -846,7 +863,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                 </div>
               </div>
 
-              <SheetFooter className="p-4 border-t bg-muted/20 flex flex-row items-center justify-between sm:justify-between">
+              <DialogFooter className="p-4 border-t bg-muted/20 flex flex-row items-center justify-between sm:justify-between">
                 <Button
                   type="button"
                   variant="outline"
@@ -854,19 +871,34 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                 >
                   Cerrar
                 </Button>
-                <Button
-                  type="button"
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={() => handleOpenRegisterPayment(historyRecord)}
-                >
-                  <DollarSign className="h-4 w-4" />
-                  <span>Registrar Nuevo Cobro</span>
-                </Button>
-              </SheetFooter>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-1.5 text-xs"
+                    onClick={() => {
+                      if (historyRecord) {
+                        handleViewReceiptFromRecord(historyRecord);
+                      }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Última Factura</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
+                    onClick={() => handleOpenRegisterPayment(historyRecord)}
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    <span>Registrar Nuevo Cobro</span>
+                  </Button>
+                </div>
+              </DialogFooter>
             </>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* MODAL REGISTRAR COBRO / PAGO MANUAL */}
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
