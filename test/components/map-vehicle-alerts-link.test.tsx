@@ -81,7 +81,7 @@ vi.mock("@/components/dashboard/vehiculos/documentos", () => ({
 
 import { VehiculoDetail, VehiculoDetailData } from "@/components/dashboard/vehiculos/vehiculo-detail";
 import FleetMap from "@/components/map/FleetMap";
-import MapaPage from "@/app/panel/mapa/page";
+import { MapaView } from "@/app/panel/mapa/mapa-view";
 
 describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
   beforeEach(() => {
@@ -202,9 +202,34 @@ describe("Task 7: Direct Alert Filter Links in Map and Vehicle Cards", () => {
 
   describe("3. MapaPage Sidebar Vehicle List Alert Indicator Links", () => {
     it("renders alert link on vehicle items with active alerts in the sidebar list", () => {
-      const html = renderToStaticMarkup(<MapaPage />);
+      const html = renderToStaticMarkup(
+        <MapaView
+          initialVehicles={[
+            {
+              id: 9,
+              patente: "AB 123 CD",
+              marca: "Ford",
+              modelo: "Ranger",
+              anio: 2021,
+              tipo: "Camioneta",
+              chasis: "-",
+              kilometrajeActual: 1000,
+              rto: null,
+              docCount: 0,
+              estado: "Detenido",
+              velocidad: "0 km/h",
+              ultimaActualizacion: "Hace 1 min",
+              online: true,
+              hasAlert: true,
+              lat: -38.71,
+              lng: -62.26,
+              kilometraje: "1.000 km",
+              alertasCount: 1,
+            },
+          ]}
+        />
+      );
 
-      // mockVehiculos includes at least one vehicle with hasAlert=true
       expect(html).toContain("/panel/monitoreo/alertas?patente=");
     });
   });

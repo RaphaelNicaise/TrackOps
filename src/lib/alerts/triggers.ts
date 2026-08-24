@@ -13,6 +13,7 @@ import type {
 } from "@/types/alerts";
 import { mockVehiculos } from "@/lib/mock-vehicles";
 import { mockDocumentsStore } from "@/lib/mock-documents";
+import { DEMO_EMPRESA_ID } from "@/lib/demo-mode";
 
 export interface MockMaintenancePlan {
   id: number;
@@ -211,7 +212,11 @@ export async function evaluateMaintenanceAlerts(
     }
   }
 
-  if (plansToEvaluate.length === 0 && mockMaintenancePlansStore === null) {
+  if (
+    plansToEvaluate.length === 0 &&
+    mockMaintenancePlansStore === null &&
+    empresaId === DEMO_EMPRESA_ID
+  ) {
     plansToEvaluate = DEFAULT_MOCK_MAINTENANCE_PLANS.filter(
       (p) => p.empresaId === empresaId
     ).map((p) => ({
@@ -409,7 +414,12 @@ export async function evaluateDocumentAlerts(
     }
   }
 
-  if (docsToEvaluate.length === 0 && mockTriggerDocumentsStore === null) {
+  if (
+    docsToEvaluate.length === 0 &&
+    mockTriggerDocumentsStore === null &&
+    empresaId === DEMO_EMPRESA_ID
+  ) {
+    // Default fallback from mock-documents.ts & mock-vehicles.ts (solo cuenta demo)
     // Default fallback from mock-documents.ts & mock-vehicles.ts
     const mockDocs = mockDocumentsStore.filter(
       (d) => d.empresaId === empresaId && d.fechaVencimiento

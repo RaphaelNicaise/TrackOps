@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { logAudit } from "@/lib/audit";
+import { isDemoUser } from "@/lib/demo-mode";
 import { dispatchAlert, setMockAlertConfig } from "@/lib/alerts/dispatcher";
 import {
   type DispatchAlertParams,
@@ -45,11 +46,15 @@ export async function getAlertConfigAction(targetEmpresaId?: number): Promise<Pa
     // Auth session fallback
   }
 
-  let empresaId = session?.user?.empresaId ?? 1;
-  if (session?.user?.role === "SUPER_ADMIN" && targetEmpresaId) {
+  let empresaId: number;
+  if (targetEmpresaId && (session?.user?.role === "SUPER_ADMIN" || !session?.user)) {
     empresaId = targetEmpresaId;
-  } else if (!session?.user?.empresaId && targetEmpresaId) {
+  } else if (session?.user?.empresaId) {
+    empresaId = session.user.empresaId;
+  } else if (targetEmpresaId) {
     empresaId = targetEmpresaId;
+  } else {
+    empresaId = session?.user?.empresaId || 1;
   }
 
   try {
@@ -140,9 +145,15 @@ export async function saveAlertConfigAction(
     rawData = { ...data };
   }
 
-  let empresaId = session?.user?.empresaId ?? targetEmpresaId ?? 1;
-  if (session?.user?.role === "SUPER_ADMIN" && targetEmpresaId) {
+  let empresaId: number;
+  if (targetEmpresaId && (session?.user?.role === "SUPER_ADMIN" || !session?.user)) {
     empresaId = targetEmpresaId;
+  } else if (session?.user?.empresaId) {
+    empresaId = session.user.empresaId;
+  } else if (targetEmpresaId) {
+    empresaId = targetEmpresaId;
+  } else {
+    empresaId = session?.user?.empresaId || 1;
   }
 
   const canalEmail =
@@ -249,6 +260,10 @@ export async function saveAlertConfigAction(
       }
     }
   } catch (dbError) {
+    if (!session?.user || !isDemoUser(session.user)) {
+      console.error("Error al guardar configuración de alertas en DB:", dbError);
+      return { success: false, config: savedConfig };
+    }
     setMockAlertConfig(empresaId, dbData as any);
   }
 
@@ -278,7 +293,16 @@ export async function sendTestAlertAction(
     // Auth fallback
   }
 
-  const empresaId = session?.user?.empresaId ?? params?.empresaId ?? 1;
+  let empresaId: number;
+  if (params?.empresaId && (session?.user?.role === "SUPER_ADMIN" || !session?.user)) {
+    empresaId = params.empresaId;
+  } else if (session?.user?.empresaId) {
+    empresaId = session.user.empresaId;
+  } else if (params?.empresaId) {
+    empresaId = params.empresaId;
+  } else {
+    empresaId = session?.user?.empresaId || 1;
+  }
 
   let overrideEmail = params?.overrideEmail;
   let overrideWhatsapp = params?.overrideWhatsapp;

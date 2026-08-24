@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAlertLogs } from "@/lib/alerts/dispatcher";
+import { isDemoUser } from "@/lib/demo-mode";
 import type { AlertFilterOptions } from "@/types/alerts";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,12 @@ export async function GET(req: Request) {
       ...(search ? { search } : {}),
     };
 
-    const alerts = await getAlertLogs(filters);
+    const isTestEnv =
+      process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+    const allowMockFallback =
+      isTestEnv || (session?.user ? isDemoUser(session.user) : false);
+
+    const alerts = await getAlertLogs(filters, { allowMockFallback });
 
     // Calculate aggregated KPI stats based on retrieved alerts
     const total = alerts.length;

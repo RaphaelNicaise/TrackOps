@@ -263,7 +263,14 @@ export async function dispatchAlert(params: DispatchAlertParams): Promise<Dispat
   };
 }
 
-export async function getAlertLogs(filters?: AlertFilterOptions): Promise<AlertLog[]> {
+export async function getAlertLogs(
+  filters?: AlertFilterOptions,
+  options?: { allowMockFallback?: boolean }
+): Promise<AlertLog[]> {
+  const isTestEnv =
+    process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+  const allowMock = options?.allowMockFallback ?? isTestEnv;
+
   if (isDbAvailable()) {
     try {
       const conditions = [];
@@ -304,11 +311,11 @@ export async function getAlertLogs(filters?: AlertFilterOptions): Promise<AlertL
       if (rows && rows.length > 0) {
         return rows;
       }
-      return filterMockAlertLogs(mockAlertLogs, filters);
+      return allowMock ? filterMockAlertLogs(mockAlertLogs, filters) : [];
     } catch {
-      return filterMockAlertLogs(mockAlertLogs, filters);
+      return allowMock ? filterMockAlertLogs(mockAlertLogs, filters) : [];
     }
   }
 
-  return filterMockAlertLogs(mockAlertLogs, filters);
+  return allowMock ? filterMockAlertLogs(mockAlertLogs, filters) : [];
 }

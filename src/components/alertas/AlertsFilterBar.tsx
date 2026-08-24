@@ -11,6 +11,7 @@ import {
   Loader2,
   Filter,
 } from "lucide-react";
+import { NativeSelect } from "@/components/ui/native-select";
 import { TestAlertModal } from "@/components/configuracion/TestAlertModal";
 import { appAlert } from "@/lib/alerts";
 import type { ParsedAlertConfig } from "@/types/alerts";
@@ -168,10 +169,10 @@ export function AlertsFilterBar({
         </div>
 
         <div>
-          <select
+          <NativeSelect
             value={filters.modulo}
             onChange={handleModuloChange}
-            className="w-full h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            sizeVariant="sm"
           >
             <option value="">Todos los Módulos</option>
             <option value="MANTENIMIENTO">Mantenimiento</option>
@@ -179,35 +180,35 @@ export function AlertsFilterBar({
             <option value="GEOCERCAS">Geocercas</option>
             <option value="HORARIOS">Horarios</option>
             <option value="SISTEMA">Sistema</option>
-          </select>
+          </NativeSelect>
         </div>
 
         <div>
-          <select
+          <NativeSelect
             value={filters.severidad}
             onChange={handleSeveridadChange}
-            className="w-full h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            sizeVariant="sm"
           >
             <option value="">Todas las Severidades</option>
             <option value="CRITICA">Crítica</option>
             <option value="ALTA">Alta</option>
             <option value="MEDIA">Media</option>
             <option value="BAJA">Baja</option>
-          </select>
+          </NativeSelect>
         </div>
 
         <div>
-          <select
+          <NativeSelect
             value={filters.canal}
             onChange={handleCanalChange}
-            className="w-full h-8 rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            sizeVariant="sm"
           >
             <option value="">Todos los Canales</option>
             <option value="EMAIL">Email</option>
             <option value="WHATSAPP">WhatsApp</option>
             <option value="AMBOS">Ambos</option>
             <option value="SISTEMA">Sistema</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
 
