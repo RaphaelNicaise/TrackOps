@@ -40,6 +40,8 @@ import {
   Headphones,
   UserCheck,
   Navigation,
+  Layers,
+  Receipt,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -74,7 +76,8 @@ export const superAdminNav: NavGroup[] = [
       { title: "Empresas Clientes", url: "/panel/superadmin/clientes", icon: Building2 },
       { title: "Prospectos (Leads)", url: "/panel/superadmin/prospectos", icon: UserPlus },
       { title: "Centro de Soporte", url: "/panel/superadmin/soporte", icon: Headphones },
-      { title: "Cobros & Planes", url: "/panel/superadmin/facturacion", icon: CreditCard },
+      { title: "Planes", url: "/panel/superadmin/planes", icon: Layers },
+      { title: "Cobros", url: "/panel/superadmin/cobros", icon: Receipt },
     ],
   },
   {
@@ -189,6 +192,20 @@ export function AppSidebar({
     groups = adminNav;
   }
 
+  const isActive = (url: string) =>
+    !url.startsWith("http") &&
+    (pathname === url || (url !== "/panel" && pathname.startsWith(url + "/")));
+
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: false });
+    } catch (e) {
+      console.warn("SignOut notice:", e);
+    } finally {
+      window.location.href = "/auth/login";
+    }
+  };
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarHeader className="p-2 border-b border-border/50">
@@ -230,12 +247,12 @@ export function AppSidebar({
                       <SidebarMenu className="gap-1.5">
                         {group.items.map((item, itemIdx) => {
                           const Icon = item.icon;
-                          const isActive = !item.external && (pathname === item.url || (item.url !== "/panel" && pathname.startsWith(item.url + "/")));
+                          const active = isActive(item.url);
                           return (
-                            <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
+                            <SidebarMenuItem key={`${item.url}-${itemIdx}`}>
                               <SidebarMenuButton
                                 asChild
-                                isActive={isActive}
+                                isActive={active}
                                 tooltip={item.title}
                                 className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
                               >
@@ -281,12 +298,12 @@ export function AppSidebar({
                 <SidebarMenu className="gap-1.5">
                   {group.items.map((item, itemIdx) => {
                     const Icon = item.icon;
-                    const isActive = !item.external && (pathname === item.url || (item.url !== "/panel" && pathname.startsWith(item.url + "/")));
+                    const active = isActive(item.url);
                     return (
-                      <SidebarMenuItem key={`${item.title}-${itemIdx}`}>
+                      <SidebarMenuItem key={`${item.url}-${itemIdx}`}>
                         <SidebarMenuButton
                           asChild
-                          isActive={isActive}
+                          isActive={active}
                           tooltip={item.title}
                           className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
                         >
@@ -329,7 +346,7 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => signOut({ callbackUrl: "/auth/login" })}
+              onClick={handleLogout}
               tooltip="Cerrar sesión"
               className="h-10 text-sm font-medium text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center"
             >
