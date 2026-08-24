@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { db } from "@/db";
 import { geofences } from "@/db/schema";
 import { toggleMockGeofence, dbRowToGeofence } from "@/lib/mock-geofences";
 import { isDemoSession } from "@/lib/demo-mode";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -12,20 +13,41 @@ export async function PATCH(
   { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
+    const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+    let session = null;
+    try {
+      session = await auth();
+    } catch {
+      // Session fallback
+    }
+
+    if (!session?.user && !isTest) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     const resolvedParams = await Promise.resolve(params);
     const id = parseInt(resolvedParams.id, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: "ID de geocerca inválido" }, { status: 400 });
     }
 
-    const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
     const demo = (await isDemoSession()) || isTest;
+    const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+    const empresaId = session?.user?.empresaId || (isTest ? 1 : undefined);
+
+    if (!isSuperAdmin && !empresaId && !isTest) {
+      return NextResponse.json({ error: "Falta empresa" }, { status: 401 });
+    }
 
     try {
+      const whereCondition = isSuperAdmin
+        ? eq(geofences.id, id)
+        : and(eq(geofences.id, id), eq(geofences.empresaId, empresaId!));
+
       const [existing] = await db
         .select()
         .from(geofences)
-        .where(eq(geofences.id, id));
+        .where(whereCondition);
 
       if (existing) {
         const newActiva = existing.activa === 1 ? 0 : 1;
@@ -35,7 +57,7 @@ export async function PATCH(
             activa: newActiva,
             updatedAt: new Date(),
           })
-          .where(eq(geofences.id, id))
+          .where(whereCondition)
           .returning();
 
         if (updated) {
@@ -44,7 +66,7 @@ export async function PATCH(
         }
       }
       if (!demo) {
-        return NextResponse.json({ error: "Geocerca no encontrada" }, { status: 404 });
+        return NextResponse.json({ error: "Geocerca no encontrada o sin permisos" }, { status: 404 });
       }
     } catch (dbError) {
       console.warn("DB toggle failed, using mock toggle fallback:", dbError);

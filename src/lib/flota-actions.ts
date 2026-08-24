@@ -35,8 +35,9 @@ export async function getChoferes(
     }
 
     const isSuperAdmin = session.user.role === "SUPER_ADMIN";
-    const empresaId =
-      filters?.empresaId || (!isSuperAdmin ? session.user.empresaId : null);
+    const empresaId = isSuperAdmin
+      ? (filters?.empresaId || null)
+      : session.user.empresaId;
 
     const conditions = [];
 
@@ -121,8 +122,9 @@ export async function createChofer(
     }
 
     const isSuperAdmin = session.user.role === "SUPER_ADMIN";
-    const targetEmpresaId =
-      data.empresaId || (!isSuperAdmin ? session.user.empresaId : null);
+    const targetEmpresaId = isSuperAdmin
+      ? (data.empresaId || session.user.empresaId || null)
+      : session.user.empresaId;
 
     if (!targetEmpresaId) {
       return { success: false, error: "Empresa no especificada" };
@@ -408,8 +410,9 @@ export async function getSitios(
     }
 
     const isSuperAdmin = session.user.role === "SUPER_ADMIN";
-    const empresaId =
-      filters?.empresaId || (!isSuperAdmin ? session.user.empresaId : null);
+    const empresaId = isSuperAdmin
+      ? (filters?.empresaId || null)
+      : session.user.empresaId;
 
     const conditions = [];
 
@@ -462,10 +465,9 @@ export async function createSitio(
     }
 
     const isSuperAdmin = session.user.role === "SUPER_ADMIN";
-    const targetEmpresaId =
-      isSuperAdmin && data.empresaId
-        ? data.empresaId
-        : session.user.empresaId || data.empresaId;
+    const targetEmpresaId = isSuperAdmin
+      ? (data.empresaId || session.user.empresaId || null)
+      : session.user.empresaId;
 
     if (!targetEmpresaId) {
       return { success: false, error: "Empresa no especificada" };
@@ -610,8 +612,9 @@ export async function getViajes(
     }
 
     const isSuperAdmin = session.user.role === "SUPER_ADMIN";
-    const empresaId =
-      filters?.empresaId || (!isSuperAdmin ? session.user.empresaId : null);
+    const empresaId = isSuperAdmin
+      ? (filters?.empresaId || null)
+      : session.user.empresaId;
 
     const conditions = [];
 
@@ -721,10 +724,9 @@ export async function createViaje(
     }
 
     const isSuperAdmin = session.user.role === "SUPER_ADMIN";
-    const targetEmpresaId =
-      isSuperAdmin && data.empresaId
-        ? data.empresaId
-        : session.user.empresaId || data.empresaId;
+    const targetEmpresaId = isSuperAdmin
+      ? (data.empresaId || session.user.empresaId || null)
+      : session.user.empresaId;
 
     if (!targetEmpresaId) {
       return { success: false, error: "Empresa no especificada" };

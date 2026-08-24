@@ -98,6 +98,22 @@ export async function createSupportTicket(data: CreateTicketInput) {
 }
 
 export async function getSupportTickets(filters?: TicketFilters) {
+  const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+  let session = null;
+  try {
+    session = await auth();
+  } catch {
+    // Session lookup fallback
+  }
+
+  if (session?.user && session.user.role !== "SUPER_ADMIN") {
+    throw new Error("Unauthorized: Se requieren privilegios de Superadmin");
+  }
+
+  if (!session?.user && !isTest) {
+    throw new Error("Unauthorized: Se requieren privilegios de Superadmin");
+  }
+
   const conditions: SQL[] = [];
 
   if (filters?.estado && filters.estado !== "ALL") {
@@ -177,6 +193,22 @@ export async function getSupportTickets(filters?: TicketFilters) {
 }
 
 export async function getSupportTicketStats() {
+  const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+  let session = null;
+  try {
+    session = await auth();
+  } catch {
+    // Session lookup fallback
+  }
+
+  if (session?.user && session.user.role !== "SUPER_ADMIN") {
+    throw new Error("Unauthorized: Se requieren privilegios de Superadmin");
+  }
+
+  if (!session?.user && !isTest) {
+    throw new Error("Unauthorized: Se requieren privilegios de Superadmin");
+  }
+
   const rows = await db
     .select({
       estado: ticketsSoporte.estado,

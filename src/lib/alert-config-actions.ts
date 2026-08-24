@@ -39,6 +39,7 @@ function parseModules(val: unknown): string[] {
 }
 
 export async function getAlertConfigAction(targetEmpresaId?: number): Promise<ParsedAlertConfig> {
+  const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
   let session: any = null;
   try {
     session = await auth();
@@ -47,11 +48,11 @@ export async function getAlertConfigAction(targetEmpresaId?: number): Promise<Pa
   }
 
   let empresaId: number;
-  if (targetEmpresaId && (session?.user?.role === "SUPER_ADMIN" || !session?.user)) {
+  if (session?.user?.role === "SUPER_ADMIN" && targetEmpresaId) {
     empresaId = targetEmpresaId;
   } else if (session?.user?.empresaId) {
     empresaId = session.user.empresaId;
-  } else if (targetEmpresaId) {
+  } else if (isTest && targetEmpresaId) {
     empresaId = targetEmpresaId;
   } else {
     empresaId = session?.user?.empresaId || 1;
@@ -145,12 +146,13 @@ export async function saveAlertConfigAction(
     rawData = { ...data };
   }
 
+  const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
   let empresaId: number;
-  if (targetEmpresaId && (session?.user?.role === "SUPER_ADMIN" || !session?.user)) {
+  if (session?.user?.role === "SUPER_ADMIN" && targetEmpresaId) {
     empresaId = targetEmpresaId;
   } else if (session?.user?.empresaId) {
     empresaId = session.user.empresaId;
-  } else if (targetEmpresaId) {
+  } else if (isTest && targetEmpresaId) {
     empresaId = targetEmpresaId;
   } else {
     empresaId = session?.user?.empresaId || 1;

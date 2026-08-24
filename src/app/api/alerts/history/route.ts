@@ -15,12 +15,15 @@ export async function GET(req: Request) {
       // Session fallback for tests/environments
     }
 
-    const url = new URL(req.url);
-    const queryEmpresaId = url.searchParams.get("empresaId");
+    const isTestEnv =
+      process.env.VITEST === "true" || process.env.NODE_ENV === "test";
 
-    if (!session && !queryEmpresaId && process.env.NODE_ENV !== "test" && !process.env.VITEST) {
+    if (!session?.user && !isTestEnv) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+
+    const url = new URL(req.url);
+    const queryEmpresaId = url.searchParams.get("empresaId");
 
     let empresaId = 1;
     if (session?.user?.empresaId) {
@@ -30,7 +33,7 @@ export async function GET(req: Request) {
     if (queryEmpresaId) {
       const parsed = parseInt(queryEmpresaId, 10);
       if (!isNaN(parsed)) {
-        if (session?.user?.role === "SUPER_ADMIN" || !session) {
+        if (session?.user?.role === "SUPER_ADMIN" || isTestEnv) {
           empresaId = parsed;
         }
       }
@@ -51,8 +54,6 @@ export async function GET(req: Request) {
       ...(search ? { search } : {}),
     };
 
-    const isTestEnv =
-      process.env.VITEST === "true" || process.env.NODE_ENV === "test";
     const allowMockFallback =
       isTestEnv || (session?.user ? isDemoUser(session.user) : false);
 
@@ -98,13 +99,23 @@ export async function POST(req: Request) {
       // Session fallback
     }
 
+    const isTestEnv =
+      process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+
+    if (!session?.user && !isTestEnv) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     let empresaId = 1;
     if (session?.user?.empresaId) {
       empresaId = session.user.empresaId;
     }
 
     const body = await req.json();
-    const finalEmpresaId = body.empresaId ?? empresaId;
+    const finalEmpresaId =
+      (session?.user?.role === "SUPER_ADMIN" || isTestEnv) && body.empresaId != null
+        ? Number(body.empresaId)
+        : empresaId;
 
     const result = await dispatchAlert({
       empresaId: finalEmpresaId,

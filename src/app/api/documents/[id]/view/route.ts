@@ -65,15 +65,30 @@ export async function GET(
 
     const webStream = toWebReadableStream(stream);
 
+    const isSvg =
+      doc.mimeType?.includes("svg") ||
+      doc.fileName?.toLowerCase().endsWith(".svg");
+
     const headers = new Headers();
     headers.set(
       "Content-Type",
       doc.mimeType || contentType || "application/octet-stream"
     );
-    headers.set(
-      "Content-Disposition",
-      `inline; filename="${encodeURIComponent(doc.fileName)}"`
-    );
+    headers.set("X-Content-Type-Options", "nosniff");
+
+    if (isSvg) {
+      headers.set(
+        "Content-Disposition",
+        `attachment; filename="${encodeURIComponent(doc.fileName)}"`
+      );
+      headers.set("Content-Security-Policy", "default-src 'none'; sandbox");
+    } else {
+      headers.set(
+        "Content-Disposition",
+        `inline; filename="${encodeURIComponent(doc.fileName)}"`
+      );
+    }
+
     if (contentLength) {
       headers.set("Content-Length", contentLength.toString());
     }

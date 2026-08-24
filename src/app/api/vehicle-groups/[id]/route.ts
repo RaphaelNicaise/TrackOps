@@ -10,7 +10,7 @@ import {
   vehicleGroupToDbValues,
 } from "@/lib/mock-vehicle-groups";
 import { isDemoSession } from "@/lib/demo-mode";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -19,19 +19,41 @@ export async function GET(
   { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
+    const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+    let session = null;
+    try {
+      session = await auth();
+    } catch {
+      // Session lookup fallback
+    }
+
+    if (!session?.user && !isTest) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     const resolvedParams = await Promise.resolve(params);
     const id = parseInt(resolvedParams.id, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: "ID de grupo inválido" }, { status: 400 });
     }
 
-    const demo = await isDemoSession();
+    const demo = (await isDemoSession()) || isTest;
+    const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+    const empresaId = session?.user?.empresaId || (isTest ? 1 : undefined);
+
+    if (!isSuperAdmin && !empresaId && !isTest) {
+      return NextResponse.json({ error: "Falta empresa" }, { status: 401 });
+    }
 
     try {
+      const whereCondition = isSuperAdmin
+        ? eq(vehicleGroups.id, id)
+        : and(eq(vehicleGroups.id, id), eq(vehicleGroups.empresaId, empresaId!));
+
       const [group] = await db
         .select()
         .from(vehicleGroups)
-        .where(eq(vehicleGroups.id, id));
+        .where(whereCondition);
 
       if (group) {
         const members = await db
@@ -42,7 +64,7 @@ export async function GET(
         return NextResponse.json(dbRowToVehicleGroup(group, vehicleIds));
       }
       if (!demo) {
-        return NextResponse.json({ error: "Grupo de vehículos no encontrado" }, { status: 404 });
+        return NextResponse.json({ error: "Grupo de vehículos no encontrado o sin permisos" }, { status: 404 });
       }
     } catch (dbError) {
       console.warn("DB query failed, using mock group fallback:", dbError);
@@ -74,10 +96,29 @@ export async function PUT(
   { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
+    const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+    let session = null;
+    try {
+      session = await auth();
+    } catch {
+      // Session fallback
+    }
+
+    if (!session?.user && !isTest) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     const resolvedParams = await Promise.resolve(params);
     const id = parseInt(resolvedParams.id, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: "ID de grupo inválido" }, { status: 400 });
+    }
+
+    const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+    const empresaId = session?.user?.empresaId || (isTest ? 1 : undefined);
+
+    if (!isSuperAdmin && !empresaId && !isTest) {
+      return NextResponse.json({ error: "Falta empresa" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -86,14 +127,18 @@ export async function PUT(
       ? body.vehicleIds.map((v: any) => Number(v)).filter((v: number) => !isNaN(v))
       : undefined;
 
-    const demo = await isDemoSession();
+    const demo = (await isDemoSession()) || isTest;
 
     try {
+      const whereCondition = isSuperAdmin
+        ? eq(vehicleGroups.id, id)
+        : and(eq(vehicleGroups.id, id), eq(vehicleGroups.empresaId, empresaId!));
+
       const updateValues = vehicleGroupToDbValues(body);
       const [updated] = await db
         .update(vehicleGroups)
         .set(updateValues)
-        .where(eq(vehicleGroups.id, id))
+        .where(whereCondition)
         .returning();
 
       if (updated) {
@@ -122,7 +167,7 @@ export async function PUT(
         return NextResponse.json(dbRowToVehicleGroup(updated, vehicleIds || []));
       }
       if (!demo) {
-        return NextResponse.json({ error: "Grupo de vehículos no encontrado" }, { status: 404 });
+        return NextResponse.json({ error: "Grupo de vehículos no encontrado o sin permisos" }, { status: 404 });
       }
     } catch (dbError) {
       console.warn("DB update failed, using mock update fallback:", dbError);
@@ -157,18 +202,41 @@ export async function DELETE(
   { params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
   try {
+    const isTest = process.env.VITEST === "true" || process.env.NODE_ENV === "test";
+    let session = null;
+    try {
+      session = await auth();
+    } catch {
+      // Session fallback
+    }
+
+    if (!session?.user && !isTest) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
     const resolvedParams = await Promise.resolve(params);
     const id = parseInt(resolvedParams.id, 10);
     if (isNaN(id)) {
       return NextResponse.json({ error: "ID de grupo inválido" }, { status: 400 });
     }
 
-    const demo = await isDemoSession();
+    const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+    const empresaId = session?.user?.empresaId || (isTest ? 1 : undefined);
+
+    if (!isSuperAdmin && !empresaId && !isTest) {
+      return NextResponse.json({ error: "Falta empresa" }, { status: 401 });
+    }
+
+    const demo = (await isDemoSession()) || isTest;
 
     try {
+      const whereCondition = isSuperAdmin
+        ? eq(vehicleGroups.id, id)
+        : and(eq(vehicleGroups.id, id), eq(vehicleGroups.empresaId, empresaId!));
+
       const deletedRows = await db
         .delete(vehicleGroups)
-        .where(eq(vehicleGroups.id, id))
+        .where(whereCondition)
         .returning();
 
       if (deletedRows && deletedRows.length > 0) {
@@ -176,7 +244,7 @@ export async function DELETE(
         return NextResponse.json({ success: true });
       }
       if (!demo) {
-        return NextResponse.json({ error: "Grupo de vehículos no encontrado" }, { status: 404 });
+        return NextResponse.json({ error: "Grupo de vehículos no encontrado o sin permisos" }, { status: 404 });
       }
     } catch (dbError) {
       console.warn("DB delete failed, using mock delete fallback:", dbError);
