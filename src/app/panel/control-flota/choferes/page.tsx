@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { vehicles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getChoferes } from "@/lib/flota-actions";
+import { isDemoSession } from "@/lib/demo-mode";
 import { ChoferesTable } from "@/components/control-flota/choferes/choferes-table";
 import type { ChoferRow } from "@/types/flota-viajes";
 
@@ -91,6 +92,8 @@ export default async function ChoferesPage() {
   let driverRows: ChoferRow[] = [];
   let vehicleRows: { id: number; patente: string; marca?: string; modelo?: string }[] = [];
 
+  const demo = await isDemoSession();
+
   try {
     const session = await auth();
     const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
@@ -100,7 +103,7 @@ export default async function ChoferesPage() {
     const choferesRes = await getChoferes();
     if (choferesRes.success && choferesRes.data && choferesRes.data.length > 0) {
       driverRows = choferesRes.data;
-    } else {
+    } else if (demo) {
       driverRows = mockChoferesFallback;
     }
 
@@ -119,7 +122,7 @@ export default async function ChoferesPage() {
 
       if (vList && vList.length > 0) {
         vehicleRows = vList;
-      } else {
+      } else if (demo) {
         vehicleRows = [
           { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
           { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
@@ -127,18 +130,22 @@ export default async function ChoferesPage() {
       }
     } catch (vErr) {
       console.warn("ChoferesPage vehicles DB fallback:", vErr);
+      if (demo) {
+        vehicleRows = [
+          { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
+          { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
+        ];
+      }
+    }
+  } catch (error) {
+    console.warn("ChoferesPage DB fallback:", error);
+    if (demo) {
+      driverRows = mockChoferesFallback;
       vehicleRows = [
         { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
         { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
       ];
     }
-  } catch (error) {
-    console.warn("ChoferesPage DB fallback:", error);
-    driverRows = mockChoferesFallback;
-    vehicleRows = [
-      { id: 1, patente: "AB 123 CD", marca: "Ford", modelo: "Ranger" },
-      { id: 2, patente: "EF 456 GH", marca: "Volkswagen", modelo: "Gol" },
-    ];
   }
 
   return <ChoferesTable initialChoferes={driverRows} vehicles={vehicleRows} />;

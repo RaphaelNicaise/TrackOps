@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Plus, Pencil, Trash2, UserPlus, UserCheck, ShieldCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, UserPlus, UserCheck, ShieldCheck, Upload, Image as ImageIcon, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { NativeSelect } from "@/components/ui/native-select";
 import { appAlert } from "@/lib/alerts";
 import { createChofer, updateChofer, deleteChofer } from "@/lib/flota-actions";
 import type { ChoferRow, ChoferEstado, CreateChoferInput, UpdateChoferInput } from "@/types/flota-viajes";
@@ -87,10 +88,32 @@ export function ChoferFormDialog({
   );
   const [estado, setEstado] = useState<ChoferEstado>(chofer?.estado || "ACTIVO");
   const [notas, setNotas] = useState(chofer?.notas || "");
+  const [fotoDniFrente, setFotoDniFrente] = useState(chofer?.fotoDniFrente || "");
+  const [fotoDniDorso, setFotoDniDorso] = useState(chofer?.fotoDniDorso || "");
 
   // User credentials generation
   const [createCredentials, setCreateCredentials] = useState(false);
   const [userPassword, setUserPassword] = useState("");
+
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (val: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      appAlert.error("La imagen no debe superar los 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (loadEvt) => {
+      const result = loadEvt.target?.result as string;
+      if (result) setter(result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Sync state when chofer prop changes
   useEffect(() => {
@@ -106,6 +129,8 @@ export function ChoferFormDialog({
       setVehiculoHabitualId(chofer.vehiculoHabitualId ? String(chofer.vehiculoHabitualId) : "");
       setEstado(chofer.estado || "ACTIVO");
       setNotas(chofer.notas || "");
+      setFotoDniFrente(chofer.fotoDniFrente || "");
+      setFotoDniDorso(chofer.fotoDniDorso || "");
       setCreateCredentials(false);
       setUserPassword("");
     } else {
@@ -120,6 +145,8 @@ export function ChoferFormDialog({
       setVehiculoHabitualId("");
       setEstado("ACTIVO");
       setNotas("");
+      setFotoDniFrente("");
+      setFotoDniDorso("");
       setCreateCredentials(false);
       setUserPassword("");
     }
@@ -151,6 +178,8 @@ export function ChoferFormDialog({
             estado,
             vehiculoHabitualId: vehiculoHabitualId ? Number(vehiculoHabitualId) : null,
             notas: notas.trim() || null,
+            fotoDniFrente: fotoDniFrente || null,
+            fotoDniDorso: fotoDniDorso || null,
           };
 
           const res = await updateChofer(chofer.id, payload);
@@ -175,6 +204,8 @@ export function ChoferFormDialog({
             estado,
             vehiculoHabitualId: vehiculoHabitualId ? Number(vehiculoHabitualId) : null,
             notas: notas.trim() || null,
+            fotoDniFrente: fotoDniFrente || null,
+            fotoDniDorso: fotoDniDorso || null,
           };
 
           const res = await createChofer(payload, createCredentials, userPassword || dni.trim());
@@ -326,18 +357,18 @@ export function ChoferFormDialog({
                 <Label htmlFor="chofer-licencia-categoria" className="text-xs font-medium">
                   Categoría
                 </Label>
-                <select
+                <NativeSelect
                   id="chofer-licencia-categoria"
                   value={licenciaCategoria}
                   onChange={(e) => setLicenciaCategoria(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                  sizeVariant="lg"
                 >
                   {LICENCIA_CATEGORIAS.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
@@ -364,11 +395,11 @@ export function ChoferFormDialog({
                 <Label htmlFor="chofer-vehiculo" className="text-xs font-medium">
                   Vehículo Habitual
                 </Label>
-                <select
+                <NativeSelect
                   id="chofer-vehiculo"
                   value={vehiculoHabitualId}
                   onChange={(e) => setVehiculoHabitualId(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                  sizeVariant="lg"
                 >
                   <option value="">— Sin asignar —</option>
                   {vehicles.map((v) => (
@@ -376,23 +407,23 @@ export function ChoferFormDialog({
                       {v.patente} {v.marca ? `- ${v.marca}` : ""} {v.modelo || ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="chofer-estado" className="text-xs font-medium">
                   Estado Laboral
                 </Label>
-                <select
+                <NativeSelect
                   id="chofer-estado"
                   value={estado}
                   onChange={(e) => setEstado(e.target.value as ChoferEstado)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                  sizeVariant="lg"
                 >
                   <option value="ACTIVO">Activo</option>
                   <option value="INACTIVO">Inactivo</option>
                   <option value="LICENCIA_SUSPENDIDA">Licencia suspendida</option>
-                </select>
+                </NativeSelect>
               </div>
             </div>
 
@@ -406,6 +437,104 @@ export function ChoferFormDialog({
                 value={notas}
                 onChange={(e) => setNotas(e.target.value)}
               />
+            </div>
+          </div>
+
+          {/* Seccion: Digitalización de DNI (Frente / Dorso) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Digitalización de DNI (Frente / Dorso)
+              </h4>
+              <span className="text-[11px] text-muted-foreground">
+                Para validación de identidad y código de barras
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Frente */}
+              <div className="space-y-1.5 p-3 rounded-xl border border-border bg-muted/20">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span>DNI Frente</span>
+                  {fotoDniFrente && (
+                    <button
+                      type="button"
+                      onClick={() => setFotoDniFrente("")}
+                      className="text-destructive hover:underline text-[11px] flex items-center gap-0.5"
+                    >
+                      <X className="w-3 h-3" /> Quitar
+                    </button>
+                  )}
+                </div>
+
+                {fotoDniFrente ? (
+                  <div className="aspect-[1.6/1] rounded-lg overflow-hidden border border-border bg-background relative group">
+                    <img
+                      src={fotoDniFrente}
+                      alt="DNI Frente preview"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <label className="aspect-[1.6/1] rounded-lg border border-dashed border-border bg-background flex flex-col items-center justify-center p-3 text-center cursor-pointer hover:bg-muted/40 transition-colors">
+                    <Upload className="w-6 h-6 text-muted-foreground mb-1.5 opacity-60" />
+                    <span className="text-xs font-medium text-foreground">
+                      Subir foto del frente
+                    </span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5">
+                      PNG, JPG o WEBP (máx. 5MB)
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, setFotoDniFrente)}
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Dorso */}
+              <div className="space-y-1.5 p-3 rounded-xl border border-border bg-muted/20">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span>DNI Dorso (Código de Barras)</span>
+                  {fotoDniDorso && (
+                    <button
+                      type="button"
+                      onClick={() => setFotoDniDorso("")}
+                      className="text-destructive hover:underline text-[11px] flex items-center gap-0.5"
+                    >
+                      <X className="w-3 h-3" /> Quitar
+                    </button>
+                  )}
+                </div>
+
+                {fotoDniDorso ? (
+                  <div className="aspect-[1.6/1] rounded-lg overflow-hidden border border-border bg-background relative group">
+                    <img
+                      src={fotoDniDorso}
+                      alt="DNI Dorso preview"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <label className="aspect-[1.6/1] rounded-lg border border-dashed border-border bg-background flex flex-col items-center justify-center p-3 text-center cursor-pointer hover:bg-muted/40 transition-colors">
+                    <Upload className="w-6 h-6 text-muted-foreground mb-1.5 opacity-60" />
+                    <span className="text-xs font-medium text-foreground">
+                      Subir foto del dorso
+                    </span>
+                    <span className="text-[10px] text-muted-foreground mt-0.5">
+                      Contiene el código PDF417
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, setFotoDniDorso)}
+                    />
+                  </label>
+                )}
+              </div>
             </div>
           </div>
 

@@ -23,6 +23,8 @@ import {
   ChevronsUpDown,
   UserCheck,
   UserX,
+  KeyRound,
+  IdCard,
 } from "lucide-react";
 import { format, isBefore, addDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -46,6 +48,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
 import { appAlert } from "@/lib/alerts";
 import { updateChofer } from "@/lib/flota-actions";
@@ -55,6 +58,8 @@ import {
   DeleteChoferDialog,
   type VehicleOption,
 } from "./chofer-form-dialog";
+import { ChoferCredentialsDialog } from "./chofer-credentials-dialog";
+import { ChoferDniViewerDialog } from "./chofer-dni-viewer-dialog";
 
 export interface ChoferesTableProps {
   initialChoferes?: ChoferRow[];
@@ -168,6 +173,8 @@ export function ChoferesTable({
 
   const [editingChofer, setEditingChofer] = useState<ChoferRow | null>(null);
   const [deletingChofer, setDeletingChofer] = useState<ChoferRow | null>(null);
+  const [credentialsChofer, setCredentialsChofer] = useState<ChoferRow | null>(null);
+  const [dniViewerChofer, setDniViewerChofer] = useState<ChoferRow | null>(null);
   const [isPending, startTransition] = useTransition();
 
   // Dynamic counts for status tabs
@@ -455,17 +462,17 @@ export function ChoferesTable({
 
             {/* Selector de Categoría de Licencia */}
             <div className="w-full sm:w-52">
-              <select
+              <NativeSelect
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-2xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                sizeVariant="default"
               >
                 {availableCategories.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             {/* Botón Limpiar Filtros */}
@@ -527,7 +534,7 @@ export function ChoferesTable({
                           ? "No hay conductores que coincidan con los filtros o la búsqueda aplicada."
                           : "No hay choferes cargados en tu empresa. Registrá al primer conductor para comenzar."}
                       </p>
-                      {hasActiveFilters ? (
+                      {hasActiveFilters && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -537,10 +544,6 @@ export function ChoferesTable({
                           <RotateCcw className="h-3.5 w-3.5" />
                           Restablecer filtros
                         </Button>
-                      ) : (
-                        <div className="mt-2">
-                          <ChoferFormDialog vehicles={vehicles} />
-                        </div>
                       )}
                     </div>
                   </TableCell>
@@ -576,9 +579,15 @@ export function ChoferesTable({
 
                       {/* DNI */}
                       <TableCell>
-                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted/80 border border-border/80 text-foreground">
-                          {c.dni}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setDniViewerChofer(c)}
+                          className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted/80 border border-border/80 text-foreground hover:bg-primary/10 hover:border-primary/30 transition-colors"
+                          title="Ver digitalización del DNI"
+                        >
+                          <IdCard className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span>{c.dni}</span>
+                        </button>
                       </TableCell>
 
                       {/* Licencia */}
@@ -714,6 +723,17 @@ export function ChoferesTable({
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => setCredentialsChofer(c)}
+                            className="h-8 px-2 text-xs gap-1 text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400"
+                            title="Gestionar contraseña y acceso"
+                          >
+                            <KeyRound className="h-3.5 w-3.5" />
+                            <span className="hidden xl:inline">Clave</span>
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setEditingChofer(c)}
                             className="h-8 px-2 text-xs gap-1 text-muted-foreground hover:text-primary"
                           >
@@ -732,7 +752,23 @@ export function ChoferesTable({
                                 <span className="sr-only">Opciones de {c.nombre}</span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-52">
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuItem
+                                onClick={() => setCredentialsChofer(c)}
+                                className="gap-2 cursor-pointer"
+                              >
+                                <KeyRound className="h-4 w-4 text-amber-500" />
+                                <span>Gestionar Credenciales</span>
+                              </DropdownMenuItem>
+
+                              <DropdownMenuItem
+                                onClick={() => setDniViewerChofer(c)}
+                                className="gap-2 cursor-pointer"
+                              >
+                                <IdCard className="h-4 w-4 text-blue-500" />
+                                <span>Ver DNI Digitalizado</span>
+                              </DropdownMenuItem>
+
                               <DropdownMenuItem
                                 onClick={() => setEditingChofer(c)}
                                 className="gap-2 cursor-pointer"
@@ -812,6 +848,25 @@ export function ChoferesTable({
           chofer={deletingChofer}
           open={!!deletingChofer}
           onOpenChange={(open) => !open && setDeletingChofer(null)}
+          trigger={null}
+        />
+      )}
+
+      {credentialsChofer && (
+        <ChoferCredentialsDialog
+          chofer={credentialsChofer}
+          open={!!credentialsChofer}
+          onOpenChange={(open) => !open && setCredentialsChofer(null)}
+          trigger={null}
+          onSuccess={() => router.refresh()}
+        />
+      )}
+
+      {dniViewerChofer && (
+        <ChoferDniViewerDialog
+          chofer={dniViewerChofer}
+          open={!!dniViewerChofer}
+          onOpenChange={(open) => !open && setDniViewerChofer(null)}
           trigger={null}
         />
       )}

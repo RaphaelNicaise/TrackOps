@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { choferes, vehicles } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { getViajes, getSitios } from "@/lib/flota-actions";
+import { isDemoSession } from "@/lib/demo-mode";
 import { ChoferDashboard } from "@/components/chofer/chofer-dashboard";
 import type { ViajeRow, SitioRow, ChoferRow } from "@/types/flota-viajes";
 
@@ -75,7 +76,6 @@ const mockViajesFallback: ViajeRow[] = [
     choferNombre: "Juan Carlos Pérez",
     vehiculoId: 1,
     vehiculoPatente: "AB 123 CD",
-    vehiculoModelo: "Ford Ranger",
     origenTipo: "SITIO",
     origenSitioId: 1,
     origenNombre: "Planta Zárate (Central)",
@@ -109,7 +109,6 @@ const mockViajesFallback: ViajeRow[] = [
     choferNombre: "Juan Carlos Pérez",
     vehiculoId: 1,
     vehiculoPatente: "AB 123 CD",
-    vehiculoModelo: "Ford Ranger",
     origenTipo: "SITIO",
     origenSitioId: 2,
     origenNombre: "Depósito Logístico Rosario",
@@ -143,7 +142,6 @@ const mockViajesFallback: ViajeRow[] = [
     choferNombre: "Juan Carlos Pérez",
     vehiculoId: 1,
     vehiculoPatente: "AB 123 CD",
-    vehiculoModelo: "Ford Ranger",
     origenTipo: "SITIO",
     origenSitioId: 1,
     origenNombre: "Planta Zárate (Central)",
@@ -181,6 +179,8 @@ export default async function ChoferPage() {
   let driverTrips: ViajeRow[] = [];
   let siteList: SitioRow[] = [];
   let vehicleList: { id: number; patente: string; marca?: string; modelo?: string }[] = [];
+
+  const demo = await isDemoSession();
 
   try {
     const session = await auth();
@@ -226,12 +226,14 @@ export default async function ChoferPage() {
 
       if (foundChoferes && foundChoferes.length > 0) {
         driverRecord = foundChoferes[0] as ChoferRow;
-      } else {
+      } else if (demo) {
         driverRecord = mockChoferDemo;
       }
     } catch (driverErr) {
       console.warn("ChoferPage driver fetch fallback:", driverErr);
-      driverRecord = mockChoferDemo;
+      if (demo) {
+        driverRecord = mockChoferDemo;
+      }
     }
 
     // 2. Fetch Trips for this driver
@@ -241,12 +243,15 @@ export default async function ChoferPage() {
       );
       if (viajesRes.success && viajesRes.data && viajesRes.data.length > 0) {
         driverTrips = viajesRes.data;
-      } else {
+      } else if (demo && !driverRecord) {
+        // Sin chofer real asociado, la demo muestra su agenda simulada
         driverTrips = mockViajesFallback;
       }
     } catch (tripsErr) {
       console.warn("ChoferPage trips fetch fallback:", tripsErr);
-      driverTrips = mockViajesFallback;
+      if (demo && !driverRecord) {
+        driverTrips = mockViajesFallback;
+      }
     }
 
     // 3. Fetch Sites
@@ -254,12 +259,14 @@ export default async function ChoferPage() {
       const sitiosRes = await getSitios(empresaId ? { empresaId } : undefined);
       if (sitiosRes.success && sitiosRes.data && sitiosRes.data.length > 0) {
         siteList = sitiosRes.data;
-      } else {
+      } else if (demo) {
         siteList = mockSitiosFallback;
       }
     } catch (sitesErr) {
       console.warn("ChoferPage sites fetch fallback:", sitesErr);
-      siteList = mockSitiosFallback;
+      if (demo) {
+        siteList = mockSitiosFallback;
+      }
     }
 
     // 4. Fetch Vehicles
@@ -277,19 +284,23 @@ export default async function ChoferPage() {
 
       if (vList && vList.length > 0) {
         vehicleList = vList;
-      } else {
+      } else if (demo) {
         vehicleList = mockVehiclesFallback;
       }
     } catch (vErr) {
       console.warn("ChoferPage vehicles DB fallback:", vErr);
-      vehicleList = mockVehiclesFallback;
+      if (demo) {
+        vehicleList = mockVehiclesFallback;
+      }
     }
   } catch (err) {
     console.warn("ChoferPage global error fallback:", err);
-    driverRecord = mockChoferDemo;
-    driverTrips = mockViajesFallback;
-    siteList = mockSitiosFallback;
-    vehicleList = mockVehiclesFallback;
+    if (demo) {
+      driverRecord = mockChoferDemo;
+      driverTrips = mockViajesFallback;
+      siteList = mockSitiosFallback;
+      vehicleList = mockVehiclesFallback;
+    }
   }
 
   return (
