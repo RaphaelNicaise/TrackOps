@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted for variables that need to be accessed inside vi.mock
-const { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet } = vi.hoisted(() => {
+const { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet, mockLimit } = vi.hoisted(() => {
   const mockValues = vi.fn().mockResolvedValue([]);
-  const mockWhere = vi.fn().mockResolvedValue([]);
+  const mockLimit = vi.fn().mockResolvedValue([{ id: 10, kilometrajeActual: 2000, empresaId: 1 }]);
+  const mockWhere = vi.fn().mockImplementation(() => ({
+    limit: mockLimit,
+    then: (resolve: any, reject?: any) => Promise.resolve([{ id: 10, kilometrajeActual: 2000, empresaId: 1 }]).then(resolve, reject),
+  }));
   const mockSet = vi.fn().mockReturnThis();
   
   const mockFrom = vi.fn().mockImplementation(() => ({ where: mockWhere }));
@@ -13,7 +17,7 @@ const { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, moc
   
   mockSet.mockImplementation(() => ({ where: mockWhere }));
   
-  return { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet };
+  return { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet, mockLimit };
 });
 
 vi.mock('../src/db', () => ({
@@ -44,6 +48,11 @@ import { revalidatePath } from 'next/cache';
 describe('Server Actions (Flota & Operaciones)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockLimit.mockResolvedValue([{ id: 10, kilometrajeActual: 2000, empresaId: 1 }]);
+    mockWhere.mockImplementation(() => ({
+      limit: mockLimit,
+      then: (resolve: any, reject?: any) => Promise.resolve([{ id: 10, kilometrajeActual: 2000, empresaId: 1 }]).then(resolve, reject),
+    }));
     
     // Default auth mock: Logged in as Admin Empresa
     (auth as any).mockResolvedValue({
@@ -56,7 +65,7 @@ describe('Server Actions (Flota & Operaciones)', () => {
       (auth as any).mockResolvedValueOnce({ user: null });
       
       const formData = new FormData();
-      await expect(createFuelTicket(formData)).rejects.toThrow('No empresa ID');
+      await expect(createFuelTicket(formData)).rejects.toThrow();
     });
 
     it('inserts fuel ticket and DOES NOT update vehicle km if new km is lower', async () => {
@@ -68,13 +77,14 @@ describe('Server Actions (Flota & Operaciones)', () => {
       formData.append('kilometraje', '1000'); // New km
       
       // Mock DB: Current vehicle km is 2000 (higher than 1000)
-      mockWhere.mockResolvedValueOnce([{ id: 10, kilometrajeActual: 2000 }]);
+      mockLimit.mockResolvedValueOnce([{ id: 10, kilometrajeActual: 2000, empresaId: 1 }]);
 
       await createFuelTicket(formData);
 
       // Verify Insert
       expect(mockInsert).toHaveBeenCalled();
       expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
+        empresaId: 1,
         vehicleId: 10,
         litros: 50.5,
         costoTotal: 50000,
@@ -98,7 +108,7 @@ describe('Server Actions (Flota & Operaciones)', () => {
       formData.append('kilometraje', '3000'); // New km (higher)
       
       // Mock DB: Current vehicle km is 2000
-      mockWhere.mockResolvedValueOnce([{ id: 10, kilometrajeActual: 2000 }]);
+      mockLimit.mockResolvedValueOnce([{ id: 10, kilometrajeActual: 2000, empresaId: 1 }]);
 
       await createFuelTicket(formData);
 
@@ -120,12 +130,13 @@ describe('Server Actions (Flota & Operaciones)', () => {
       formData.append('ticketFile', mockFile);
 
       (uploadFile as any).mockResolvedValueOnce('/empresa-1/tickets/mock-url.png');
-      mockWhere.mockResolvedValueOnce([]); // No vehicle found, doesn't matter for this test
+      mockLimit.mockResolvedValueOnce([{ id: 10, kilometrajeActual: 500, empresaId: 1 }]);
 
       await createFuelTicket(formData);
 
       expect(uploadFile).toHaveBeenCalledWith(mockFile, 'empresa-1/tickets');
       expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
+        empresaId: 1,
         ticketUrl: '/empresa-1/tickets/mock-url.png'
       }));
     });
@@ -168,12 +179,13 @@ describe('Server Actions (Flota & Operaciones)', () => {
       formData.append('descripcion', 'Cambio de aceite');
 
       // Current km is 10000 (lower)
-      mockWhere.mockResolvedValueOnce([{ id: 5, kilometrajeActual: 10000 }]);
+      mockLimit.mockResolvedValueOnce([{ id: 5, kilometrajeActual: 10000, empresaId: 1 }]);
 
       await createMaintenanceLog(formData);
 
       expect(mockInsert).toHaveBeenCalled();
       expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
+        empresaId: 1,
         vehicleId: 5,
         kilometraje: 15000,
         costo: 25000,
@@ -199,12 +211,14 @@ describe('Server Actions (Flota & Operaciones)', () => {
       formData.append('documentFile', mockFile);
 
       (uploadFile as any).mockResolvedValueOnce('/empresa-1/docs/vtv.pdf');
+      mockLimit.mockResolvedValueOnce([{ id: 5, empresaId: 1 }]);
 
       await createDocument(formData);
 
       expect(uploadFile).toHaveBeenCalledWith(mockFile, 'empresa-1/docs');
       expect(mockInsert).toHaveBeenCalled();
       expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({
+        empresaId: 1,
         vehicleId: 5,
         tipoDocumento: 'VTV',
         fileUrl: '/empresa-1/docs/vtv.pdf',

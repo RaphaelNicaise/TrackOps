@@ -109,7 +109,7 @@ const mockRecordsData = [
   },
 ];
 
-import { CobrosView } from "@/components/superadmin/cobros/cobros-view";
+import { CobrosView, generatePaymentHistoryForRecord } from "@/components/superadmin/cobros/cobros-view";
 import SuperadminCobrosPage from "@/app/panel/superadmin/cobros/page";
 
 describe("Superadmin Cobros Module (/panel/superadmin/cobros)", () => {
@@ -137,6 +137,18 @@ describe("Superadmin Cobros Module (/panel/superadmin/cobros)", () => {
     expect(html).toContain("Logística Alpha S.A.");
     expect(html).toContain("Transportes Patagonia SRL");
     expect(html).toContain("Distribuidora Andina Express");
+
+    // Check interaction subtitle
+    expect(html).toContain("Haz clic en cualquier empresa para ver su historial completo");
+  });
+
+  it("generates realistic historical payments for each company", () => {
+    const history = generatePaymentHistoryForRecord(mockRecordsData[0]);
+    expect(history.length).toBeGreaterThanOrEqual(4);
+    expect(history[0].monto).toBe(399);
+    expect(history[0].moneda).toBe("USD");
+    expect(history[0].estado).toBe("APROBADO");
+    expect(history[0].referenciaFactura).toBe("FAC-2026-0811");
   });
 
   it("renders SuperadminCobrosPage server component cleanly", async () => {

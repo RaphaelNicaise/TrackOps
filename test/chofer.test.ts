@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet } = vi.hoisted(() => {
+const { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet, mockLimit } = vi.hoisted(() => {
   const mockValues = vi.fn().mockResolvedValue([]);
-  const mockWhere = vi.fn().mockResolvedValue([]);
+  const mockLimit = vi.fn().mockResolvedValue([]);
+  const mockWhere = vi.fn().mockImplementation(() => ({
+    limit: mockLimit,
+    then: (resolve: any, reject?: any) => Promise.resolve([]).then(resolve, reject),
+  }));
   const mockSet = vi.fn().mockReturnThis();
   
   const mockFrom = vi.fn().mockImplementation(() => ({ where: mockWhere }));
@@ -12,7 +16,7 @@ const { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, moc
   
   mockSet.mockImplementation(() => ({ where: mockWhere }));
   
-  return { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet };
+  return { mockInsert, mockValues, mockSelect, mockFrom, mockWhere, mockUpdate, mockSet, mockLimit };
 });
 
 vi.mock('../src/db', () => ({
@@ -38,6 +42,7 @@ import { revalidatePath } from 'next/cache';
 describe('Chofer Actions (Shift Logs)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockLimit.mockResolvedValue([{ id: 5, empresaId: 1, kilometrajeActual: 10000 }]);
     
     // Default auth mock: Logged in as Chofer
     (auth as any).mockResolvedValue({
@@ -48,7 +53,10 @@ describe('Chofer Actions (Shift Logs)', () => {
   describe('checkInVehicle', () => {
     it('throws error if vehicle is already in use', async () => {
       // Mock db returns an active shift log (endTime is null)
-      mockWhere.mockResolvedValueOnce([{ id: 1, vehicleId: 5, endTime: null }]);
+      mockWhere.mockImplementation(() => ({
+        limit: mockLimit,
+        then: (resolve: any, reject?: any) => Promise.resolve([{ id: 1, vehicleId: 5, endTime: null }]).then(resolve, reject),
+      }));
       
       const formData = new FormData();
       formData.append('vehicleId', '5');
@@ -59,7 +67,10 @@ describe('Chofer Actions (Shift Logs)', () => {
 
     it('inserts a new shift log if vehicle is free', async () => {
       // Mock db returns empty array (no active shift log)
-      mockWhere.mockResolvedValueOnce([]);
+      mockWhere.mockImplementation(() => ({
+        limit: mockLimit,
+        then: (resolve: any, reject?: any) => Promise.resolve([]).then(resolve, reject),
+      }));
       
       const formData = new FormData();
       formData.append('vehicleId', '5');
@@ -79,6 +90,8 @@ describe('Chofer Actions (Shift Logs)', () => {
 
   describe('checkOutVehicle', () => {
     it('updates shift log with end time and end km, and updates vehicle km', async () => {
+      mockLimit.mockResolvedValue([{ id: 1, empresaId: 1, vehicleId: 5, startTime: new Date() }]);
+      
       const formData = new FormData();
       formData.append('shiftLogId', '1');
       formData.append('vehicleId', '5');
