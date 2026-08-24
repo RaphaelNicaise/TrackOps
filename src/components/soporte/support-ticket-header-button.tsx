@@ -12,7 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Headphones,
   Send,
@@ -203,18 +205,18 @@ export function SupportTicketHeaderButton({
               <Label htmlFor="ticket-tipo" className="text-xs font-semibold text-foreground">
                 Tipo de Requerimiento o Falla
               </Label>
-              <select
+              <NativeSelect
                 id="ticket-tipo"
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value as TicketTipo)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-xs text-foreground shadow-xs focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+                sizeVariant="default"
               >
                 {TIPO_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label} ({opt.value})
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             {/* Prioridad */}

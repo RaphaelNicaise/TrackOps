@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -437,28 +438,28 @@ export function SoporteTable({
           </div>
 
           {/* Priority Select */}
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground text-[11px]">Prioridad:</span>
-            <select
+          <div className="flex items-center gap-1.5 min-w-[150px]">
+            <span className="text-muted-foreground text-[11px] whitespace-nowrap">Prioridad:</span>
+            <NativeSelect
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="h-7 text-xs bg-background border border-input rounded-md px-2 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              sizeVariant="sm"
             >
               <option value="ALL">Todas las Prioridades</option>
               <option value="URGENTE">Urgente</option>
               <option value="ALTA">Alta</option>
               <option value="MEDIA">Media</option>
               <option value="BAJA">Baja</option>
-            </select>
+            </NativeSelect>
           </div>
 
           {/* Type Select */}
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground text-[11px]">Tipo:</span>
-            <select
+          <div className="flex items-center gap-1.5 min-w-[150px]">
+            <span className="text-muted-foreground text-[11px] whitespace-nowrap">Tipo:</span>
+            <NativeSelect
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="h-7 text-xs bg-background border border-input rounded-md px-2 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              sizeVariant="sm"
             >
               <option value="ALL">Todos los Tipos</option>
               <option value="PROBLEMA_TECNICO">Técnico</option>
@@ -467,21 +468,21 @@ export function SoporteTable({
               <option value="QUEJA_RECLAMO">Quejas</option>
               <option value="CONSULTA_GENERAL">Consulta</option>
               <option value="OTRO">Otro</option>
-            </select>
+            </NativeSelect>
           </div>
 
           {/* Origin Select */}
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground text-[11px]">Origen:</span>
-            <select
+          <div className="flex items-center gap-1.5 min-w-[130px]">
+            <span className="text-muted-foreground text-[11px] whitespace-nowrap">Origen:</span>
+            <NativeSelect
               value={originFilter}
               onChange={(e) => setOriginFilter(e.target.value)}
-              className="h-7 text-xs bg-background border border-input rounded-md px-2 py-0.5 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              sizeVariant="sm"
             >
               <option value="ALL">Todos los Orígenes</option>
               <option value="PANEL">Panel</option>
               <option value="WEB">Web</option>
-            </select>
+            </NativeSelect>
           </div>
 
           {/* Reset Filters */}

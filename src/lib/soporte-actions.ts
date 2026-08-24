@@ -11,6 +11,7 @@ import type {
   TicketEstado,
   TicketPrioridad,
   TicketSoporteRow,
+  PreferenciaRespuesta,
 } from "@/types/soporte";
 
 export async function createSupportTicket(data: CreateTicketInput) {

@@ -121,13 +121,13 @@ describe("Tickets Soporte Schema and Types", () => {
       ];
       const prioridades: TicketPrioridad[] = ["BAJA", "MEDIA", "ALTA", "URGENTE"];
       const estados: TicketEstado[] = ["PENDIENTE", "EN_REVISION", "RESUELTO", "DESCARTADO"];
-      const preferencias: PreferenciaRespuesta[] = ["EMAIL", "WHATSAPP", "TELEFONO"];
+      const preferencias: PreferenciaRespuesta[] = ["EMAIL", "WHATSAPP"];
 
       expect(origenes).toHaveLength(2);
       expect(tipos).toHaveLength(6);
       expect(prioridades).toHaveLength(4);
       expect(estados).toHaveLength(4);
-      expect(preferencias).toHaveLength(3);
+      expect(preferencias).toHaveLength(2);
     });
   });
 });

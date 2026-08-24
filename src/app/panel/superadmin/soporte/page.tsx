@@ -1,7 +1,9 @@
 import React from "react";
+import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import { Headphones } from "lucide-react";
 import { getSupportTickets, getSupportTicketStats } from "@/lib/soporte-actions";
+import { isDemoUser } from "@/lib/demo-mode";
 import { SoporteTable } from "@/components/superadmin/soporte/soporte-table";
 import { TicketSoporteRow } from "@/types/soporte";
 
@@ -20,8 +22,12 @@ const FALLBACK_STATS = {
 };
 
 export default async function SuperadminSoportePage() {
+  const session = await auth().catch(() => null);
+  const demo = isDemoUser(session?.user);
   let tickets: TicketSoporteRow[] = [];
-  let stats = FALLBACK_STATS;
+  let stats = demo
+    ? FALLBACK_STATS
+    : { total: 0, pendientes: 0, enRevision: 0, resueltos: 0, urgentes: 0 };
 
   try {
     const ticketsRes = await getSupportTickets();
