@@ -305,9 +305,9 @@ export default async function SuperadminClientesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight text-foreground">
-              ${mrrEstimado.toLocaleString("en-US")}{" "}
+              ${mrrEstimado.toLocaleString("es-AR")}{" "}
               <span className="text-xs font-normal text-muted-foreground">
-                USD/mes
+                ARS/mes
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1 font-mono">

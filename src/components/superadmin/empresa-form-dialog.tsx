@@ -546,7 +546,7 @@ export function EmpresaFormDialog({
 
                         <div className="mt-2 text-xs font-bold text-foreground">
                           {plan.precioMensual != null
-                            ? `$${plan.precioMensual.toLocaleString("es-AR")} USD/mes`
+                            ? `$${plan.precioMensual.toLocaleString("es-AR")} ARS/mes`
                             : "A medida"}
                         </div>
                       </div>

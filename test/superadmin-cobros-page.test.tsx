@@ -146,7 +146,7 @@ describe("Superadmin Cobros Module (/panel/superadmin/cobros)", () => {
     const history = generatePaymentHistoryForRecord(mockRecordsData[0]);
     expect(history.length).toBeGreaterThanOrEqual(4);
     expect(history[0].monto).toBe(399);
-    expect(history[0].moneda).toBe("USD");
+    expect(history[0].moneda).toBe("ARS");
     expect(history[0].estado).toBe("APROBADO");
     expect(history[0].referenciaFactura).toBe("FAC-2026-0811");
   });

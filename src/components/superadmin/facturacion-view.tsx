@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,6 +60,7 @@ import {
   HelpCircle,
   Plus,
   Settings,
+  Layers,
 } from "lucide-react";
 import { appAlert } from "@/lib/alerts";
 import { format, addMonths, differenceInDays } from "date-fns";
@@ -342,7 +344,7 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
     setRecords(updatedRecords);
     setIsPaymentDialogOpen(false);
     appAlert.success(
-      `Cobro de $${paymentAmount} USD registrado correctamente para "${selectedRecord.empresaNombre}". Próximo vencimiento actualizado.`,
+      `Cobro de $${paymentAmount.toLocaleString("es-AR")} ARS registrado correctamente para "${selectedRecord.empresaNombre}". Próximo vencimiento actualizado.`,
       "Pago Registrado"
     );
   };
@@ -372,7 +374,7 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
     setRecords(updatedRecords);
     setIsChangePlanDialogOpen(false);
     appAlert.success(
-      `El plan de "${selectedRecord.empresaNombre}" se actualizó a ${targetPlan.nombre} ($${targetPlan.precioMensual} USD/mes).`,
+      `El plan de "${selectedRecord.empresaNombre}" se actualizó a ${targetPlan.nombre} ($${targetPlan.precioMensual.toLocaleString("es-AR")} ARS/mes).`,
       "Plan Actualizado"
     );
   };
@@ -459,8 +461,8 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-extrabold tracking-tight text-foreground">
-              ${metrics.mrr.toLocaleString("en-US")}{" "}
-              <span className="text-xs font-normal text-muted-foreground">USD/mes</span>
+              ${metrics.mrr.toLocaleString("es-AR")}{" "}
+              <span className="text-xs font-normal text-muted-foreground">ARS/mes</span>
             </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center">
@@ -486,8 +488,8 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-extrabold tracking-tight text-foreground">
-              ${metrics.arr.toLocaleString("en-US")}{" "}
-              <span className="text-xs font-normal text-muted-foreground">USD/año</span>
+              ${metrics.arr.toLocaleString("es-AR")}{" "}
+              <span className="text-xs font-normal text-muted-foreground">ARS/año</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Cálculo base: MRR × 12 meses
@@ -510,14 +512,14 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-extrabold tracking-tight text-foreground">
-              ${metrics.arpu}{" "}
-              <span className="text-xs font-normal text-muted-foreground">USD/inquilino</span>
+              ${metrics.arpu.toLocaleString("es-AR")}{" "}
+              <span className="text-xs font-normal text-muted-foreground">ARS/inquilino</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Ingreso medio por cliente activo
             </p>
             <p className="text-[11px] text-muted-foreground mt-2 border-t pt-2 font-mono">
-              Top Tier: Enterprise ($399)
+              Promedio general
             </p>
           </CardContent>
         </Card>
@@ -598,146 +600,92 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
           </div>
         </div>
 
-        {/* Plans Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {plansWithTenantCounts.map((plan) => {
-            const isPro = plan.nombre.toLowerCase().includes("pro");
-            const isEnterprise = plan.nombre.toLowerCase().includes("enterprise");
-            const price = isAnnualBilling
-              ? plan.precioAnual || plan.precioMensual * 10
-              : plan.precioMensual;
-            const period = isAnnualBilling ? "/año" : "/mes";
-
-            const planFeatures = plan.features || (
-              isEnterprise
-                ? [
-                    "Flota ilimitada (100+ vehículos)",
-                    "Telemetría GPS en tiempo real (5s)",
-                    "Geocercas y paradas ilimitadas",
-                    "Alertas automáticas por WhatsApp & Email",
-                    "API & Webhooks dedicados",
-                    "Detección de anomalías con IA",
-                    "Soporte SLA 99.9% y Account Manager",
-                  ]
-                : isPro
-                ? [
-                    `Hasta ${plan.maxVehiculos} vehículos conectados`,
-                    "Telemetría GPS de alta frecuencia",
-                    "Control avanzado de combustible",
-                    "Geocercas ilimitadas",
-                    "Alertas instantáneas por WhatsApp",
-                    "Reportes ejecutivos exportables",
-                    "Soporte prioritario 24/7",
-                  ]
-                : [
-                    `Hasta ${plan.maxVehiculos} vehículos incluidos`,
-                    "Monitoreo GPS estándar (30s)",
-                    "Historial de rutas (30 días)",
-                    "Hasta 3 geocercas activas",
-                    "Alertas básicas por Email",
-                    "Soporte técnico estándar",
-                  ]
-            );
-
-            return (
-              <Card
-                key={plan.id}
-                className={`relative flex flex-col justify-between overflow-hidden border transition-all duration-200 ${
-                  isPro
-                    ? "border-primary shadow-md bg-gradient-to-b from-primary/5 via-card to-card ring-1 ring-primary/20"
-                    : "border-border bg-card hover:border-border/80"
-                }`}
-              >
-                {isPro && (
-                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-lg">
-                    Más Elegido
-                  </div>
-                )}
-                {isEnterprise && (
-                  <div className="absolute top-0 right-0 bg-amber-500/20 text-amber-600 dark:text-amber-400 border-b border-l border-amber-500/30 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-lg">
-                    Enterprise Tier
-                  </div>
-                )}
-
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-bold text-foreground">
-                      Plan {plan.nombre}
-                    </CardTitle>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenEditPlan(plan)} title="Editar rango">
-                        <Settings className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDeletePlan(plan)} title="Eliminar">
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  <CardDescription className="text-xs">
-                    {isEnterprise
-                      ? "Para empresas con flotas masivas y requerimientos de alta disponibilidad."
-                      : isPro
-                      ? "Ideal para empresas en expansión con necesidades de control de combustible."
-                      : "Para pequeñas operaciones y monitoreo de flota inicial."}
-                  </CardDescription>
-
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-3xl font-black tracking-tight text-foreground">
-                      ${price}
+        {/* Timeline visual de rangos */}
+        <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cobertura de rangos</span>
+            <span className="text-[11px] font-mono text-muted-foreground">1 → {plansWithTenantCounts.some((p) => p.maxVehiculos == null) ? "∞" : Math.max(...plansWithTenantCounts.map((p) => p.maxVehiculos || 0))} veh.</span>
+          </div>
+          <div className="flex h-10 rounded-lg overflow-hidden border border-border/80 bg-muted/30">
+            {[...plansWithTenantCounts]
+              .sort((a, b) => a.minVehiculos - b.minVehiculos)
+              .map((plan) => {
+                const width = plan.maxVehiculos ? Math.max(8, plan.maxVehiculos - plan.minVehiculos + 1) : 12;
+                return (
+                  <div
+                    key={plan.id}
+                    className="flex-1 flex items-center justify-center text-[11px] font-bold border-r border-white/40 last:border-0 relative group cursor-pointer hover:brightness-110 transition"
+                    style={{ flex: width, background: `hsl(${200 + (plan.id * 25) % 60} 70% 88%)`, color: "#1E2227" }}
+                    title={`${plan.nombre}: ${plan.minVehiculos} - ${plan.maxVehiculos ?? "∞"} • $${plan.precioMensual.toLocaleString("es-AR")}`}
+                    onClick={() => handleOpenEditPlan(plan)}
+                  >
+                    <span className="truncate px-1">
+                      {plan.minVehiculos}
+                      {plan.maxVehiculos ? `-${plan.maxVehiculos}` : "+"}
                     </span>
-                    <span className="text-xs text-muted-foreground font-mono">
-                      USD {period}
+                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#1E2227] text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-10">
+                      {plan.nombre} • ${plan.precioMensual.toLocaleString("es-AR")}
                     </span>
                   </div>
-                </CardHeader>
+                );
+              })}
+          </div>
+          <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+            <span className="font-mono">Veh. extra:</span> se cobra al valor del siguiente rango en la próxima cuota.
+          </div>
+        </div>
 
-                <CardContent className="space-y-4 flex-1">
-                  <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground font-medium flex items-center gap-1.5">
-                      <Car className="h-3.5 w-3.5 text-primary" />
-                      Rango:
-                    </span>
-                    <span className="font-bold text-foreground font-mono">
-                      {plan.minVehiculos} - {plan.maxVehiculos ? plan.maxVehiculos : "∞"} veh.
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-muted-foreground text-center">
-                    {plan.maxVehiculos
-                      ? `De ${plan.minVehiculos} a ${plan.maxVehiculos} vehículos`
-                      : `Desde ${plan.minVehiculos} vehículos (tope abierto)`}
-                    <br />
-                    <span className="text-[10px]">Extra: al siguiente plan</span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-                      Características Incluidas
-                    </span>
-                    <ul className="space-y-2 text-xs text-muted-foreground">
-                      {planFeatures.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </CardContent>
-
-                <div className="p-4 bg-muted/20 border-t border-border mt-auto flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground font-mono flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span>
-                      <strong className="text-foreground">{plan.tenantsCount || 0}</strong> clientes activos
-                    </span>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] font-mono bg-background">
-                    ID #{plan.id}
-                  </Badge>
-                </div>
-              </Card>
-            );
-          })}
+        {/* Tabla editable de planes */}
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="text-xs uppercase tracking-wider font-semibold">Plan</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Desde</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Hasta</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider font-semibold text-right">Precio/mes ARS</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider font-semibold text-right">Precio/año</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Clientes</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider font-semibold text-right pr-6">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[...plansWithTenantCounts]
+                .sort((a, b) => a.minVehiculos - b.minVehiculos)
+                .map((plan) => {
+                  const price = isAnnualBilling ? plan.precioAnual || plan.precioMensual * 10 : plan.precioMensual;
+                  return (
+                    <TableRow key={plan.id} className="hover:bg-muted/30">
+                      <TableCell>
+                        <div className="font-semibold text-sm">{plan.nombre}</div>
+                        <div className="text-[11px] text-muted-foreground font-mono">ID #{plan.id}</div>
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-sm font-bold">{plan.minVehiculos}</TableCell>
+                      <TableCell className="text-center font-mono text-sm font-bold">{plan.maxVehiculos ?? "∞"}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-bold">${plan.precioMensual.toLocaleString("es-AR")}</TableCell>
+                      <TableCell className="text-right font-mono text-xs text-muted-foreground">{plan.precioAnual ? `$${plan.precioAnual.toLocaleString("es-AR")}` : "—"}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="font-mono text-[11px]">{plan.tenantsCount || 0}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenEditPlan(plan)} title="Editar">
+                            <Settings className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDeletePlan(plan)} title="Eliminar">
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+          <div className="px-4 py-3 bg-muted/20 border-t flex items-center justify-between text-xs text-muted-foreground">
+            <span>{plans.length} rangos configurados • Solapamientos se validan al guardar</span>
+            <Badge variant="outline" className="font-mono text-[11px]">ARS</Badge>
+          </div>
         </div>
       </div>
 
@@ -924,8 +872,8 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
                       {/* Cuota */}
                       <TableCell>
                         <div className="font-bold text-sm text-foreground">
-                          ${record.precioMensual}{" "}
-                          <span className="text-[11px] font-normal text-muted-foreground">USD/m</span>
+                          ${record.precioMensual.toLocaleString("es-AR")}{" "}
+                          <span className="text-[11px] font-normal text-muted-foreground">ARS/mes</span>
                         </div>
                         {record.ultimaFacturaRef && (
                           <div className="text-[10px] font-mono text-muted-foreground">
@@ -1073,7 +1021,7 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
 
           <div className="space-y-4 py-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Importe Recibido (USD)</label>
+              <label className="text-xs font-semibold text-foreground">Importe Recibido ($ ARS)</label>
               <Input
                 type="number"
                 value={paymentAmount}
@@ -1084,16 +1032,16 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">Método de Pago</label>
-              <select
+              <NativeSelect
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                sizeVariant="default"
               >
                 <option value="mercadopago">MercadoPago (QR / Link)</option>
                 <option value="transferencia">Transferencia Bancaria Directa</option>
                 <option value="tarjeta">Tarjeta de Crédito / Débito</option>
                 <option value="efectivo">Efectivo / Cheque</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="space-y-1.5">
@@ -1127,7 +1075,7 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
+              <Layers className="h-5 w-5 text-primary" />
               Cambiar Plan de Suscripción
             </DialogTitle>
             <DialogDescription className="text-xs">
@@ -1158,7 +1106,7 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
                   </div>
                 </div>
                 <div className="text-right font-mono">
-                  <div className="font-bold text-sm text-foreground">${p.precioMensual} USD</div>
+                  <div className="font-bold text-sm text-foreground">${p.precioMensual.toLocaleString("es-AR")} ARS</div>
                   <div className="text-[10px] text-muted-foreground">por mes</div>
                 </div>
               </div>
@@ -1211,7 +1159,7 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Cuota Mensual:</span>
-                  <span className="font-bold text-foreground font-mono">${selectedRecord.precioMensual} USD/mes</span>
+                  <span className="font-bold text-foreground font-mono">${selectedRecord.precioMensual.toLocaleString("es-AR")} ARS/mes</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Estado Actual:</span>

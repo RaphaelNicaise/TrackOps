@@ -204,13 +204,13 @@ describe("Superadmin Facturacion & SaaS Billing", () => {
     expect(html).toContain("ARPU (Ticket Promedio)");
     expect(html).toContain("Tasa de Cobro al Día");
 
-    // Check calculated MRR: 399 + 149 + 49 + 399 + 49 = 1,045 USD
-    expect(html).toContain("$1,045");
-    expect(html).toContain("USD/mes");
+    // Check calculated MRR: 399 + 149 + 49 + 399 + 49 = 1.045 ARS
+    expect(html).toContain("$1.045");
+    expect(html).toContain("ARS/mes");
 
-    // Check calculated ARR: 1,045 * 12 = 12,540 USD
-    expect(html).toContain("$12,540");
-    expect(html).toContain("USD/año");
+    // Check calculated ARR: 1,045 * 12 = 12.540 ARS
+    expect(html).toContain("$12.540");
+    expect(html).toContain("ARS/año");
 
     // Check Plans Catalogue
     expect(html).toContain("Catálogo de Planes Activos");

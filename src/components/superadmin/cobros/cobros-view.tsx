@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -110,8 +111,8 @@ export function generatePaymentHistoryForRecord(record: BillingRecord): PaymentH
       referenciaFactura: idx === 0 && record.ultimaFacturaRef ? record.ultimaFacturaRef : ref,
       fechaPago: payDate,
       periodo: periodo.charAt(0).toUpperCase() + periodo.slice(1),
-      monto: record.precioMensual || 49,
-      moneda: "USD",
+      monto: record.precioMensual || 39990,
+      moneda: record.moneda || "ARS",
       metodoPago: record.metodoPago || "transferencia",
       estado: idx === 0 && record.estadoPago === "vencido" ? "PENDIENTE" : "APROBADO",
       notas: `Abono mensual recurrente Plan ${record.planNombre}`,
@@ -339,7 +340,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
         fechaPago: new Date(),
         periodo: currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1),
         monto: paymentAmount,
-        moneda: "USD",
+        moneda: "ARS",
         metodoPago: paymentMethod,
         estado: "APROBADO",
         notas: "Cobro manual registrado por Superadmin",
@@ -437,7 +438,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
           <CardContent>
             <div className="text-2xl md:text-3xl font-extrabold text-foreground font-mono">
               ${kpis.mrr.toLocaleString("es-AR")}
-              <span className="text-xs font-normal text-muted-foreground ml-1">USD/mes</span>
+              <span className="text-xs font-normal text-muted-foreground ml-1">ARS/mes</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 font-medium">
               <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
@@ -459,7 +460,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
           <CardContent>
             <div className="text-2xl md:text-3xl font-extrabold text-foreground font-mono">
               ${kpis.arr.toLocaleString("es-AR")}
-              <span className="text-xs font-normal text-muted-foreground ml-1">USD/año</span>
+              <span className="text-xs font-normal text-muted-foreground ml-1">ARS/año</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 font-medium">
               <span>MRR x 12 meses de recurrencia</span>
@@ -480,7 +481,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
           <CardContent>
             <div className="text-2xl md:text-3xl font-extrabold text-foreground font-mono">
               ${kpis.arpu.toLocaleString("es-AR")}
-              <span className="text-xs font-normal text-muted-foreground ml-1">USD/inquilino</span>
+              <span className="text-xs font-normal text-muted-foreground ml-1">ARS/inquilino</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 font-medium">
               <span>Promedio por cuenta activa</span>
@@ -644,7 +645,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm font-bold text-foreground">
                         ${r.precioMensual.toLocaleString("es-AR")}
-                        <span className="text-[10px] text-muted-foreground font-normal ml-1">USD</span>
+                        <span className="text-[10px] text-muted-foreground font-normal ml-1">ARS</span>
                       </TableCell>
                       <TableCell className="text-center">{getPaymentMethodBadge(r.metodoPago)}</TableCell>
                       <TableCell className="text-center">{getBillingStatusBadge(r.estadoPago)}</TableCell>
@@ -755,7 +756,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">Plan Contratado</span>
                     <span className="font-bold text-foreground text-sm">{historyRecord.planNombre}</span>
                     <span className="block text-[11px] text-muted-foreground font-mono">
-                      ${historyRecord.precioMensual.toLocaleString("es-AR")} USD/mes
+                      ${historyRecord.precioMensual.toLocaleString("es-AR")} ARS/mes
                     </span>
                   </div>
                   <div className="p-3 rounded-lg bg-card border text-xs shadow-2xs">
@@ -829,7 +830,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                           </TableCell>
                           <TableCell className="text-right font-mono text-xs font-bold text-foreground">
                             ${pay.monto.toLocaleString("es-AR")}
-                            <span className="text-[10px] text-muted-foreground font-normal ml-0.5">USD</span>
+                            <span className="text-[10px] text-muted-foreground font-normal ml-0.5">ARS</span>
                           </TableCell>
                           <TableCell className="text-center">{getPaymentMethodBadge(pay.metodoPago)}</TableCell>
                           <TableCell className="text-center">
@@ -933,7 +934,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
 
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-                    Monto Percibido (USD) *
+                    Monto Percibido ($ ARS) *
                   </label>
                   <Input
                     type="number"
@@ -948,16 +949,16 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">
                     Método de Pago *
                   </label>
-                  <select
+                  <NativeSelect
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-xs shadow-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                    sizeVariant="default"
                   >
                     <option value="transferencia">Transferencia Bancaria</option>
                     <option value="mercadopago">MercadoPago</option>
                     <option value="tarjeta">Tarjeta de Crédito / Débito</option>
                     <option value="efectivo">Efectivo / Cheque</option>
-                  </select>
+                  </NativeSelect>
                 </div>
               </div>
             )}
@@ -1021,7 +1022,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                 <div className="border rounded bg-background p-2.5 space-y-1.5">
                   <div className="flex justify-between font-semibold">
                     <span>Abono Mensual Plan {selectedReceipt.planNombre}</span>
-                    <span className="font-mono">${selectedReceipt.precioMensual.toLocaleString("es-AR")} USD</span>
+                    <span className="font-mono">${selectedReceipt.precioMensual.toLocaleString("es-AR")} ARS</span>
                   </div>
                   <div className="text-[11px] text-muted-foreground flex justify-between">
                     <span>Flota monitoreada: {selectedReceipt.totalVehiculos} unidades activas</span>
@@ -1031,7 +1032,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
 
                 <div className="flex justify-between items-center pt-2 border-t font-bold text-sm">
                   <span>Total Período</span>
-                  <span className="font-mono text-base text-emerald-600">${selectedReceipt.precioMensual.toLocaleString("es-AR")} USD</span>
+                  <span className="font-mono text-base text-emerald-600">${selectedReceipt.precioMensual.toLocaleString("es-AR")} ARS</span>
                 </div>
               </div>
             </div>

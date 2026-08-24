@@ -244,6 +244,6 @@ describe("Superadmin Clientes Server Page", () => {
     expect(html).toContain("Empresas Activas");
     expect(html).toContain("Total Flota Conectada");
     expect(html).toContain("MRR Recurrente Estimado");
-    expect(html).toContain("USD/mes");
+    expect(html).toContain("ARS/mes");
   });
 });

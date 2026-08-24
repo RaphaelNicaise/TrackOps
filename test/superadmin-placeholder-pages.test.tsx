@@ -87,7 +87,7 @@ describe("Superadmin Dashboard Page", () => {
 
     // Check KPIs
     expect(html).toContain("MRR Proyectado");
-    expect(html).toContain("$12,450 USD");
+    expect(html).toContain("$1.450.000 ARS");
     expect(html).toContain("Empresas Activas");
     expect(html).toContain("14 Clientes");
     expect(html).toContain("Vehículos Conectados");

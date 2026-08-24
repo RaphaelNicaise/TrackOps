@@ -27,7 +27,7 @@ export default function SuperadminDashboardPage() {
   const globalKpis = [
     {
       title: "MRR Proyectado",
-      value: "$12,450 USD",
+      value: "$1.450.000 ARS",
       change: "+18.5% este mes",
       trend: "up",
       subtext: "Facturación mensual recurrente activa",

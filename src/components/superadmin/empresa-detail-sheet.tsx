@@ -767,7 +767,7 @@ export function EmpresaDetailSheet({
                             <span className="text-muted-foreground">Precio Mensual</span>
                             <span className="font-semibold text-foreground">
                               {data.subscription?.precioMensual != null
-                                ? `$${data.subscription.precioMensual} USD/mes`
+                                ? `$${data.subscription.precioMensual.toLocaleString("es-AR")} ARS/mes`
                                 : "A medida"}
                             </span>
                           </div>
