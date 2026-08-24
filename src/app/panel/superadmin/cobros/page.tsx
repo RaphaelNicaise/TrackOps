@@ -1,4 +1,5 @@
 import React from "react";
+import { auth } from "@/auth";
 import { db } from "@/db";
 import {
   empresas,
@@ -7,6 +8,7 @@ import {
   empresaSubscriptions,
 } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
+import { isDemoUser } from "@/lib/demo-mode";
 import { Badge } from "@/components/ui/badge";
 import { CobrosView, BillingRecord } from "@/components/superadmin/cobros/cobros-view";
 import { ShieldCheck, Zap } from "lucide-react";
@@ -107,7 +109,9 @@ const FALLBACK_RECORDS: BillingRecord[] = [
 ];
 
 export default async function SuperadminCobrosPage() {
-  let recordsList: BillingRecord[] = FALLBACK_RECORDS;
+  const session = await auth().catch(() => null);
+  const demo = isDemoUser(session?.user);
+  let recordsList: BillingRecord[] = demo ? FALLBACK_RECORDS : [];
 
   try {
     // 1. Fetch live empresa subscriptions
@@ -188,7 +192,9 @@ export default async function SuperadminCobrosPage() {
     }
   } catch (error) {
     console.warn("Could not load live DB billing data, using fallback dataset.", error);
-    recordsList = FALLBACK_RECORDS;
+    if (demo) {
+      recordsList = FALLBACK_RECORDS;
+    }
   }
 
   return (

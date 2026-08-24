@@ -1,10 +1,12 @@
 import React from "react";
+import { auth } from "@/auth";
 import { db } from "@/db";
 import {
   subscriptionPlans,
   empresaSubscriptions,
 } from "@/db/schema";
 import { count } from "drizzle-orm";
+import { isDemoUser } from "@/lib/demo-mode";
 import { Badge } from "@/components/ui/badge";
 import { PlanesView, SubscriptionPlanData } from "@/components/superadmin/planes/planes-view";
 import { Layers, ShieldCheck, Zap } from "lucide-react";
@@ -24,7 +26,9 @@ const FALLBACK_PLANS: SubscriptionPlanData[] = [
 ];
 
 export default async function SuperadminPlanesPage() {
-  let plansList: SubscriptionPlanData[] = FALLBACK_PLANS;
+  const session = await auth().catch(() => null);
+  const demo = isDemoUser(session?.user);
+  let plansList: SubscriptionPlanData[] = demo ? FALLBACK_PLANS : [];
 
   try {
     // 1. Fetch live subscription plans
@@ -64,7 +68,9 @@ export default async function SuperadminPlanesPage() {
     }
   } catch (error) {
     console.warn("Could not query subscription plans, using fallback dataset.", error);
-    plansList = FALLBACK_PLANS;
+    if (demo) {
+      plansList = FALLBACK_PLANS;
+    }
   }
 
   return (

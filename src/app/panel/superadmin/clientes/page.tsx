@@ -1,4 +1,5 @@
 import React from "react";
+import { auth } from "@/auth";
 import { db } from "@/db";
 import {
   empresas,
@@ -7,6 +8,7 @@ import {
   empresaSubscriptions,
 } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
+import { isDemoUser } from "@/lib/demo-mode";
 import { ClientesTable, EmpresaRow } from "@/components/superadmin/clientes-table";
 import { PlanOption } from "@/components/superadmin/empresa-form-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,8 +93,10 @@ const FALLBACK_EMPRESAS: EmpresaRow[] = [
 ];
 
 export default async function SuperadminClientesPage() {
+  const session = await auth().catch(() => null);
+  const demo = isDemoUser(session?.user);
   let empresasList: EmpresaRow[] = [];
-  let plansList: PlanOption[] = FALLBACK_PLANS;
+  let plansList: PlanOption[] = demo ? FALLBACK_PLANS : [];
 
   try {
     // 1. Fetch plans
@@ -166,12 +170,14 @@ export default async function SuperadminClientesPage() {
         estadoSuscripcion: e.estadoSuscripcion || "activa",
         totalVehiculos: countMap[e.id] || 0,
       }));
-    } else {
+    } else if (demo) {
       empresasList = FALLBACK_EMPRESAS;
     }
   } catch (error) {
     console.warn("Could not query live DB for superadmin clientes, using fallback dataset.", error);
-    empresasList = FALLBACK_EMPRESAS;
+    if (demo) {
+      empresasList = FALLBACK_EMPRESAS;
+    }
   }
 
   // Calculate summary metrics

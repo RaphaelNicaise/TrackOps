@@ -422,8 +422,18 @@ export async function createGpsInstallation(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
+  const vehicleId = parseInt(formData.get("vehicleId") as string);
+  let empresaId = formData.get("empresaId") ? parseInt(formData.get("empresaId") as string) : session?.user?.empresaId;
+
+  if (!empresaId) {
+    const [v] = await db.select({ empresaId: vehicles.empresaId }).from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+    empresaId = v?.empresaId;
+  }
+  if (!empresaId) throw new Error("Empresa no encontrada para el vehículo");
+
   const [install] = await db.insert(gpsInstallations).values({
-    vehicleId: parseInt(formData.get("vehicleId") as string),
+    empresaId,
+    vehicleId,
     instaladorId: session.user.id,
     dispositivoModelo: formData.get("dispositivoModelo") as string,
     dispositivoSerial: formData.get("dispositivoSerial") as string,
@@ -431,7 +441,7 @@ export async function createGpsInstallation(formData: FormData) {
     notas: formData.get("notas") as string || null,
   }).returning();
 
-  await logAudit("CREATE", "gpsInstallation", install.id, { vehicleId: install.vehicleId });
+  await logAudit("CREATE", "gpsInstallation", install.id, { vehicleId: install.vehicleId, empresaId });
   revalidatePath("/panel/instalaciones");
 }
 

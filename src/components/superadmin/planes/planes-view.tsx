@@ -53,9 +53,16 @@ interface PlanesViewProps {
   plans: SubscriptionPlanData[];
 }
 
+function calcAnnualPrice(mensual: number, discountPct: number): number {
+  const d = Math.min(100, Math.max(0, discountPct));
+  return Math.round(mensual * 12 * (1 - d / 100));
+}
+
 export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
   const [plans, setPlans] = useState<SubscriptionPlanData[]>(initialPlans);
   const [isAnnualBilling, setIsAnnualBilling] = useState(false);
+  const [discountPct, setDiscountPct] = useState(16);
+  const [discountInput, setDiscountInput] = useState(String(16));
 
   // Plan Dialog state
   const [planDialogOpen, setPlanDialogOpen] = useState(false);
@@ -89,7 +96,7 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
       minVehiculos: plan.minVehiculos,
       maxVehiculos: plan.maxVehiculos ?? "",
       precioMensual: plan.precioMensual,
-      precioAnual: plan.precioAnual ?? "",
+      precioAnual: plan.precioAnual ?? calcAnnualPrice(plan.precioMensual, discountPct),
     });
     setPlanDialogOpen(true);
   };
@@ -116,15 +123,17 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
     setIsSubmittingPlan(true);
     try {
       if (editingPlan) {
-        const res = await updateSubscriptionPlan(editingPlan.id, {
-          nombre: planForm.nombre,
-          minVehiculos: planForm.minVehiculos,
-          maxVehiculos: planForm.maxVehiculos === "" ? null : Number(planForm.maxVehiculos),
-          precioMensual: planForm.precioMensual,
-          precioAnual: planForm.precioAnual === "" ? null : Number(planForm.precioAnual),
-        });
+        const fd = new FormData();
+        fd.append("id", editingPlan.id.toString());
+        fd.append("nombre", planForm.nombre);
+        fd.append("minVehiculos", planForm.minVehiculos.toString());
+        if (planForm.maxVehiculos !== "") fd.append("maxVehiculos", planForm.maxVehiculos.toString());
+        fd.append("precioMensual", planForm.precioMensual.toString());
+        if (planForm.precioAnual !== "") fd.append("precioAnual", planForm.precioAnual.toString());
 
-        if (res.success) {
+        const res = await updateSubscriptionPlan(fd);
+
+        if (res.success && res.plan) {
           appAlert.success(`Plan "${planForm.nombre}" actualizado`);
           setPlans((prev) =>
             prev.map((p) =>
@@ -142,16 +151,17 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
           );
           setPlanDialogOpen(false);
         } else {
-          appAlert.error(res.error || "No se pudo actualizar el plan");
+          appAlert.error("No se pudo actualizar el plan");
         }
       } else {
-        const res = await createSubscriptionPlan({
-          nombre: planForm.nombre,
-          minVehiculos: planForm.minVehiculos,
-          maxVehiculos: planForm.maxVehiculos === "" ? null : Number(planForm.maxVehiculos),
-          precioMensual: planForm.precioMensual,
-          precioAnual: planForm.precioAnual === "" ? null : Number(planForm.precioAnual),
-        });
+        const fd = new FormData();
+        fd.append("nombre", planForm.nombre);
+        fd.append("minVehiculos", planForm.minVehiculos.toString());
+        if (planForm.maxVehiculos !== "") fd.append("maxVehiculos", planForm.maxVehiculos.toString());
+        fd.append("precioMensual", planForm.precioMensual.toString());
+        if (planForm.precioAnual !== "") fd.append("precioAnual", planForm.precioAnual.toString());
+
+        const res = await createSubscriptionPlan(fd);
 
         if (res.success && res.plan) {
           appAlert.success(`Nuevo plan "${planForm.nombre}" creado exitosamente`);
@@ -170,7 +180,7 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
           ]);
           setPlanDialogOpen(false);
         } else {
-          appAlert.error(res.error || "No se pudo crear el plan");
+          appAlert.error("No se pudo crear el plan");
         }
       }
     } catch (err: any) {
@@ -183,12 +193,14 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
   const handleDeletePlan = async (plan: SubscriptionPlanData) => {
     if (!confirm(`¿Eliminar el plan "${plan.nombre}"?`)) return;
     try {
-      const res = await deleteSubscriptionPlan(plan.id);
+      const fd = new FormData();
+      fd.append("id", plan.id.toString());
+      const res = await deleteSubscriptionPlan(fd);
       if (res.success) {
         appAlert.success(`Plan "${plan.nombre}" eliminado`);
         setPlans((prev) => prev.filter((p) => p.id !== plan.id));
       } else {
-        appAlert.error(res.error || "No se pudo eliminar el plan");
+        appAlert.error("No se pudo eliminar el plan");
       }
     } catch (err: any) {
       appAlert.error(err.message || "Error al eliminar el plan");
@@ -216,9 +228,9 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
           {/* Toggle Mensual / Anual */}
-          <div className="flex items-center bg-muted/60 p-1 rounded-lg border border-border text-xs">
+          <div className="flex items-center bg-muted/60 p-1 rounded-lg border border-border text-xs shrink-0">
             <button
               type="button"
               onClick={() => setIsAnnualBilling(false)}
@@ -233,17 +245,68 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
             <button
               type="button"
               onClick={() => setIsAnnualBilling(true)}
-              className={`px-3 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-md font-medium transition ${
                 isAnnualBilling
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <span>Facturación Anual</span>
-              <span className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1 rounded">
-                -16%
-              </span>
+              Facturación Anual
             </button>
+          </div>
+
+          {/* Mini input descuento anual - inline, sin altura vertical extra */}
+          <div className="flex items-center gap-1 text-xs border rounded-lg bg-muted/40 px-2 py-1 h-8 shrink-0">
+            <span className="text-muted-foreground font-medium whitespace-nowrap hidden lg:inline">Dto. anual</span>
+            <span className="text-muted-foreground font-medium lg:hidden">Dto.</span>
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={discountInput}
+              onChange={(e) => {
+                const raw = e.target.value;
+                // Permitir vacío para poder borrar el 0
+                if (raw === "") {
+                  setDiscountInput("");
+                  return;
+                }
+                // Solo dígitos
+                if (!/^\d*$/.test(raw)) return;
+                setDiscountInput(raw);
+                const v = parseInt(raw, 10);
+                if (isNaN(v)) return;
+                const pct = Math.min(100, Math.max(0, v));
+                setDiscountPct(pct);
+                if (planForm.precioMensual > 0) {
+                  setPlanForm((prev) => ({ ...prev, precioAnual: calcAnnualPrice(prev.precioMensual, pct) }));
+                }
+              }}
+              onBlur={() => {
+                if (discountInput === "" || discountInput.trim() === "") {
+                  setDiscountInput("0");
+                  setDiscountPct(0);
+                  if (planForm.precioMensual > 0) {
+                    setPlanForm((prev) => ({ ...prev, precioAnual: calcAnnualPrice(prev.precioMensual, 0) }));
+                  }
+                  return;
+                }
+                const v = parseInt(discountInput, 10);
+                if (isNaN(v)) {
+                  setDiscountInput(String(discountPct));
+                  return;
+                }
+                const pct = Math.min(100, Math.max(0, v));
+                setDiscountInput(String(pct));
+                setDiscountPct(pct);
+                if (planForm.precioMensual > 0) {
+                  setPlanForm((prev) => ({ ...prev, precioAnual: calcAnnualPrice(prev.precioMensual, pct) }));
+                }
+              }}
+              onFocus={(e) => e.target.select()}
+              className="h-6 w-12 px-1 py-0 text-center font-mono text-xs"
+              aria-label="Porcentaje descuento anual"
+            />
+            <span className="font-bold text-foreground">%</span>
           </div>
 
           <Button onClick={handleOpenNewPlan} size="sm" className="gap-1.5 shrink-0">
@@ -259,7 +322,6 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-sm font-bold flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-500" />
                 Escala de Cobertura por Flota
               </CardTitle>
               <CardDescription className="text-xs">
@@ -307,7 +369,7 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
 
           <div className="flex flex-wrap items-center justify-between text-xs text-muted-foreground pt-1">
             <span>
-              💡 <span className="font-semibold text-foreground">Regla de exceso:</span> si un cliente supera el límite de su plan, el sistema escala automáticamente al siguiente nivel.
+              <span className="font-semibold text-foreground">Regla de exceso:</span> si un cliente supera el límite de su plan, el sistema escala automáticamente al siguiente nivel.
             </span>
             <span className="font-mono text-[11px]">
               Total clientes suscritos: {plans.reduce((acc, p) => acc + (p.tenantsCount || 0), 0)}
@@ -337,9 +399,8 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
             {[...plans]
               .sort((a, b) => a.minVehiculos - b.minVehiculos)
               .map((plan) => {
-                const currentPrice = isAnnualBilling
-                  ? plan.precioAnual || plan.precioMensual * 10
-                  : plan.precioMensual;
+                const derivedAnnual = calcAnnualPrice(plan.precioMensual, discountPct);
+                const currentPrice = isAnnualBilling ? derivedAnnual : plan.precioMensual;
 
                 const rangeLabel = plan.maxVehiculos
                   ? `${plan.minVehiculos} a ${plan.maxVehiculos} unidades`
@@ -365,9 +426,7 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
                     <TableCell className="text-right font-mono text-xs text-muted-foreground">
                       {isAnnualBilling
                         ? `$${Math.round(currentPrice / 12).toLocaleString("es-AR")}/mes`
-                        : plan.precioAnual
-                        ? `$${plan.precioAnual.toLocaleString("es-AR")}/año`
-                        : "—"}
+                        : `$${derivedAnnual.toLocaleString("es-AR")}/año`}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge variant="outline" className="font-mono text-xs gap-1">
@@ -473,33 +532,41 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
                     min="0"
                     step="100"
                     value={planForm.precioMensual}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const mensual = parseFloat(e.target.value) || 0;
                       setPlanForm({
                         ...planForm,
-                        precioMensual: parseFloat(e.target.value) || 0,
-                      })
-                    }
+                        precioMensual: mensual,
+                        precioAnual: mensual > 0 ? calcAnnualPrice(mensual, discountPct) : "",
+                      });
+                    }}
                     placeholder="Ej. 64900"
                     required
                   />
+                  {planForm.precioMensual > 0 && (
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Anual auto: 12× con {discountPct}% dto.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-                    Precio Anual (ARS)
+                    Precio Anual (ARS) <span className="font-normal text-muted-foreground">· auto</span>
                   </label>
                   <Input
                     type="number"
                     min="0"
                     step="100"
                     value={planForm.precioAnual}
-                    onChange={(e) =>
-                      setPlanForm({
-                        ...planForm,
-                        precioAnual: e.target.value === "" ? "" : parseFloat(e.target.value),
-                      })
-                    }
-                    placeholder="Ej. 649000"
+                    readOnly
+                    className="bg-muted/50 font-mono"
+                    placeholder="Se calcula automáticamente"
                   />
+                  {planForm.precioAnual !== "" && (
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
+                      ${Number(planForm.precioAnual).toLocaleString("es-AR")}/año
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

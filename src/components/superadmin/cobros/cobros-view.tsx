@@ -82,6 +82,7 @@ export interface BillingRecord {
   planNombre: string;
   precioMensual: number;
   precioAnual?: number | null;
+  moneda?: string;
   estadoPago: "al_dia" | "por_vencer" | "vencido" | "suspendida" | string;
   metodoPago: "mercadopago" | "transferencia" | "tarjeta" | "efectivo" | string;
   fechaInicio: string | Date;
@@ -952,7 +953,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                   <NativeSelect
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    sizeVariant="default"
+                    sizeVariant="lg"
                   >
                     <option value="transferencia">Transferencia Bancaria</option>
                     <option value="mercadopago">MercadoPago</option>

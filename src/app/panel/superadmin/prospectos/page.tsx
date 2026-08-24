@@ -1,7 +1,9 @@
 import React from "react";
+import { auth } from "@/auth";
 import { db } from "@/db";
 import { prospectos } from "@/db/schema";
 import { desc } from "drizzle-orm";
+import { isDemoUser } from "@/lib/demo-mode";
 import { Prospecto } from "@/lib/prospectos-actions";
 import { ProspectosTable } from "@/components/superadmin/prospectos-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,6 +94,8 @@ const FALLBACK_PROSPECTOS: Prospecto[] = [
 ];
 
 export default async function SuperadminProspectosPage() {
+  const session = await auth().catch(() => null);
+  const demo = isDemoUser(session?.user);
   let prospectosList: Prospecto[] = [];
 
   try {
@@ -102,7 +106,7 @@ export default async function SuperadminProspectosPage() {
 
     if (dbProspectos && dbProspectos.length > 0) {
       prospectosList = dbProspectos;
-    } else {
+    } else if (demo) {
       prospectosList = FALLBACK_PROSPECTOS;
     }
   } catch (error) {
@@ -110,7 +114,9 @@ export default async function SuperadminProspectosPage() {
       "Could not query live DB for superadmin prospectos, using fallback dataset.",
       error
     );
-    prospectosList = FALLBACK_PROSPECTOS;
+    if (demo) {
+      prospectosList = FALLBACK_PROSPECTOS;
+    }
   }
 
   // Calculate CRM Pipeline KPIs
