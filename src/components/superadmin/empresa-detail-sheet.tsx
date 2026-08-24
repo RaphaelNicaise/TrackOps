@@ -64,6 +64,7 @@ import {
   Car,
   Bus,
   Wrench,
+  Layers,
 } from "lucide-react";
 import {
   getEmpresaDetail360,
@@ -406,7 +407,7 @@ export function EmpresaDetailSheet({
       case "SUPER_ADMIN":
         return (
           <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1 text-[11px]">
-            <Sparkles className="h-3 w-3" />
+            <ShieldAlert className="h-3 w-3" />
             Super Admin
           </Badge>
         );
@@ -732,7 +733,7 @@ export function EmpresaDetailSheet({
                       {/* Card 2: Subscription & Limits */}
                       <div className="p-4 rounded-xl border border-border bg-card space-y-3">
                         <div className="flex items-center gap-2 pb-2 border-b border-border/60">
-                          <Sparkles className="h-4 w-4 text-primary" />
+                          <Layers className="h-4 w-4 text-primary" />
                           <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
                             Plan & Facturación
                           </h4>

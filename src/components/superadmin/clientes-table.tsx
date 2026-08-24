@@ -32,7 +32,6 @@ import {
   Power,
   PowerOff,
   Search,
-  Sparkles,
   Truck,
   X,
   Zap,
@@ -193,28 +192,40 @@ export function ClientesTable({ initialEmpresas, plans = [] }: ClientesTableProp
   };
 
   const getPlanBadge = (planNombre?: string | null) => {
-    const name = planNombre || "Starter";
+    const name = planNombre || "Inicial";
     const lower = name.toLowerCase();
 
     if (lower.includes("enterprise")) {
       return (
-        <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 border-amber-500/30 gap-1 font-semibold text-[11px]">
-          <Sparkles className="h-3 w-3" />
-          Enterprise
+        <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 border-amber-500/30 font-semibold text-[11px]">
+          {name}
         </Badge>
       );
     }
-    if (lower.includes("pro")) {
+    if (lower.includes("masiva")) {
       return (
-        <Badge className="bg-violet-500/15 text-violet-600 dark:text-violet-400 hover:bg-violet-500/25 border-violet-500/30 gap-1 font-semibold text-[11px]">
-          <Zap className="h-3 w-3" />
-          Pro
+        <Badge className="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/25 border-indigo-500/30 font-semibold text-[11px]">
+          {name}
+        </Badge>
+      );
+    }
+    if (lower.includes("consolidada") || lower.includes("pro")) {
+      return (
+        <Badge className="bg-violet-500/15 text-violet-600 dark:text-violet-400 hover:bg-violet-500/25 border-violet-500/30 font-semibold text-[11px]">
+          {name}
+        </Badge>
+      );
+    }
+    if (lower.includes("crecimiento")) {
+      return (
+        <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-emerald-500/30 font-semibold text-[11px]">
+          {name}
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 gap-1 font-medium text-[11px]">
-        Starter
+      <Badge variant="outline" className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 font-medium text-[11px]">
+        {name}
       </Badge>
     );
   };

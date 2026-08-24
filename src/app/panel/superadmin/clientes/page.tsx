@@ -30,9 +30,11 @@ export const metadata = {
 };
 
 const FALLBACK_PLANS: PlanOption[] = [
-  { id: 1, nombre: "Starter", maxVehiculos: 5, precioMensual: 49 },
-  { id: 2, nombre: "Pro", maxVehiculos: 25, precioMensual: 149 },
-  { id: 3, nombre: "Enterprise", maxVehiculos: 100, precioMensual: 399 },
+  { id: 1, nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 39990, precioAnual: 399900 },
+  { id: 2, nombre: "Crecimiento", minVehiculos: 6, maxVehiculos: 15, precioMensual: 64900, precioAnual: 649000 },
+  { id: 3, nombre: "Consolidada", minVehiculos: 16, maxVehiculos: 30, precioMensual: 99900, precioAnual: 999000 },
+  { id: 4, nombre: "Masiva", minVehiculos: 31, maxVehiculos: 49, precioMensual: 149900, precioAnual: 1499000 },
+  { id: 5, nombre: "Enterprise", minVehiculos: 50, maxVehiculos: null, precioMensual: 199900, precioAnual: 1999000 },
 ];
 
 const FALLBACK_EMPRESAS: EmpresaRow[] = [
@@ -41,7 +43,7 @@ const FALLBACK_EMPRESAS: EmpresaRow[] = [
     nombre: "Logística Alpha S.A.",
     cuit: "30-71234567-9",
     createdAt: new Date("2026-01-15T10:00:00Z"),
-    planId: 3,
+    planId: 5,
     planNombre: "Enterprise",
     estadoSuscripcion: "activa",
     totalVehiculos: 24,
@@ -52,7 +54,7 @@ const FALLBACK_EMPRESAS: EmpresaRow[] = [
     cuit: "30-68912345-2",
     createdAt: new Date("2026-02-10T14:30:00Z"),
     planId: 2,
-    planNombre: "Pro",
+    planNombre: "Crecimiento",
     estadoSuscripcion: "activa",
     totalVehiculos: 12,
   },
@@ -62,7 +64,7 @@ const FALLBACK_EMPRESAS: EmpresaRow[] = [
     cuit: "33-54891234-9",
     createdAt: new Date("2026-03-01T09:15:00Z"),
     planId: 1,
-    planNombre: "Starter",
+    planNombre: "Inicial",
     estadoSuscripcion: "activa",
     totalVehiculos: 4,
   },
@@ -71,7 +73,7 @@ const FALLBACK_EMPRESAS: EmpresaRow[] = [
     nombre: "TransCargas del Plata S.A.",
     cuit: "30-79812345-8",
     createdAt: new Date("2026-03-22T11:45:00Z"),
-    planId: 3,
+    planId: 5,
     planNombre: "Enterprise",
     estadoSuscripcion: "activa",
     totalVehiculos: 38,
@@ -82,7 +84,7 @@ const FALLBACK_EMPRESAS: EmpresaRow[] = [
     cuit: "27-35678901-4",
     createdAt: new Date("2026-04-05T16:20:00Z"),
     planId: 1,
-    planNombre: "Starter",
+    planNombre: "Inicial",
     estadoSuscripcion: "suspendida",
     totalVehiculos: 2,
   },
@@ -99,6 +101,7 @@ export default async function SuperadminClientesPage() {
       plansList = dbPlans.map((p) => ({
         id: p.id,
         nombre: p.nombre,
+        minVehiculos: p.minVehiculos,
         maxVehiculos: p.maxVehiculos,
         precioMensual: p.precioMensual,
         precioAnual: p.precioAnual,

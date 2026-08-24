@@ -26,7 +26,7 @@ import {
   Mail,
   MessageCircle,
   ShieldAlert,
-  Sparkles,
+  Layers,
 } from "lucide-react";
 
 export interface CreatedEmpresaInfo {
@@ -57,7 +57,7 @@ export function EmpresaCreatedDialog({
   empresa,
   adminUser,
   initialPassword = "",
-  planNombre = "Starter",
+  planNombre = "Inicial",
 }: EmpresaCreatedDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -82,14 +82,14 @@ export function EmpresaCreatedDialog({
 
   const getWhatsAppMessage = () => {
     return (
-      `🚚 *¡Bienvenido a TrackOps!*\n\n` +
+      `*¡Bienvenido a TrackOps!*\n\n` +
       `Hola *${adminUser.name}*, se ha completado el alta para la empresa *${empresa.nombre}*.\n\n` +
-      `🔑 *Tus credenciales de acceso inicial:*\n` +
+      `*Tus credenciales de acceso inicial:*\n` +
       `• *Acceso Web:* ${loginUrl}\n` +
       `• *Usuario / Email:* ${adminUser.email}\n` +
       `• *Contraseña provisoria:* ${initialPassword || "(definida manualmente)"}\n` +
-      `• *Plan:* ${planNombre || "Starter"}\n\n` +
-      `⚠️ *Aviso de seguridad:* Por políticas de seguridad, el sistema te solicitará cambiar tu contraseña en el primer inicio de sesión.`
+      `• *Plan:* ${planNombre || "Inicial"}\n\n` +
+      `*Aviso de seguridad:* Por políticas de seguridad, el sistema te solicitará cambiar tu contraseña en el primer inicio de sesión.`
     );
   };
 
@@ -103,7 +103,7 @@ export function EmpresaCreatedDialog({
       `- Plataforma: ${loginUrl}\n` +
       `- Usuario: ${adminUser.email}\n` +
       `- Contraseña temporal: ${initialPassword || "(definida manualmente)"}\n` +
-      `- Plan asignado: ${planNombre || "Starter"}\n` +
+      `- Plan asignado: ${planNombre || "Inicial"}\n` +
       (empresa.cuit ? `- CUIT: ${empresa.cuit}\n` : "") +
       `-----------------------------------------\n\n` +
       `IMPORTANTE: En tu primer inicio de sesión se te solicitará ingresar una nueva contraseña definitiva.\n\n` +
@@ -181,8 +181,8 @@ export function EmpresaCreatedDialog({
                 variant="secondary"
                 className="mt-0.5 font-semibold text-[11px] bg-primary/10 text-primary border-primary/20"
               >
-                <Sparkles className="h-3 w-3 mr-1" />
-                {planNombre || "Starter"}
+                <Layers className="h-3 w-3 mr-1" />
+                {planNombre || "Inicial"}
               </Badge>
             </div>
           </div>

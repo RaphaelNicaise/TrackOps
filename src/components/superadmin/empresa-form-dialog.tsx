@@ -38,9 +38,9 @@ import {
   Plus,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   User,
-  Zap,
+  Layers,
+  CreditCard,
 } from "lucide-react";
 
 export interface PlanOption {
@@ -81,11 +81,11 @@ interface EmpresaFormDialogProps {
 }
 
 const DEFAULT_PLANS: PlanOption[] = [
-  { id: 1, nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 39990 },
-  { id: 2, nombre: "Crecimiento", minVehiculos: 6, maxVehiculos: 15, precioMensual: 64900 },
-  { id: 3, nombre: "Consolidada", minVehiculos: 16, maxVehiculos: 30, precioMensual: 99900 },
-  { id: 4, nombre: "Masiva", minVehiculos: 31, maxVehiculos: 49, precioMensual: 149900 },
-  { id: 5, nombre: "Enterprise", minVehiculos: 50, maxVehiculos: null, precioMensual: 199900 },
+  { id: 1, nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 39990, precioAnual: 399900 },
+  { id: 2, nombre: "Crecimiento", minVehiculos: 6, maxVehiculos: 15, precioMensual: 64900, precioAnual: 649000 },
+  { id: 3, nombre: "Consolidada", minVehiculos: 16, maxVehiculos: 30, precioMensual: 99900, precioAnual: 999000 },
+  { id: 4, nombre: "Masiva", minVehiculos: 31, maxVehiculos: 49, precioMensual: 149900, precioAnual: 1499000 },
+  { id: 5, nombre: "Enterprise", minVehiculos: 50, maxVehiculos: null, precioMensual: 199900, precioAnual: 1999000 },
 ];
 
 export function EmpresaFormDialog({
@@ -104,6 +104,36 @@ export function EmpresaFormDialog({
 
   const isEdit = !!empresa?.id;
 
+  // Available live plans list
+  const [availablePlans, setAvailablePlans] = useState<PlanOption[]>(
+    plans.length > 0 ? plans : DEFAULT_PLANS
+  );
+
+  // Fetch live plans when opening dialog to ensure newly created plans appear
+  useEffect(() => {
+    if (isOpen) {
+      fetch("/api/plans")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setAvailablePlans(
+              data.map((p: any) => ({
+                id: p.id,
+                nombre: p.nombre,
+                minVehiculos: p.minVehiculos,
+                maxVehiculos: p.maxVehiculos,
+                precioMensual: p.precioMensual,
+                precioAnual: p.precioAnual,
+              }))
+            );
+          }
+        })
+        .catch(() => {
+          // ignore error and keep existing plans
+        });
+    }
+  }, [isOpen]);
+
   // Section 1: Company details
   const [nombre, setNombre] = useState(empresa?.nombre || "");
   const [cuit, setCuit] = useState(empresa?.cuit || "");
@@ -117,7 +147,7 @@ export function EmpresaFormDialog({
   const [selectedPlanId, setSelectedPlanId] = useState<number>(() => {
     if (empresa?.planId) return empresa.planId;
     if (empresa?.planNombre) {
-      const found = plans.find(
+      const found = (plans.length > 0 ? plans : DEFAULT_PLANS).find(
         (p) => p.nombre.toLowerCase() === empresa.planNombre?.toLowerCase()
       );
       if (found) return found.id;
@@ -147,6 +177,8 @@ export function EmpresaFormDialog({
 
   // Sync state when editing or opening
   useEffect(() => {
+    const activeList = availablePlans.length > 0 ? availablePlans : plans.length > 0 ? plans : DEFAULT_PLANS;
+
     if (empresa) {
       setNombre(empresa.nombre || "");
       setCuit(empresa.cuit || "");
@@ -159,12 +191,12 @@ export function EmpresaFormDialog({
       if (empresa.planId) {
         setSelectedPlanId(empresa.planId);
       } else if (empresa.planNombre) {
-        const found = plans.find(
+        const found = activeList.find(
           (p) => p.nombre.toLowerCase() === empresa.planNombre?.toLowerCase()
         );
-        setSelectedPlanId(found ? found.id : 1);
+        setSelectedPlanId(found ? found.id : activeList[0]?.id || 1);
       } else {
-        setSelectedPlanId(plans[0]?.id || 1);
+        setSelectedPlanId(activeList[0]?.id || 1);
       }
     } else {
       setNombre("");
@@ -174,14 +206,14 @@ export function EmpresaFormDialog({
       setDireccion("");
       setCiudad("");
       setProvincia("");
-      setSelectedPlanId(plans[0]?.id || 1);
+      setSelectedPlanId(activeList[0]?.id || 1);
       setAdminNombre("");
       setAdminEmail("");
       setAdminPassword("");
       setAdminPasswordConfirm("");
     }
     setErrorMsg(null);
-  }, [empresa, plans, isOpen]);
+  }, [empresa, availablePlans, isOpen]);
 
   // Helper to generate a strong random password
   const handleGeneratePassword = () => {
@@ -253,12 +285,13 @@ export function EmpresaFormDialog({
 
         const res = await createEmpresaWithAdmin(formData);
         if (res.success) {
-          const planObj = currentPlans.find((p) => p.id === selectedPlanId);
+          const activePlansList = availablePlans.length > 0 ? availablePlans : plans.length > 0 ? plans : DEFAULT_PLANS;
+          const planObj = activePlansList.find((p) => p.id === selectedPlanId);
           const createdData = {
             empresa: res.empresa,
             adminUser: res.adminUser,
             initialPassword: res.initialPassword,
-            planNombre: planObj?.nombre || "Starter",
+            planNombre: planObj?.nombre || "Inicial",
           };
 
           setCreatedResult(createdData);
@@ -278,7 +311,7 @@ export function EmpresaFormDialog({
     }
   };
 
-  const currentPlans = plans.length > 0 ? plans : DEFAULT_PLANS;
+  const currentPlans = availablePlans.length > 0 ? availablePlans : plans.length > 0 ? plans : DEFAULT_PLANS;
 
   return (
     <>
@@ -294,7 +327,7 @@ export function EmpresaFormDialog({
           </DialogTrigger>
         ) : null}
 
-        <DialogContent className="sm:max-w-[620px] p-0 overflow-hidden border-border bg-card">
+        <DialogContent className="sm:max-w-[640px] p-0 overflow-hidden border-border bg-card">
           <form onSubmit={handleSubmit}>
             {/* Header Banner */}
             <div className="bg-muted/40 p-6 border-b border-border">
@@ -463,17 +496,17 @@ export function EmpresaFormDialog({
               <div className="space-y-3">
                 <div className="flex items-center justify-between pb-1 border-b border-border/60">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Layers className="h-4 w-4 text-primary" />
                     <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
                       2. Plan SaaS Inicial
                     </h3>
                   </div>
                   <span className="text-[11px] text-muted-foreground">
-                    Límite de vehículos y costos
+                    Selecciona el nivel de cobertura de flota
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                   {currentPlans.map((plan) => {
                     const isSelected = selectedPlanId === plan.id;
                     return (
@@ -513,7 +546,7 @@ export function EmpresaFormDialog({
 
                         <div className="mt-2 text-xs font-bold text-foreground">
                           {plan.precioMensual != null
-                            ? `$${plan.precioMensual} USD/mes`
+                            ? `$${plan.precioMensual.toLocaleString("es-AR")} USD/mes`
                             : "A medida"}
                         </div>
                       </div>
@@ -672,7 +705,7 @@ export function EmpresaFormDialog({
                   </>
                 ) : isEdit ? (
                   <>
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <CheckCircle2 className="h-3.5 w-3.5" />
                     Actualizar Empresa
                   </>
                 ) : (
@@ -694,7 +727,7 @@ export function EmpresaFormDialog({
         empresa={createdResult?.empresa || null}
         adminUser={createdResult?.adminUser || null}
         initialPassword={createdResult?.initialPassword || ""}
-        planNombre={createdResult?.planNombre || "Starter"}
+        planNombre={createdResult?.planNombre || "Inicial"}
       />
     </>
   );
