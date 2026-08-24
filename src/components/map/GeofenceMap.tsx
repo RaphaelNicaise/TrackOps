@@ -1070,7 +1070,7 @@ export default function GeofenceMap({
                   </div>
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                      g.activa ? "bg-emerald-500/10 text-emerald-600" : "bg-slate-500/10 text-slate-600"
+                      g.activa ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-slate-500/10 text-slate-600 dark:text-slate-400"
                     }`}
                   >
                     {g.activa ? "Activa" : "Inactiva"}
@@ -1107,7 +1107,7 @@ export default function GeofenceMap({
                       <span className="text-muted-foreground flex items-center gap-1">
                         <Gauge className="h-3 w-3" /> Límite:
                       </span>
-                      <span className="font-semibold text-amber-600">{g.speedLimit} km/h</span>
+                      <span className="font-semibold text-amber-600 dark:text-amber-400">{g.speedLimit} km/h</span>
                     </div>
                   )}
                 </div>

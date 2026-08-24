@@ -496,7 +496,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
             <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
               Tasa de Cobro al Día
             </CardTitle>
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </CardHeader>
@@ -509,12 +509,12 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
             </div>
             <div className="flex items-center gap-2 mt-1 text-xs">
               {kpis.overdueTenants > 0 ? (
-                <span className="text-rose-600 font-semibold">{kpis.overdueTenants} vencido(s)</span>
+                <span className="text-rose-600 dark:text-rose-400 font-semibold">{kpis.overdueTenants} vencido(s)</span>
               ) : (
-                <span className="text-emerald-600 font-medium">Sin cobros vencidos</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Sin cobros vencidos</span>
               )}
               {kpis.warningTenants > 0 && (
-                <span className="text-amber-600 font-medium">• {kpis.warningTenants} por vencer</span>
+                <span className="text-amber-600 dark:text-amber-400 font-medium">• {kpis.warningTenants} por vencer</span>
               )}
             </div>
           </CardContent>
@@ -551,7 +551,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
               type="button"
               onClick={() => setStatusFilter("al_dia")}
               className={`px-2.5 py-1 rounded font-medium transition ${
-                statusFilter === "al_dia" ? "bg-background text-emerald-600 shadow-xs" : "text-muted-foreground hover:text-foreground"
+                statusFilter === "al_dia" ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-xs" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Al día ({kpis.upToDateTenants})
@@ -560,7 +560,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
               type="button"
               onClick={() => setStatusFilter("por_vencer")}
               className={`px-2.5 py-1 rounded font-medium transition ${
-                statusFilter === "por_vencer" ? "bg-background text-amber-600 shadow-xs" : "text-muted-foreground hover:text-foreground"
+                statusFilter === "por_vencer" ? "bg-background text-amber-600 dark:text-amber-400 shadow-xs" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Por vencer ({kpis.warningTenants})
@@ -569,7 +569,7 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
               type="button"
               onClick={() => setStatusFilter("vencido")}
               className={`px-2.5 py-1 rounded font-medium transition ${
-                statusFilter === "vencido" ? "bg-background text-rose-600 shadow-xs" : "text-muted-foreground hover:text-foreground"
+                statusFilter === "vencido" ? "bg-background text-rose-600 dark:text-rose-400 shadow-xs" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Vencidos ({kpis.overdueTenants})
@@ -657,9 +657,9 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                         <div
                           className={`text-[10px] font-medium ${
                             daysInfo.isPast
-                              ? "text-rose-600 font-bold"
+                              ? "text-rose-600 dark:text-rose-400 font-bold"
                               : daysInfo.variant === "warning"
-                              ? "text-amber-600 font-semibold"
+                              ? "text-amber-600 dark:text-amber-400 font-semibold"
                               : "text-muted-foreground"
                           }`}
                         >

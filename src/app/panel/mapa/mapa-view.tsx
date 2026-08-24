@@ -75,9 +75,9 @@ function normalizeVehicle(raw: any): MapVehicle {
 
 const getStateColor = (estado: string) => {
   switch (estado) {
-    case 'En movimiento': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
-    case 'Ralentí': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
-    case 'Detenido': return 'bg-slate-500/10 text-slate-600 border-slate-500/20';
+    case 'En movimiento': return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+    case 'Ralentí': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+    case 'Detenido': return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
     default: return 'bg-muted text-muted-foreground border-border';
   }
 };
@@ -401,7 +401,7 @@ export function MapaView({
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Truck className="h-5 w-5 text-primary" />
               Estado de Flota
-              <div className="flex items-center text-[10px] font-medium text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm ml-1.5 translate-y-[1px]">
+              <div className="flex items-center text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm ml-1.5 translate-y-[1px]">
                 <Wifi className="h-3 w-3 mr-1" />
                 {onlineCount}/{vehicles.length} Online
               </div>

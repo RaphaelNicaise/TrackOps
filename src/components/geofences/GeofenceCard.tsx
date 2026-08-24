@@ -151,8 +151,8 @@ export function GeofenceCard({
             <div
               className={`flex items-center text-[10px] px-2 py-0.5 rounded border font-semibold tracking-wide shrink-0 transition-colors hover:brightness-95 ${
                 geofence.activa
-                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                  : "bg-slate-500/10 text-slate-600 border-slate-500/20"
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                  : "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20"
               }`}
               onClick={(e) => {
                 e.stopPropagation();

@@ -364,7 +364,7 @@ export default function GeocercasPage() {
                 <h2 className="font-semibold text-lg flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
                   Geocercas
-                  <div className="flex items-center text-[10px] font-medium text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm ml-1.5 translate-y-[1px]">
+                  <div className="flex items-center text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm ml-1.5 translate-y-[1px]">
                     {activeCount}/{geofences.length} Activas
                   </div>
                 </h2>
