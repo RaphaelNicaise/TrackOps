@@ -11,7 +11,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -440,49 +446,61 @@ export function SoporteTable({
           {/* Priority Select */}
           <div className="flex items-center gap-1.5 min-w-[150px]">
             <span className="text-muted-foreground text-[11px] whitespace-nowrap">Prioridad:</span>
-            <NativeSelect
+            <Select
               value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              sizeVariant="sm"
+              onValueChange={(val) => setPriorityFilter(val)}
             >
-              <option value="ALL">Todas las Prioridades</option>
-              <option value="URGENTE">Urgente</option>
-              <option value="ALTA">Alta</option>
-              <option value="MEDIA">Media</option>
-              <option value="BAJA">Baja</option>
-            </NativeSelect>
+              <SelectTrigger className="h-8 text-xs rounded-xl bg-card border-input">
+                <SelectValue placeholder="Todas las Prioridades" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                <SelectItem value="ALL">Todas las Prioridades</SelectItem>
+                <SelectItem value="URGENTE">Urgente</SelectItem>
+                <SelectItem value="ALTA">Alta</SelectItem>
+                <SelectItem value="MEDIA">Media</SelectItem>
+                <SelectItem value="BAJA">Baja</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Type Select */}
           <div className="flex items-center gap-1.5 min-w-[150px]">
             <span className="text-muted-foreground text-[11px] whitespace-nowrap">Tipo:</span>
-            <NativeSelect
+            <Select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              sizeVariant="sm"
+              onValueChange={(val) => setTypeFilter(val)}
             >
-              <option value="ALL">Todos los Tipos</option>
-              <option value="PROBLEMA_TECNICO">Técnico</option>
-              <option value="DISPOSITIVO_GPS">GPS</option>
-              <option value="FACTURACION">Facturación</option>
-              <option value="QUEJA_RECLAMO">Quejas</option>
-              <option value="CONSULTA_GENERAL">Consulta</option>
-              <option value="OTRO">Otro</option>
-            </NativeSelect>
+              <SelectTrigger className="h-8 text-xs rounded-xl bg-card border-input">
+                <SelectValue placeholder="Todos los Tipos" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                <SelectItem value="ALL">Todos los Tipos</SelectItem>
+                <SelectItem value="PROBLEMA_TECNICO">Técnico</SelectItem>
+                <SelectItem value="DISPOSITIVO_GPS">GPS</SelectItem>
+                <SelectItem value="FACTURACION">Facturación</SelectItem>
+                <SelectItem value="QUEJA_RECLAMO">Quejas</SelectItem>
+                <SelectItem value="CONSULTA_GENERAL">Consulta</SelectItem>
+                <SelectItem value="OTRO">Otro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Origin Select */}
           <div className="flex items-center gap-1.5 min-w-[130px]">
             <span className="text-muted-foreground text-[11px] whitespace-nowrap">Origen:</span>
-            <NativeSelect
+            <Select
               value={originFilter}
-              onChange={(e) => setOriginFilter(e.target.value)}
-              sizeVariant="sm"
+              onValueChange={(val) => setOriginFilter(val)}
             >
-              <option value="ALL">Todos los Orígenes</option>
-              <option value="PANEL">Panel</option>
-              <option value="WEB">Web</option>
-            </NativeSelect>
+              <SelectTrigger className="h-8 text-xs rounded-xl bg-card border-input">
+                <SelectValue placeholder="Todos los Orígenes" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                <SelectItem value="ALL">Todos los Orígenes</SelectItem>
+                <SelectItem value="PANEL">Panel</SelectItem>
+                <SelectItem value="WEB">Web</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Reset Filters */}

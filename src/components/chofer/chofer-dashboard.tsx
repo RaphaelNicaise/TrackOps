@@ -27,7 +27,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -710,18 +716,21 @@ export function ChoferDashboard({
                 <Label htmlFor="start-vehicle" className="text-xs font-semibold">
                   Vehículo Asignado
                 </Label>
-                <NativeSelect
-                  id="start-vehicle"
+                <Select
                   value={startVehicleId}
-                  onChange={(e) => setStartVehicleId(e.target.value)}
-                  sizeVariant="lg"
+                  onValueChange={(val) => setStartVehicleId(val)}
                 >
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.patente} {v.marca ? `- ${v.marca} ${v.modelo || ""}` : ""}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="start-vehicle" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="Seleccionar vehículo" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    {vehicles.map((v) => (
+                      <SelectItem key={v.id} value={String(v.id)}>
+                        {v.patente} {v.marca ? `- ${v.marca} ${v.modelo || ""}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
@@ -899,18 +908,21 @@ export function ChoferDashboard({
                 <Label htmlFor="free-vehicle" className="text-xs font-semibold">
                   Vehículo
                 </Label>
-                <NativeSelect
-                  id="free-vehicle"
+                <Select
                   value={freeVehicleId}
-                  onChange={(e) => setFreeVehicleId(e.target.value)}
-                  sizeVariant="lg"
+                  onValueChange={(val) => setFreeVehicleId(val)}
                 >
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.patente} {v.marca ? `- ${v.marca} ${v.modelo || ""}` : ""}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="free-vehicle" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="Seleccionar vehículo" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    {vehicles.map((v) => (
+                      <SelectItem key={v.id} value={String(v.id)}>
+                        {v.patente} {v.marca ? `- ${v.marca} ${v.modelo || ""}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Kilometraje Inicial */}

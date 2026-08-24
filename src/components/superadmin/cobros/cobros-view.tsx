@@ -3,7 +3,13 @@
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -950,16 +956,20 @@ export function CobrosView({ records: initialRecords = [] }: CobrosViewProps) {
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">
                     Método de Pago *
                   </label>
-                  <NativeSelect
+                  <Select
                     value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    sizeVariant="lg"
+                    onValueChange={(val) => setPaymentMethod(val)}
                   >
-                    <option value="transferencia">Transferencia Bancaria</option>
-                    <option value="mercadopago">MercadoPago</option>
-                    <option value="tarjeta">Tarjeta de Crédito / Débito</option>
-                    <option value="efectivo">Efectivo / Cheque</option>
-                  </NativeSelect>
+                    <SelectTrigger className="h-10 rounded-xl bg-card border-input">
+                      <SelectValue placeholder="Seleccionar método de pago" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                      <SelectItem value="transferencia">Transferencia Bancaria</SelectItem>
+                      <SelectItem value="mercadopago">MercadoPago</SelectItem>
+                      <SelectItem value="tarjeta">Tarjeta de Crédito / Débito</SelectItem>
+                      <SelectItem value="efectivo">Efectivo / Cheque</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}

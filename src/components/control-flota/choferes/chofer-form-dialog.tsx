@@ -17,7 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { appAlert } from "@/lib/alerts";
 import { createChofer, updateChofer, deleteChofer } from "@/lib/flota-actions";
 import type { ChoferRow, ChoferEstado, CreateChoferInput, UpdateChoferInput } from "@/types/flota-viajes";
@@ -357,18 +363,21 @@ export function ChoferFormDialog({
                 <Label htmlFor="chofer-licencia-categoria" className="text-xs font-medium">
                   Categoría
                 </Label>
-                <NativeSelect
-                  id="chofer-licencia-categoria"
+                <Select
                   value={licenciaCategoria}
-                  onChange={(e) => setLicenciaCategoria(e.target.value)}
-                  sizeVariant="lg"
+                  onValueChange={(val) => setLicenciaCategoria(val)}
                 >
-                  {LICENCIA_CATEGORIAS.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="chofer-licencia-categoria" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    {LICENCIA_CATEGORIAS.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
@@ -395,35 +404,41 @@ export function ChoferFormDialog({
                 <Label htmlFor="chofer-vehiculo" className="text-xs font-medium">
                   Vehículo Habitual
                 </Label>
-                <NativeSelect
-                  id="chofer-vehiculo"
-                  value={vehiculoHabitualId}
-                  onChange={(e) => setVehiculoHabitualId(e.target.value)}
-                  sizeVariant="lg"
+                <Select
+                  value={vehiculoHabitualId || "NONE"}
+                  onValueChange={(val) => setVehiculoHabitualId(val === "NONE" ? "" : val)}
                 >
-                  <option value="">— Sin asignar —</option>
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={String(v.id)}>
-                      {v.patente} {v.marca ? `- ${v.marca}` : ""} {v.modelo || ""}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="chofer-vehiculo" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="— Sin asignar —" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    <SelectItem value="NONE">— Sin asignar —</SelectItem>
+                    {vehicles.map((v) => (
+                      <SelectItem key={v.id} value={String(v.id)}>
+                        {v.patente} {v.marca ? `- ${v.marca}` : ""} {v.modelo || ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="chofer-estado" className="text-xs font-medium">
                   Estado Laboral
                 </Label>
-                <NativeSelect
-                  id="chofer-estado"
+                <Select
                   value={estado}
-                  onChange={(e) => setEstado(e.target.value as ChoferEstado)}
-                  sizeVariant="lg"
+                  onValueChange={(val) => setEstado(val as ChoferEstado)}
                 >
-                  <option value="ACTIVO">Activo</option>
-                  <option value="INACTIVO">Inactivo</option>
-                  <option value="LICENCIA_SUSPENDIDA">Licencia suspendida</option>
-                </NativeSelect>
+                  <SelectTrigger id="chofer-estado" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="Estado laboral" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    <SelectItem value="ACTIVO">Activo</SelectItem>
+                    <SelectItem value="INACTIVO">Inactivo</SelectItem>
+                    <SelectItem value="LICENCIA_SUSPENDIDA">Licencia suspendida</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

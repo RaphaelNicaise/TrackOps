@@ -33,7 +33,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { appAlert } from "@/lib/alerts";
 import { createSitio, updateSitio, deleteSitio } from "@/lib/flota-actions";
 import {
@@ -490,18 +496,21 @@ export function SitioFormDialog({
                 <Label htmlFor="sitio-tipo" className="text-xs font-medium">
                   Tipo de Sitio <span className="text-destructive">*</span>
                 </Label>
-                <NativeSelect
-                  id="sitio-tipo"
+                <Select
                   value={tipo}
-                  onChange={(e) => setTipo(e.target.value as SitioTipo)}
-                  sizeVariant="lg"
+                  onValueChange={(val) => setTipo(val as SitioTipo)}
                 >
-                  {SITIO_TIPOS.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="sitio-tipo" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="Seleccionar tipo de sitio" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    {SITIO_TIPOS.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

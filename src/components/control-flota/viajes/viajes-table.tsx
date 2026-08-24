@@ -42,7 +42,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -409,24 +415,25 @@ export function ViajesTable({
               )}
             </div>
 
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
-
-            <NativeSelect
-              value={choferFilter}
-              onChange={(e) => setChoferFilter(e.target.value)}
-              sizeVariant="default"
-              containerClassName="w-full sm:w-[190px]"
-              className="h-9 text-sm"
-              aria-label="Filtrar por chofer"
-            >
-              <option value="ALL">Todos los choferes</option>
-              {choferOptions.map((c) => (
-                <option key={c.id} value={String(c.id)}>
-                  {c.label}
-                </option>
-              ))}
-              <option value="NONE">Sin asignar</option>
-            </NativeSelect>
+            <div className="w-full sm:w-[190px]">
+              <Select
+                value={choferFilter}
+                onValueChange={(val) => setChoferFilter(val)}
+              >
+                <SelectTrigger className="h-9 text-xs rounded-xl bg-card border-input" aria-label="Filtrar por chofer">
+                  <SelectValue placeholder="Todos los choferes" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  <SelectItem value="ALL">Todos los choferes</SelectItem>
+                  {choferOptions.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="NONE">Sin asignar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {hasActiveFilters && (
               <Button
@@ -736,20 +743,21 @@ export function ViajesTable({
               <span className="hidden md:inline text-xs text-muted-foreground">
                 Filas por página
               </span>
-              <NativeSelect
+              <Select
                 value={String(pageSize)}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                sizeVariant="sm"
-                containerClassName="w-[70px]"
-                className="text-xs"
-                aria-label="Filas por página"
+                onValueChange={(val) => setPageSize(Number(val))}
               >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={String(size)}>
-                    {size}
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger className="h-8 w-[72px] text-xs rounded-xl bg-card border-input" aria-label="Filas por página">
+                  <SelectValue placeholder={String(pageSize)} />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center gap-2">

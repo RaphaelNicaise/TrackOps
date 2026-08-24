@@ -29,6 +29,24 @@ vi.mock("@radix-ui/react-dialog", async () => {
   };
 });
 
+vi.mock("@radix-ui/react-select", async () => {
+  const actual = await vi.importActual<any>("@radix-ui/react-select");
+  return {
+    ...actual,
+    Root: ({ children, defaultValue, value }: any) => <div data-select-root="" data-value={value || defaultValue}>{children}</div>,
+    Trigger: ({ children, ...props }: any) => <button type="button" {...props}>{children}</button>,
+    Value: ({ children, placeholder }: any) => <span>{children || placeholder}</span>,
+    Portal: ({ children }: any) => <div data-radix-portal="">{children}</div>,
+    Content: ({ children, ...props }: any) => <div data-radix-select-content="" {...props}>{children}</div>,
+    Viewport: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    Item: ({ children, value, ...props }: any) => <div data-value={value} {...props}>{children} {value}</div>,
+    ItemText: ({ children }: any) => <span>{children}</span>,
+    ItemIndicator: ({ children }: any) => <span>{children}</span>,
+    ScrollUpButton: () => null,
+    ScrollDownButton: () => null,
+  };
+});
+
 vi.mock("@radix-ui/react-dropdown-menu", async () => {
   const actual = await vi.importActual<any>("@radix-ui/react-dropdown-menu");
   return {

@@ -46,7 +46,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   CreateVehicleDialog,
@@ -366,17 +372,23 @@ export function VehiculosTable({ vehicles }: VehiculosTableProps) {
 
             {/* Selector de Tipo de Vehículo */}
             <div className="w-full sm:w-48">
-              <NativeSelect
+              <Select
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                sizeVariant="default"
+                onValueChange={(val) => setTypeFilter(val)}
               >
-                {VEHICLE_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger className="h-9 text-xs rounded-xl bg-card border-input">
+                  <SelectValue placeholder="Tipo de vehículo">
+                    {typeFilter}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  {VEHICLE_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Botón Limpiar Filtros */}

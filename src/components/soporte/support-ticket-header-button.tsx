@@ -14,7 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Headphones,
   Send,
@@ -205,18 +211,21 @@ export function SupportTicketHeaderButton({
               <Label htmlFor="ticket-tipo" className="text-xs font-semibold text-foreground">
                 Tipo de Requerimiento o Falla
               </Label>
-              <NativeSelect
-                id="ticket-tipo"
+              <Select
                 value={tipo}
-                onChange={(e) => setTipo(e.target.value as TicketTipo)}
-                sizeVariant="default"
+                onValueChange={(val) => setTipo(val as TicketTipo)}
               >
-                {TIPO_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label} ({opt.value})
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger id="ticket-tipo" className="h-10 rounded-xl bg-card border-input">
+                  <SelectValue placeholder="Seleccionar tipo de ticket" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  {TIPO_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label} ({opt.value})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Prioridad */}

@@ -16,7 +16,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateVehicle, deleteVehicle, createVehicle } from "@/lib/vehicle-actions";
 
 export type VehiculoEditable = {
@@ -94,17 +100,21 @@ export function EditVehicleDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="tipo">Tipo</Label>
-              <NativeSelect
-                id="tipo"
+              <Select
                 name="tipo"
                 defaultValue={vehicle.tipo ?? ""}
-                sizeVariant="lg"
               >
-                <option value="">—</option>
-                {TIPOS.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger id="tipo" className="h-10 rounded-xl bg-card border-input">
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  {TIPOS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="marca">Marca</Label>
@@ -254,19 +264,21 @@ export function CreateVehicleDialog() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-tipo">Tipo</Label>
-              <NativeSelect
-                id="create-tipo"
+              <Select
                 name="tipo"
                 defaultValue="Camión"
-                sizeVariant="lg"
               >
-                <option value="">—</option>
-                {TIPOS.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger id="create-tipo" className="h-10 rounded-xl bg-card border-input">
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  {TIPOS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-marca">Marca</Label>

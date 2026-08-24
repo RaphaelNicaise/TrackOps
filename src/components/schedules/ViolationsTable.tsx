@@ -23,7 +23,13 @@ import { ScheduleViolation } from "@/types/schedule";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableHeader,
@@ -161,21 +167,25 @@ export function ViolationsTable({
           {/* Schedule Select Filter */}
           {distinctSchedules.length > 0 && (
             <div className="w-48 sm:w-56">
-              <NativeSelect
+              <Select
                 value={scheduleFilter}
-                onChange={(e) => {
-                  setScheduleFilter(e.target.value);
+                onValueChange={(val) => {
+                  setScheduleFilter(val);
                   setCurrentPage(1);
                 }}
-                sizeVariant="default"
               >
-                <option value="ALL">Todas las reglas horarias</option>
-                {distinctSchedules.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger className="h-9 text-xs rounded-xl bg-card border-input">
+                  <SelectValue placeholder="Todas las reglas horarias" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  <SelectItem value="ALL">Todas las reglas horarias</SelectItem>
+                  {distinctSchedules.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 

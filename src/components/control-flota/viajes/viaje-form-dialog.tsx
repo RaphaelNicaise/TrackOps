@@ -29,7 +29,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { appAlert } from "@/lib/alerts";
 import { createViaje, cancelarViaje } from "@/lib/flota-actions";
 import { LocationSelector, type SelectedLocation } from "./location-selector";
@@ -288,38 +294,44 @@ export function ViajeFormDialog({
                 <Label htmlFor="viaje-chofer" className="text-xs font-medium">
                   Chofer Asignado
                 </Label>
-                <NativeSelect
-                  id="viaje-chofer"
-                  value={choferId}
-                  onChange={(e) => handleChoferChange(e.target.value)}
-                  sizeVariant="lg"
+                <Select
+                  value={choferId || "NONE"}
+                  onValueChange={(val) => handleChoferChange(val === "NONE" ? "" : val)}
                 >
-                  <option value="">-- Sin chofer asignado (Pendiente) --</option>
-                  {choferes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nombre} {c.apellido} {c.licenciaNumero ? `(Lic: ${c.licenciaNumero})` : ""}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="viaje-chofer" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="-- Sin chofer asignado --" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    <SelectItem value="NONE">-- Sin chofer asignado (Pendiente) --</SelectItem>
+                    {choferes.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.nombre} {c.apellido} {c.licenciaNumero ? `(Lic: ${c.licenciaNumero})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="viaje-vehiculo" className="text-xs font-medium">
                   Vehículo Asignado
                 </Label>
-                <NativeSelect
-                  id="viaje-vehiculo"
-                  value={vehiculoId}
-                  onChange={(e) => setVehiculoId(e.target.value)}
-                  sizeVariant="lg"
+                <Select
+                  value={vehiculoId || "NONE"}
+                  onValueChange={(val) => setVehiculoId(val === "NONE" ? "" : val)}
                 >
-                  <option value="">-- Sin vehículo asignado (Pendiente) --</option>
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.patente} {v.marca || v.modelo ? `(${[v.marca, v.modelo].filter(Boolean).join(" ")})` : ""}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="viaje-vehiculo" className="h-10 rounded-xl bg-card border-input">
+                    <SelectValue placeholder="-- Sin vehículo asignado --" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                    <SelectItem value="NONE">-- Sin vehículo asignado (Pendiente) --</SelectItem>
+                    {vehicles.map((v) => (
+                      <SelectItem key={v.id} value={String(v.id)}>
+                        {v.patente} {v.marca || v.modelo ? `(${[v.marca, v.modelo].filter(Boolean).join(" ")})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

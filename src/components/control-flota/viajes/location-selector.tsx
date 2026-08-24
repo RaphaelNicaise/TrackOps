@@ -22,7 +22,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { parseGoogleMapsUrl } from "@/lib/maps-parser";
 import type { SitioRow, SitioTipo, UbicacionTipo } from "@/types/flota-viajes";
@@ -330,19 +336,23 @@ export function LocationSelector({
       {/* Modo 1: Sitio Preconfigurado */}
       {mode === "SITIO" && (
         <div className="space-y-2">
-          <NativeSelect
-            value={selected?.tipo === "SITIO" && selected.sitioId ? String(selected.sitioId) : ""}
-            onChange={(e) => handleSelectSite(e.target.value)}
+          <Select
+            value={selected?.tipo === "SITIO" && selected.sitioId ? String(selected.sitioId) : "NONE"}
+            onValueChange={(val) => handleSelectSite(val === "NONE" ? "" : val)}
             disabled={disabled}
-            sizeVariant="lg"
           >
-            <option value="">-- Seleccionar sitio registrado --</option>
-            {sitios.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nombre} ({s.tipo}) - {s.direccion}
-              </option>
-            ))}
-          </NativeSelect>
+            <SelectTrigger className="h-10 rounded-xl bg-card border-input">
+              <SelectValue placeholder="-- Seleccionar sitio registrado --" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+              <SelectItem value="NONE">-- Seleccionar sitio registrado --</SelectItem>
+              {sitios.map((s) => (
+                <SelectItem key={s.id} value={String(s.id)}>
+                  {s.nombre} ({s.tipo}) - {s.direccion}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {sitios.length === 0 && (
             <p className="text-[11px] text-muted-foreground italic">
               No hay sitios preconfigurados registrados. Podés usar la pestaña de Búsqueda en Mapa o agregar uno en Sitios.

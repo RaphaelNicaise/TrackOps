@@ -3,7 +3,13 @@
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -1032,16 +1038,20 @@ export function FacturacionView({ plans: initialPlans, records: initialRecords }
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">Método de Pago</label>
-              <NativeSelect
+              <Select
                 value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                sizeVariant="default"
+                onValueChange={(val) => setPaymentMethod(val)}
               >
-                <option value="mercadopago">MercadoPago (QR / Link)</option>
-                <option value="transferencia">Transferencia Bancaria Directa</option>
-                <option value="tarjeta">Tarjeta de Crédito / Débito</option>
-                <option value="efectivo">Efectivo / Cheque</option>
-              </NativeSelect>
+                <SelectTrigger className="h-9 text-xs rounded-xl bg-card border-input">
+                  <SelectValue placeholder="Seleccionar método de pago" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  <SelectItem value="mercadopago">MercadoPago (QR / Link)</SelectItem>
+                  <SelectItem value="transferencia">Transferencia Bancaria Directa</SelectItem>
+                  <SelectItem value="tarjeta">Tarjeta de Crédito / Débito</SelectItem>
+                  <SelectItem value="efectivo">Efectivo / Cheque</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1.5">

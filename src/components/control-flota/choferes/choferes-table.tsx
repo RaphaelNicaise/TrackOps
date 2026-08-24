@@ -49,7 +49,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { appAlert } from "@/lib/alerts";
 import { updateChofer } from "@/lib/flota-actions";
@@ -463,17 +469,23 @@ export function ChoferesTable({
 
             {/* Selector de Categoría de Licencia */}
             <div className="w-full sm:w-52">
-              <NativeSelect
+              <Select
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                sizeVariant="default"
+                onValueChange={(val) => setCategoryFilter(val)}
               >
-                {availableCategories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </NativeSelect>
+                <SelectTrigger className="h-9 text-xs rounded-xl bg-card border-input">
+                  <SelectValue placeholder="Categoría de licencia">
+                    {categoryFilter}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-popover border-border shadow-xl">
+                  {availableCategories.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Botón Limpiar Filtros */}
