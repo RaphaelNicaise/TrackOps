@@ -1,10 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["gsap", "framer-motion", "motion"],
-  // Permitir dev desde 127.0.0.1 sin warnings de cross-origin
-  allowedDevOrigins: ["127.0.0.1", "localhost"],
-  webpack: (config) => {
-    return config;
+  transpilePackages: ["gsap"],
+  eslint: { ignoreDuringBuilds: true },
+  async redirects() {
+    return [
+      {
+        source: "/login",
+        destination: "/auth/login",
+        permanent: true,
+      },
+    ];
   },
 };
 

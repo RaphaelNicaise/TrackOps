@@ -28,7 +28,6 @@ import {
   ChevronLeft,
   Bell,
   Map,
-  ChevronRight,
   Building2,
   UserPlus,
   BarChart3,
@@ -44,11 +43,10 @@ import {
   Receipt,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 export type NavItem = {
   title: string;
@@ -165,7 +163,6 @@ interface AppSidebarProps {
 export function AppSidebar({
   userRole,
   isImpersonating,
-  impersonatedTenantNombre,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
@@ -206,15 +203,61 @@ export function AppSidebar({
     }
   };
 
+  const renderNavItem = (item: NavItem, itemIdx: number) => {
+    const Icon = item.icon;
+    const active = isActive(item.url);
+
+    const content = (
+      <>
+        {Icon && <Icon className="h-5 w-5 shrink-0" />}
+        <span className="truncate whitespace-nowrap overflow-hidden text-sm font-medium transition-[max-width,opacity,margin] duration-250 ease-in-out max-w-[180px] opacity-100 ml-3 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:ml-0">
+          {item.title}
+        </span>
+        {item.external && (
+          <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground ml-auto transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:hidden" />
+        )}
+      </>
+    );
+
+    return (
+      <SidebarMenuItem key={`${item.url}-${itemIdx}`}>
+        <SidebarMenuButton
+          asChild
+          isActive={active}
+          tooltip={item.title}
+          className="h-10 text-sm font-medium"
+        >
+          {item.external ? (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center w-full min-w-0"
+            >
+              {content}
+            </a>
+          ) : (
+            <Link
+              href={item.url}
+              className="flex items-center w-full min-w-0"
+            >
+              {content}
+            </Link>
+          )}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarHeader className="p-2 border-b border-border/50">
-        <div className="flex items-center justify-between w-full overflow-hidden">
-          <div className="flex items-center h-12 overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+        <div className="flex items-center justify-between w-full h-10 overflow-hidden px-1">
+          <div className="flex items-center overflow-hidden transition-[max-width,opacity] duration-250 ease-in-out max-w-[180px] opacity-100 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 min-w-0">
             <img 
               src="/trackopslogo.png" 
               alt="TrackOps Logo" 
-              className="h-12 w-auto object-contain"
+              className="h-9 w-auto object-contain shrink-0"
             />
           </div>
 
@@ -222,124 +265,29 @@ export function AppSidebar({
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-10 w-10 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 hidden md:flex items-center justify-center group-data-[collapsible=icon]:mx-auto"
+            className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors duration-150 hidden md:flex items-center justify-center"
             title={isCollapsed ? "Expandir panel" : "Colapsar panel"}
           >
-            <ChevronLeft className={`h-5 w-5 transition-transform duration-200 ${isCollapsed ? "rotate-180" : ""}`} />
+            <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300 ease-in-out", isCollapsed && "rotate-180")} />
           </Button>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
-        {groups.map((group, groupIdx) => {
-          if (group.label) {
-            return (
-              <Collapsible key={`group-${groupIdx}`} defaultOpen className="group/collapsible">
-                <SidebarGroup className="p-0 mb-4">
-                  <SidebarGroupLabel asChild className="group-data-[collapsible=icon]:hidden">
-                    <CollapsibleTrigger className="flex w-full items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground hover:bg-muted/50 p-2 rounded-md transition-all cursor-pointer">
-                      {group.label}
-                      <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </CollapsibleTrigger>
-                  </SidebarGroupLabel>
-                  <CollapsibleContent>
-                    <SidebarGroupContent className="pt-1">
-                      <SidebarMenu className="gap-1.5">
-                        {group.items.map((item, itemIdx) => {
-                          const Icon = item.icon;
-                          const active = isActive(item.url);
-                          return (
-                            <SidebarMenuItem key={`${item.url}-${itemIdx}`}>
-                              <SidebarMenuButton
-                                asChild
-                                isActive={active}
-                                tooltip={item.title}
-                                className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
-                              >
-                                {item.external ? (
-                                  <a
-                                    href={item.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
-                                  >
-                                    {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                                    <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0 flex-1 text-left">
-                                      {item.title}
-                                    </span>
-                                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground ml-auto group-data-[collapsible=icon]:hidden" />
-                                  </a>
-                                ) : (
-                                  <Link
-                                    href={item.url}
-                                    className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
-                                  >
-                                    {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                                    <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-                                      {item.title}
-                                    </span>
-                                  </Link>
-                                )}
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          );
-                        })}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </CollapsibleContent>
-                </SidebarGroup>
-              </Collapsible>
-            );
-          }
-
-          return (
-            <SidebarGroup key={`group-${groupIdx}`} className="p-0 mb-4">
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-1.5">
-                  {group.items.map((item, itemIdx) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.url);
-                    return (
-                      <SidebarMenuItem key={`${item.url}-${itemIdx}`}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={active}
-                          tooltip={item.title}
-                          className="h-10 text-sm font-medium transition-all duration-200 ease-in-out"
-                        >
-                          {item.external ? (
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
-                            >
-                              {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                              <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0 flex-1 text-left">
-                                {item.title}
-                              </span>
-                              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground ml-auto group-data-[collapsible=icon]:hidden" />
-                            </a>
-                          ) : (
-                            <Link
-                              href={item.url}
-                              className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full"
-                            >
-                              {Icon && <Icon className="h-5 w-5 shrink-0" />}
-                              <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-                                {item.title}
-                              </span>
-                            </Link>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          );
-        })}
+      <SidebarContent className="p-2 gap-0.5">
+        {groups.map((group, groupIdx) => (
+          <SidebarGroup key={`group-${groupIdx}`} className="p-0 mb-3 group-data-[collapsible=icon]:mb-1.5">
+            {group.label && (
+              <SidebarGroupLabel className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 h-7">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">
+                {group.items.map((item, itemIdx) => renderNavItem(item, itemIdx))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="p-2 border-t border-border/50">
@@ -348,10 +296,10 @@ export function AppSidebar({
             <SidebarMenuButton
               onClick={handleLogout}
               tooltip="Cerrar sesión"
-              className="h-10 text-sm font-medium text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center"
+              className="h-10 text-sm font-medium text-destructive hover:text-destructive hover:bg-destructive/10"
             >
               <LogOut className="h-5 w-5 shrink-0" />
-              <span className="whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+              <span className="truncate whitespace-nowrap overflow-hidden text-sm font-medium transition-[max-width,opacity,margin] duration-250 ease-in-out max-w-[180px] opacity-100 ml-3 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:ml-0">
                 Cerrar sesión
               </span>
             </SidebarMenuButton>

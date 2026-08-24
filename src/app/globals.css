@@ -75,7 +75,6 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'SF Pro Display', 'Geist Sans', 'Helvetica Neue', 'Switzer', sans-serif;
   }
   
   /* Overrides to make shadcn UI ultra-flat */
@@ -99,6 +98,12 @@
       fill 300ms ease,
       stroke 300ms ease,
       box-shadow 300ms ease !important;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
