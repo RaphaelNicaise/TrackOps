@@ -571,54 +571,80 @@ function VehicleClusterGroup({
   return null;
 }
 
-function MapBounds({ vehiculos, isListOpen, focusedVehicleId }: { vehiculos: any[]; isListOpen: boolean; focusedVehicleId: number | null }) {
+function MapBounds({
+  vehiculos,
+  isListOpen,
+  focusedVehicleId,
+}: {
+  vehiculos: any[];
+  isListOpen: boolean;
+  focusedVehicleId: number | null;
+}) {
   const map = useMap();
-  
+  const initialFitDoneRef = useRef(false);
+  const prevFocusedIdRef = useRef<number | null>(null);
+
+  // 1. Initial Fit Bounds: ONLY runs once when the map opens and vehicles are loaded for the first time
   useEffect(() => {
+    if (initialFitDoneRef.current) return;
     if (!vehiculos || vehiculos.length === 0) return;
-    
+    if (!map || !(map as any)._loaded || !(map as any)._mapPane) return;
+
     const timer = setTimeout(() => {
-      if (!map || !(map as any)._loaded || !(map as any)._mapPane) return;
       try {
         map.invalidateSize();
-      } catch {}
+        const validCoords = vehiculos
+          .filter((v) => typeof v.lat === "number" && typeof v.lng === "number" && !isNaN(v.lat) && !isNaN(v.lng))
+          .map((v) => [v.lat, v.lng] as [number, number]);
 
-      let bounds;
-      
-      if (focusedVehicleId) {
-        const focusedVehicle = vehiculos.find(v => v.id === focusedVehicleId);
-        if (focusedVehicle) {
-          bounds = L.latLngBounds([focusedVehicle.lat, focusedVehicle.lng], [focusedVehicle.lat, focusedVehicle.lng]);
+        if (validCoords.length > 0) {
+          const bounds = L.latLngBounds(validCoords);
+          const isMobile = window.innerWidth < 768;
+          map.fitBounds(bounds, {
+            paddingTopLeft: [isListOpen && !isMobile ? 380 : 50, 50],
+            paddingBottomRight: [50, 50],
+            maxZoom: 15,
+            animate: true,
+            duration: 1.2,
+          });
+          initialFitDoneRef.current = true;
         }
-      }
-      
-      if (!bounds) {
-        // Create bounds from all vehicle coordinates
-        bounds = L.latLngBounds(vehiculos.map(v => [v.lat, v.lng]));
-      }
-      
-      const isMobile = window.innerWidth < 768;
-      
-      // Fit bounds, adding extra padding on the left if the sidebar is open on desktop
-      // so the vehicles are centered in the VISIBLE portion of the map.
-      try {
-        map.fitBounds(bounds, {
-          paddingTopLeft: [isListOpen && !isMobile ? 380 : 50, 50],
-          paddingBottomRight: [50, 50],
-          maxZoom: focusedVehicleId ? 16 : 15,
-          animate: true,
-          duration: 1.5
-        });
       } catch {}
-    }, 200);
+    }, 150);
 
-    return () => {
-      clearTimeout(timer);
-      try {
-        map.stop();
-      } catch {}
-    };
-  }, [vehiculos, map, isListOpen, focusedVehicleId]);
+    return () => clearTimeout(timer);
+  }, [map, vehiculos.length > 0]); // Only triggers when vehicles first become available
+
+  // 2. Focused Vehicle: ONLY recenters when the user explicitly selects or changes the focused vehicle
+  useEffect(() => {
+    if (!focusedVehicleId) {
+      prevFocusedIdRef.current = null;
+      return;
+    }
+
+    const focusedVehicle = vehiculos.find((v) => v.id === focusedVehicleId);
+    if (!focusedVehicle || typeof focusedVehicle.lat !== "number" || typeof focusedVehicle.lng !== "number") return;
+    if (!map || !(map as any)._loaded || !(map as any)._mapPane) return;
+
+    const isFirstFocus = prevFocusedIdRef.current !== focusedVehicleId;
+    prevFocusedIdRef.current = focusedVehicleId;
+
+    try {
+      if (isFirstFocus) {
+        // Zoom and center on the newly selected vehicle
+        map.setView([focusedVehicle.lat, focusedVehicle.lng], 16, {
+          animate: true,
+          duration: 1.0,
+        });
+      } else {
+        // Smoothly follow the focused vehicle as it moves
+        map.panTo([focusedVehicle.lat, focusedVehicle.lng], {
+          animate: true,
+          duration: 0.8,
+        });
+      }
+    } catch {}
+  }, [map, focusedVehicleId, vehiculos]);
 
   return null;
 }
