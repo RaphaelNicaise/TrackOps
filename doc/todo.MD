@@ -7,7 +7,7 @@
 - Ver el tema del cobro escalonado, porque hay que cobrar mensual pero puede pasar que en el medio de la mensualidad se agreguen vehiculos.
 - Integrarle a cada vehiculo la columnas para verificar si tiene o no el gps instalado, que modelo, etc. Que eso iria conectado con la cuenta instalador vendedor, cuando instale el GPS, se tendria que reflejar en el vehiculo, que esta funcionando. 
 - Seccion de Combustible + Funcionalidades para el chofer, carga de tickets (foto o manual) para gestionar tema combustible
-- Fixear modo oscuro
+- [x] Fixear modo oscuro (Logo del panel blanco en dark mode, capas de mapas Leaflet dinámicas con CartoDB Dark Matter / Voyager, eliminación del delay/jank en el cambio de tema para transición instantánea a 60fps, y contraste mejorado en tarjetas, tablas y modales).
 - Funcionalidad con DNI para choferes para hacer checkin
 - Crear un tutorial para la demo y un tutorial para cuando entras por primera vez
 - Los viajes deberian tener info adicional tipo motivo no?

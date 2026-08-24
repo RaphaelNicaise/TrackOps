@@ -257,7 +257,7 @@ export function AppSidebar({
             <img 
               src="/trackopslogo.png" 
               alt="TrackOps Logo" 
-              className="h-9 w-auto object-contain shrink-0"
+              className="h-9 w-auto object-contain shrink-0 dark:brightness-0 dark:invert transition-all"
             />
           </div>
 

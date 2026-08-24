@@ -16,19 +16,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem("theme");
     if (stored === "light" || stored === "dark") {
       setTheme(stored);
+      document.documentElement.classList.toggle("dark", stored === "dark");
+    } else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) {
+        setTheme("dark");
+        document.documentElement.classList.add("dark");
+      }
     }
   }, []);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
   function toggleTheme() {
-    const html = document.documentElement;
-    html.classList.add("theme-transition");
-    setTheme((t) => (t === "light" ? "dark" : "light"));
-    window.setTimeout(() => html.classList.remove("theme-transition"), 350);
+    setTheme((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+      document.documentElement.classList.toggle("dark", next === "dark");
+      localStorage.setItem("theme", next);
+      return next;
+    });
   }
 
   return (

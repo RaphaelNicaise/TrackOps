@@ -90,7 +90,7 @@ export default function LoginPage() {
           <img
             src="/trackopslogo.png"
             alt="TrackOps Logo"
-            className="h-12 md:h-14 w-auto mb-3 object-contain"
+            className="h-12 md:h-14 w-auto mb-3 object-contain dark:brightness-0 dark:invert transition-all"
           />
           <h1 className="text-xl font-bold tracking-tight text-foreground">TrackOps Flota</h1>
           <p className="text-sm text-muted-foreground mt-1">

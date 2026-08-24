@@ -56,56 +56,56 @@ export default async function SuperAdminPanel() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="rounded-xl shadow-sm border-none bg-white">
+        <Card className="rounded-xl shadow-xs border border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Empresas</CardTitle>
-            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center border border-blue-500/20">
+              <Building2 className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalEmpresas}</div>
+            <div className="text-3xl font-bold text-foreground">{totalEmpresas}</div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-sm border-none bg-white">
+        <Card className="rounded-xl shadow-xs border border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Vehículos</CardTitle>
-            <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
-              <Car className="h-5 w-5 text-emerald-600" />
+            <div className="h-10 w-10 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center border border-emerald-500/20">
+              <Car className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalVehicles}</div>
+            <div className="text-3xl font-bold text-foreground">{totalVehicles}</div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-sm border-none bg-white">
+        <Card className="rounded-xl shadow-xs border border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Empresas Activas</CardTitle>
-            <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-amber-600" />
+            <div className="h-10 w-10 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center border border-amber-500/20">
+              <TrendingUp className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{activas}</div>
+            <div className="text-3xl font-bold text-foreground">{activas}</div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-sm border-none bg-white">
+        <Card className="rounded-xl shadow-xs border border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">MRR Estimado</CardTitle>
-            <div className="h-10 w-10 bg-violet-100 rounded-full flex items-center justify-center">
-              <CreditCard className="h-5 w-5 text-violet-600" />
+            <div className="h-10 w-10 bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-full flex items-center justify-center border border-violet-500/20">
+              <CreditCard className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">${mrrEstimado.toLocaleString("es-AR")}</div>
+            <div className="text-3xl font-bold text-foreground">${mrrEstimado.toLocaleString("es-AR")}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-xl shadow-sm border-none bg-white">
+      <Card className="rounded-xl shadow-xs border border-border bg-card">
         <CardHeader>
           <CardTitle>Listado de Empresas</CardTitle>
         </CardHeader>

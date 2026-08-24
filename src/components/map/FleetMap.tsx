@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Geofence } from "@/types/geofence";
+import { useTheme } from "@/components/theme/theme-provider";
 
 // Fix Leaflet's default icon path issues with Webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -632,6 +633,12 @@ export default function FleetMap({
     }
   }, [focusedVehicle]);
 
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const tileUrl = isDark
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+
   return (
     <div className="h-full w-full relative z-0">
       <MapContainer 
@@ -646,8 +653,9 @@ export default function FleetMap({
         zoomControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          key={isDark ? "carto-dark" : "carto-light"}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={tileUrl}
         />
         <ZoomControl position="bottomright" />
         <MapFullscreenHandler isFullscreen={isFullscreen} />

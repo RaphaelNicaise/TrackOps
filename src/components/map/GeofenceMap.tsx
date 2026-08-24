@@ -32,6 +32,7 @@ import {
   Check,
 } from "lucide-react";
 import { Geofence, GeofenceFormData, DrawingMode } from "@/types/geofence";
+import { useTheme } from "@/components/theme/theme-provider";
 
 // Re-export Geofence type for backward compatibility
 export type { Geofence, GeofenceFormData, DrawingMode };
@@ -789,6 +790,11 @@ export default function GeofenceMap({
 }: GeofenceMapProps) {
   const [mounted, setMounted] = useState(false);
   const [mousePos, setMousePos] = useState<[number, number] | null>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const tileUrl = isDark
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
   useEffect(() => {
     setMounted(true);
@@ -978,8 +984,9 @@ export default function GeofenceMap({
         zoomControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          key={isDark ? "carto-dark" : "carto-light"}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={tileUrl}
         />
         <ZoomControl position="bottomright" />
 

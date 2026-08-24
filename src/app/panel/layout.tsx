@@ -45,7 +45,7 @@ export default async function PanelLayout({
                 <img 
                   src="/trackopslogo.png" 
                   alt="TrackOps Logo" 
-                  className="h-9 w-auto object-contain"
+                  className="h-9 w-auto object-contain dark:brightness-0 dark:invert transition-all"
                 />
               </div>
               <div className="text-xs text-muted-foreground font-mono hidden md:block">
