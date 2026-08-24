@@ -29,7 +29,7 @@ import { appAlert } from "@/lib/alerts";
 
 export function FleetSimulationControl() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [intervalMs, setIntervalMs] = useState<number>(2500);
+  const [intervalMs, setIntervalMs] = useState<number>(1200);
   const [alertCount, setAlertCount] = useState<number>(0);
   const [lastAlert, setLastAlert] = useState<SimulatedAlert | null>(null);
 
@@ -115,7 +115,7 @@ export function FleetSimulationControl() {
                 </Badge>
               </div>
               <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                Simula el desplazamiento en tiempo real por las calles de Bahía Blanca, interactuando con geocercas y límites de velocidad.
+                Simula el desplazamiento en tiempo real calle por calle en Bahía Blanca, interactuando con geocercas y límites de velocidad.
               </CardDescription>
             </div>
           </div>
@@ -149,27 +149,27 @@ export function FleetSimulationControl() {
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Frecuencia de Envío</span>
               <span className="text-xs font-mono font-bold text-foreground">
-                {intervalMs === 1500 ? "1.5s (Rápido)" : "2.5s (Estándar)"}
+                {intervalMs === 800 ? "0.8s (Rápido)" : "1.2s (Fluido)"}
               </span>
             </div>
             <div className="flex gap-2 pt-1">
               <Button
                 type="button"
                 size="sm"
-                variant={intervalMs === 2500 ? "secondary" : "outline"}
-                onClick={() => handleSpeedChange(2500)}
+                variant={intervalMs === 1200 ? "secondary" : "outline"}
+                onClick={() => handleSpeedChange(1200)}
                 className="flex-1 h-7 text-[11px]"
               >
-                Normal (2.5s)
+                Fluido (1.2s)
               </Button>
               <Button
                 type="button"
                 size="sm"
-                variant={intervalMs === 1500 ? "secondary" : "outline"}
-                onClick={() => handleSpeedChange(1500)}
+                variant={intervalMs === 800 ? "secondary" : "outline"}
+                onClick={() => handleSpeedChange(800)}
                 className="flex-1 h-7 text-[11px]"
               >
-                Rápido (1.5s)
+                Rápido (0.8s)
               </Button>
             </div>
           </div>
