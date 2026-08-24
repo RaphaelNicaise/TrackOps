@@ -468,16 +468,16 @@ export function MapaView({
                 }}
                 className={`group relative w-full px-4 py-3.5 flex items-center justify-between cursor-pointer transition-all duration-200 border-b border-border/60 text-left ${
                   focusedVehicleId === v.id
-                    ? "bg-amber-500/[0.08]"
-                    : "hover:bg-amber-500/[0.04]"
+                    ? "bg-amber-500/[0.12] dark:bg-amber-500/[0.18]"
+                    : "hover:bg-muted/60 dark:hover:bg-muted/40"
                 }`}
               >
                 {/* Left amber indicator bar */}
                 <div
                   className={`absolute left-0 top-0 bottom-0 w-1 transition-all duration-200 ${
                     focusedVehicleId === v.id
-                      ? "bg-[#F2B705] opacity-100"
-                      : "bg-[#F2B705] opacity-0 group-hover:opacity-100"
+                      ? "bg-amber-500 opacity-100"
+                      : "bg-amber-500 opacity-0 group-hover:opacity-100"
                   }`}
                 />
 
@@ -507,7 +507,7 @@ export function MapaView({
                         </Link>
                       )}
                     </span>
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-auto shrink-0">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-auto shrink-0">
                       {v.tipo}
                     </span>
                   </div>
@@ -519,12 +519,12 @@ export function MapaView({
                       {v.estado}
                     </div>
                     <div className="flex items-center gap-3 text-[11px] text-muted-foreground ml-auto">
-                      <span className="flex items-center gap-1 font-medium text-foreground">
+                      <span className="flex items-center gap-1 font-mono font-bold text-foreground">
                         <Gauge className="w-3 h-3 text-muted-foreground" />
                         {v.velocidad}
                       </span>
-                      <span className="flex items-center gap-1 text-[10px] opacity-70">
-                        <Clock className="w-3 h-3" />
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                        <Clock className="w-3 h-3 opacity-70" />
                         {v.ultimaActualizacion}
                       </span>
                     </div>
@@ -533,7 +533,7 @@ export function MapaView({
 
                 {/* Right Arrow / Chevron */}
                 <div className="shrink-0 pl-1">
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/30 transition-all duration-200 group-hover:text-amber-500 group-hover:translate-x-0.5" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/40 transition-all duration-200 group-hover:text-amber-500 group-hover:translate-x-0.5" />
                 </div>
               </div>
             ))

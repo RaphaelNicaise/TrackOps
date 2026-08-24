@@ -714,8 +714,8 @@ export default function FleetMap({
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-background/95 backdrop-blur-md rounded-2xl shadow-2xl border border-border overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
-            <div className="flex items-start justify-between gap-3 p-4 pb-3 border-b border-border/50">
+          <div className="bg-card/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-border/80 overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
+            <div className="flex items-start justify-between gap-3 p-4 pb-3 border-b border-border/60 bg-muted/20">
               <div
                 className="group min-w-0 cursor-pointer"
                 onClick={(e) => {
@@ -723,18 +723,23 @@ export default function FleetMap({
                   router.push(`/panel/control-flota/vehiculos/${focusedVehicle.id}`);
                 }}
               >
-                <h3 className="font-bold text-lg flex items-center gap-2 truncate group-hover:text-primary transition-colors">
-                  {focusedVehicle.patente}
-                  {focusedVehicle.hasAlert && (
-                    <AlertTriangle className="w-4 h-4 shrink-0 text-destructive animate-pulse" />
-                  )}
-                </h3>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">{focusedVehicle.tipo}</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-lg text-foreground flex items-center gap-2 truncate group-hover:text-primary transition-colors">
+                    {focusedVehicle.patente}
+                    {focusedVehicle.hasAlert && (
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-destructive animate-pulse" />
+                    )}
+                  </h3>
+                  <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border border-border bg-background/60 text-muted-foreground">
+                    {focusedVehicle.tipo}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">{focusedVehicle.modelo || focusedVehicle.marca}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 -mt-1 -mr-1 shrink-0 rounded-full hover:bg-muted"
+                className="h-8 w-8 -mt-1 -mr-1 shrink-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
                 onClick={(e) => {
                   e.stopPropagation();
                   setFocusedVehicleId?.(null);
@@ -744,12 +749,14 @@ export default function FleetMap({
               </Button>
             </div>
 
-            <div className="px-4 py-3 flex items-center justify-between gap-3">
+            <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <Gauge className="w-4 h-4 text-muted-foreground" />
+                <div className="p-2 rounded-xl bg-muted/40 border border-border/50 text-muted-foreground">
+                  <Gauge className="w-4 h-4 text-foreground" />
+                </div>
                 <div className="leading-tight">
-                  <span className="font-semibold text-sm">{focusedVehicle.velocidad}</span>
-                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <span className="font-mono font-bold text-sm text-foreground">{focusedVehicle.velocidad}</span>
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
                     <Clock className="w-2.5 h-2.5 opacity-70" />
                     {focusedVehicle.ultimaActualizacion}
                   </span>
@@ -759,7 +766,7 @@ export default function FleetMap({
                 <Link
                   href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center gap-1.5 text-xs font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors px-2 py-1 rounded-md"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-destructive dark:text-rose-400 bg-destructive/10 border border-destructive/20 hover:bg-destructive/20 transition-colors px-2.5 py-1.5 rounded-xl shadow-2xs"
                   title="Ver alertas de este vehículo"
                 >
                   <Bell className="w-3.5 h-3.5" />
@@ -769,7 +776,7 @@ export default function FleetMap({
                 <Link
                   href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="text-xs font-medium text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors px-2 py-1 rounded-md"
+                  className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors px-2.5 py-1.5 rounded-xl shadow-2xs"
                   title="Ver historial de alertas"
                 >
                   Sin alertas
@@ -777,30 +784,30 @@ export default function FleetMap({
               )}
             </div>
 
-            <div className="px-4 pb-4 grid grid-cols-2 gap-2">
+            <div className="p-3 grid grid-cols-2 gap-2 bg-muted/10">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 cursor-pointer"
+                className="gap-1.5 text-xs font-semibold cursor-pointer rounded-xl border-border bg-card hover:bg-muted/80 text-foreground"
                 onClick={(e) => {
                   e.stopPropagation();
                   router.push(`/panel/control-flota/vehiculos/${focusedVehicle.id}`);
                 }}
               >
-                <ArrowUpRight className="w-4 h-4" />
+                <ArrowUpRight className="w-3.5 h-3.5" />
                 Ver vehículo
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 asChild
-                className="gap-2 cursor-pointer"
+                className="gap-1.5 text-xs font-semibold cursor-pointer rounded-xl border-border bg-card hover:bg-muted/80 text-foreground"
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
               >
                 <Link href={`/panel/monitoreo/alertas?patente=${encodeURIComponent(focusedVehicle.patente)}`}>
-                  <Bell className="w-4 h-4" />
+                  <Bell className="w-3.5 h-3.5" />
                   Ver alertas
                 </Link>
               </Button>
