@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
+import { parseGoogleMapsUrl } from "@/lib/maps-parser";
 import type { SitioRow, SitioTipo, UbicacionTipo } from "@/types/flota-viajes";
 
 export interface SelectedLocation {
@@ -179,7 +180,51 @@ export function LocationSelector({
       clearTimeout(searchTimeoutRef.current);
     }
 
-    if (val.trim().length < 3) {
+    const trimmed = val.trim();
+
+    // 1. Direct coordinate or Google Maps URL parsing
+    const directParsed = parseGoogleMapsUrl(trimmed);
+    if (directParsed) {
+      setIsSearching(false);
+      setShowResultsDropdown(false);
+      const loc: SelectedLocation = {
+        tipo: "GOOGLE_PLACES",
+        sitioId: null,
+        nombre: directParsed.placeName || "Ubicación Google Maps",
+        direccion: `Coordenadas: ${directParsed.lat.toFixed(4)}, ${directParsed.lng.toFixed(4)}`,
+        lat: directParsed.lat,
+        lng: directParsed.lng,
+      };
+      setSelected(loc);
+      onLocationSelected?.(loc);
+      return;
+    }
+
+    // 2. Shortlink check
+    if (trimmed.includes("maps.app.goo.gl") || trimmed.includes("goo.gl/maps")) {
+      setIsSearching(true);
+      fetch(`/api/resolve-maps-url?url=${encodeURIComponent(trimmed)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.lat && data.lng) {
+            const loc: SelectedLocation = {
+              tipo: "GOOGLE_PLACES",
+              sitioId: null,
+              nombre: data.placeName || "Ubicación Google Maps",
+              direccion: `Coordenadas: ${Number(data.lat).toFixed(4)}, ${Number(data.lng).toFixed(4)}`,
+              lat: Number(data.lat),
+              lng: Number(data.lng),
+            };
+            setSelected(loc);
+            onLocationSelected?.(loc);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsSearching(false));
+      return;
+    }
+
+    if (trimmed.length < 3) {
       setSearchResults([]);
       setShowResultsDropdown(false);
       return;
@@ -190,7 +235,7 @@ export function LocationSelector({
 
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const queryEncoded = encodeURIComponent(val.trim());
+        const queryEncoded = encodeURIComponent(trimmed);
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${queryEncoded}&countrycodes=ar&limit=5`
         );
@@ -313,7 +358,7 @@ export function LocationSelector({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar dirección, ciudad o punto en Argentina..."
+                placeholder="Buscar dirección o pegar link de Google Maps..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => {

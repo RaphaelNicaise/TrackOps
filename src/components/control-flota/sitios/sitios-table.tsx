@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Plus,
   Search,
   MapPin,
   ExternalLink,
@@ -199,8 +200,8 @@ export function SitiosTable({ initialSitios, sitios: sitiosProp }: SitiosTablePr
         <SitioFormDialog
           trigger={
             <Button size="sm" className="gap-2 shadow-xs">
-              <MapPin className="h-4 w-4" />
-              + Nuevo Sitio
+              <Plus className="h-4 w-4" />
+              Nuevo Sitio
             </Button>
           }
         />

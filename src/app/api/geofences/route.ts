@@ -36,6 +36,7 @@ export async function GET() {
     try {
       const rows = await db.select().from(geofences).where(eq(geofences.empresaId, empresaId));
       if (rows.length > 0) return NextResponse.json(rows.map(dbRowToGeofence));
+      if (demo) return NextResponse.json(getMockGeofences());
       return NextResponse.json([]);
     } catch (dbError) {
       console.warn("DB query failed, using mock geofences fallback:", dbError);

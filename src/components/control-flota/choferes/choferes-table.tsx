@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Plus,
   Search,
   User,
   Phone,
@@ -339,8 +340,8 @@ export function ChoferesTable({
           vehicles={vehicles}
           trigger={
             <Button size="sm" className="gap-2 shadow-xs">
-              <User className="h-4 w-4" />
-              + Nuevo Chofer
+              <Plus className="h-4 w-4" />
+              Nuevo Chofer
             </Button>
           }
         />

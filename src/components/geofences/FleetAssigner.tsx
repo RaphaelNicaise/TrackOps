@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { GeofenceTargetType } from "@/types/geofence";
 import type { MockVehiculo } from "@/lib/mock-vehicles";
+import type { VehicleGroup } from "@/types/schedule";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,6 +25,7 @@ export interface FleetAssignerProps {
   targetCategories?: string[];
   targetGroups?: string[];
   availableVehicles?: MockVehiculo[];
+  availableGroups?: VehicleGroup[];
   onChange: (updates: {
     targetType: GeofenceTargetType;
     targetVehicles?: number[];
@@ -71,9 +73,13 @@ export function FleetAssigner({
   targetCategories = [],
   targetGroups = [],
   availableVehicles = [],
+  availableGroups,
   onChange,
 }: FleetAssignerProps) {
   const [vehicleSearch, setVehicleSearch] = useState("");
+
+  const hasGroups = availableGroups !== undefined ? availableGroups.length > 0 : true;
+  const groupsToDisplay = availableGroups !== undefined && availableGroups.length > 0 ? availableGroups : PRESET_FLEET_GROUPS;
 
   // Categories computed dynamically from the provided fleet
   const categoryCounts = useMemo(() => {
@@ -218,9 +224,17 @@ export function FleetAssigner({
 
         <button
           type="button"
-          onClick={() => onChange({ targetType: "GROUP", targetVehicles, targetCategories, targetGroups })}
+          disabled={!hasGroups}
+          title={hasGroups ? "Asignar por grupos de flota" : "No hay grupos de vehículos creados en la empresa"}
+          onClick={() => {
+            if (hasGroups) {
+              onChange({ targetType: "GROUP", targetVehicles, targetCategories, targetGroups });
+            }
+          }}
           className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-semibold transition-all ${
-            targetType === "GROUP"
+            !hasGroups
+              ? "opacity-40 cursor-not-allowed text-muted-foreground"
+              : targetType === "GROUP"
               ? "bg-card text-foreground shadow-sm ring-1 ring-border"
               : "text-muted-foreground hover:text-foreground hover:bg-card/40"
           }`}
@@ -444,54 +458,76 @@ export function FleetAssigner({
             Asigná esta geocerca a uno o más grupos operativos de flota:
           </div>
 
-          <div className="space-y-2">
-            {PRESET_FLEET_GROUPS.map((group) => {
-              const isChecked = targetGroups.includes(group.id);
-              const GroupIcon = group.icon;
-              return (
-                <button
-                  key={group.id}
-                  type="button"
-                  onClick={() => handleToggleGroup(group.id)}
-                  className={`w-full p-3 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between shadow-xs ${
-                    isChecked
-                      ? "bg-primary/10 border-primary text-foreground ring-1 ring-primary/40"
-                      : "bg-card border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`p-2 rounded-xl border ${
-                        isChecked
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted text-muted-foreground border-border"
-                      }`}
-                    >
-                      <GroupIcon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-foreground">{group.label}</div>
-                      <div className="text-[11px] text-muted-foreground line-clamp-1">
-                        {group.description}
-                      </div>
-                    </div>
-                  </div>
+          {!hasGroups ? (
+            <div className="p-6 rounded-2xl bg-card border border-border/70 text-center space-y-2">
+              <Users className="h-8 w-8 text-muted-foreground/50 mx-auto" />
+              <p className="text-xs font-medium text-foreground">
+                No hay grupos de vehículos registrados en tu empresa.
+              </p>
+              <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+                Podés crear grupos de vehículos en la sección de Grupos para organizar y asignar geocercas en lote.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {groupsToDisplay.map((group: any) => {
+                const groupId = String(group.id ?? group.nombre ?? group.label);
+                const groupName = group.nombre || group.label || `Grupo ${group.id}`;
+                const isChecked = targetGroups.includes(groupId) || targetGroups.includes(groupName);
+                const GroupIcon = typeof group.icon === "function" ? group.icon : (group.icono === "wrench" ? Sparkles : Users);
+                const desc = group.description || group.descripcion || `${group.vehicleIds?.length || 0} vehículos asignados`;
 
-                  <div
-                    className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors shrink-0 ml-2 ${
+                return (
+                  <button
+                    key={groupId}
+                    type="button"
+                    onClick={() => handleToggleGroup(groupName)}
+                    className={`w-full p-3 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between shadow-xs ${
                       isChecked
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "border-muted-foreground/40 bg-background"
+                        ? "bg-primary/10 border-primary text-foreground ring-1 ring-primary/40"
+                        : "bg-card border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/40"
                     }`}
                   >
-                    {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`p-2 rounded-xl border ${
+                          isChecked
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted text-muted-foreground border-border"
+                        }`}
+                        style={{ borderColor: group.color ? `${group.color}40` : undefined }}
+                      >
+                        <GroupIcon className="h-4 w-4" style={{ color: !isChecked && group.color ? group.color : undefined }} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          {groupName}
+                          {group.color && (
+                            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: group.color }} />
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground line-clamp-1">
+                          {desc}
+                        </div>
+                      </div>
+                    </div>
 
-          {targetGroups.length === 0 && (
+                    <div
+                      className={`w-4 h-4 rounded-md flex items-center justify-center border transition-colors shrink-0 ml-2 ${
+                        isChecked
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "border-muted-foreground/40 bg-background"
+                      }`}
+                    >
+                      {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {hasGroups && targetGroups.length === 0 && (
             <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
               ⚠️ Seleccioná al menos un grupo de flota para aplicar la regla.
             </p>

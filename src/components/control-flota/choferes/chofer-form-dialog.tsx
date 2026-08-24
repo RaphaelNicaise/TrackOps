@@ -232,7 +232,7 @@ export function ChoferFormDialog({
           {trigger || (
             <Button size="sm" className="gap-2 shadow-xs">
               <Plus className="h-4 w-4" />
-              + Nuevo Chofer
+              Nuevo Chofer
             </Button>
           )}
         </DialogTrigger>

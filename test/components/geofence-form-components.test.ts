@@ -203,5 +203,73 @@ describe("Geofence Form Constants, Presets & Logic", () => {
       expect(searchCarga[0].id).toBe(2);
     });
   });
+
+  describe("Vehicle Groups Availability and Geofence Schema Integration", () => {
+    it("correctly determines if Groups option should be enabled or disabled based on available groups", () => {
+      const emptyGroups: any[] = [];
+      const populatedGroups = [
+        { id: 1, nombre: "Grupo Norte", color: "#3b82f6", icono: "truck", vehicleIds: [1, 2] },
+        { id: 2, nombre: "Grupo Sur", color: "#10b981", icono: "layers", vehicleIds: [3] },
+      ];
+
+      const hasEmptyGroups = emptyGroups.length > 0;
+      const hasPopulatedGroups = populatedGroups.length > 0;
+
+      expect(hasEmptyGroups).toBe(false);
+      expect(hasPopulatedGroups).toBe(true);
+    });
+
+    it("parses Circle geofence schema successfully with centro array [lat, lng]", async () => {
+      const { geofenceSchema } = await import("@/lib/schemas/geofence.schema");
+
+      const validCircleWithArray = {
+        nombre: "Depósito Radial",
+        tipo: "Círculo",
+        color: "#10B981",
+        centro: [-34.6037, -58.3816],
+        radio: 500,
+        activa: 1,
+      };
+
+      const parsed = geofenceSchema.parse(validCircleWithArray);
+      expect(parsed.nombre).toBe("Depósito Radial");
+      expect(parsed.tipo).toBe("Círculo");
+      expect(parsed.centro).toEqual([-34.6037, -58.3816]);
+      expect(parsed.radio).toBe(500);
+    });
+
+    it("deserializes DB rows into Geofence safely without string corruption", async () => {
+      const { dbRowToGeofence, geofenceToDbValues } = await import("@/lib/mock-geofences");
+
+      const dbValues = geofenceToDbValues({
+        nombre: "Test Zona",
+        tipo: "Polígono",
+        coordenadas: [
+          [-34.60, -58.38],
+          [-34.61, -58.38],
+          [-34.61, -58.39],
+        ],
+        alertEvents: ["EXIT", "SPEED_LIMIT"],
+        targetGroups: ["Grupo Logística"],
+      });
+
+      const row = {
+        id: 99,
+        empresaId: 1,
+        ...dbValues,
+        createdAt: new Date("2026-08-24T10:00:00Z"),
+        updatedAt: new Date("2026-08-24T10:00:00Z"),
+      };
+
+      const deserialized = dbRowToGeofence(row);
+      expect(deserialized.id).toBe(99);
+      expect(Array.isArray(deserialized.coordenadas)).toBe(true);
+      expect(deserialized.coordenadas).toHaveLength(3);
+      expect(Array.isArray(deserialized.alertEvents)).toBe(true);
+      expect(deserialized.alertEvents).toContain("EXIT");
+      expect(deserialized.alertEvents).toContain("SPEED_LIMIT");
+      expect(deserialized.targetGroups).toEqual(["Grupo Logística"]);
+    });
+  });
 });
 

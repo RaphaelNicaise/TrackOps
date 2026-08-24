@@ -172,6 +172,25 @@ export function toggleMockGeofence(id: number): Geofence | null {
   return updated;
 }
 
+function safeParseJsonArray<T>(val: any, fallback: T[] = []): T[] {
+  if (!val) return fallback;
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") {
+    try {
+      let parsed = JSON.parse(val);
+      if (typeof parsed === "string") {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch {}
+      }
+      return Array.isArray(parsed) ? parsed : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
 /**
  * Helper to safely deserialize a DB row into a Geofence object.
  */
@@ -179,7 +198,19 @@ export function dbRowToGeofence(row: any): Geofence {
   let coordenadas: [number, number][] | undefined = undefined;
   if (row.coordenadas) {
     try {
-      coordenadas = typeof row.coordenadas === "string" ? JSON.parse(row.coordenadas) : row.coordenadas;
+      let parsed = typeof row.coordenadas === "string" ? JSON.parse(row.coordenadas) : row.coordenadas;
+      if (typeof parsed === "string") {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch {}
+      }
+      if (
+        Array.isArray(parsed) &&
+        parsed.length > 0 &&
+        parsed.every((p) => Array.isArray(p) && p.length === 2 && !isNaN(Number(p[0])) && !isNaN(Number(p[1])))
+      ) {
+        coordenadas = parsed.map((p) => [Number(p[0]), Number(p[1])]);
+      }
     } catch {
       coordenadas = undefined;
     }
@@ -187,53 +218,24 @@ export function dbRowToGeofence(row: any): Geofence {
 
   let centro: [number, number] | undefined = undefined;
   if (row.centroLat != null && row.centroLng != null) {
-    centro = [Number(row.centroLat), Number(row.centroLng)];
-  }
-
-  let targetVehicles: number[] | undefined = undefined;
-  if (row.targetVehicles) {
-    try {
-      targetVehicles = typeof row.targetVehicles === "string" ? JSON.parse(row.targetVehicles) : row.targetVehicles;
-    } catch {
-      targetVehicles = undefined;
+    const lat = Number(row.centroLat);
+    const lng = Number(row.centroLng);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      centro = [lat, lng];
+    }
+  } else if (row.centro) {
+    const parsedCentro = safeParseJsonArray<number>(row.centro);
+    if (parsedCentro.length === 2 && !isNaN(Number(parsedCentro[0])) && !isNaN(Number(parsedCentro[1]))) {
+      centro = [Number(parsedCentro[0]), Number(parsedCentro[1])];
     }
   }
 
-  let targetCategories: string[] | undefined = undefined;
-  if (row.targetCategories) {
-    try {
-      targetCategories = typeof row.targetCategories === "string" ? JSON.parse(row.targetCategories) : row.targetCategories;
-    } catch {
-      targetCategories = undefined;
-    }
-  }
-
-  let targetGroups: string[] | undefined = undefined;
-  if (row.targetGroups) {
-    try {
-      targetGroups = typeof row.targetGroups === "string" ? JSON.parse(row.targetGroups) : row.targetGroups;
-    } catch {
-      targetGroups = undefined;
-    }
-  }
-
-  let alertEvents: GeofenceAlertEvent[] = ["EXIT"];
-  if (row.alertEvents) {
-    try {
-      alertEvents = typeof row.alertEvents === "string" ? JSON.parse(row.alertEvents) : row.alertEvents;
-    } catch {
-      alertEvents = ["EXIT"];
-    }
-  }
-
-  let actionTypes: string[] | undefined = undefined;
-  if (row.actionTypes) {
-    try {
-      actionTypes = typeof row.actionTypes === "string" ? JSON.parse(row.actionTypes) : row.actionTypes;
-    } catch {
-      actionTypes = undefined;
-    }
-  }
+  const targetVehicles = safeParseJsonArray<number>(row.targetVehicles, []);
+  const targetCategories = safeParseJsonArray<string>(row.targetCategories, []);
+  const targetGroups = safeParseJsonArray<string>(row.targetGroups, []);
+  const rawAlertEvents = safeParseJsonArray<GeofenceAlertEvent>(row.alertEvents, ["EXIT"]);
+  const alertEvents = rawAlertEvents.length > 0 ? rawAlertEvents : (["EXIT"] as GeofenceAlertEvent[]);
+  const actionTypes = safeParseJsonArray<string>(row.actionTypes, ["UI"]);
 
   return {
     id: row.id,
@@ -248,12 +250,12 @@ export function dbRowToGeofence(row: any): Geofence {
     radio: row.radio != null ? Number(row.radio) : undefined,
     activa: row.activa === 1 || row.activa === true,
     targetType: (row.targetType || "ALL") as GeofenceTargetType,
-    targetVehicles,
-    targetCategories,
-    targetGroups,
-    alertEvents: Array.isArray(alertEvents) ? alertEvents : ["EXIT"],
+    targetVehicles: targetVehicles.length > 0 ? targetVehicles : undefined,
+    targetCategories: targetCategories.length > 0 ? targetCategories : undefined,
+    targetGroups: targetGroups.length > 0 ? targetGroups : undefined,
+    alertEvents,
     speedLimit: row.speedLimit != null ? Number(row.speedLimit) : undefined,
-    actionTypes,
+    actionTypes: actionTypes.length > 0 ? actionTypes : undefined,
     emailRecipients: row.emailRecipients ?? undefined,
     createdAt: row.createdAt ? (row.createdAt instanceof Date ? row.createdAt.toISOString() : new Date(row.createdAt).toISOString()) : undefined,
     updatedAt: row.updatedAt ? (row.updatedAt instanceof Date ? row.updatedAt.toISOString() : new Date(row.updatedAt).toISOString()) : undefined,
@@ -263,28 +265,53 @@ export function dbRowToGeofence(row: any): Geofence {
 /**
  * Helper to serialize Geofence FormData into DB columns.
  */
-export function geofenceToDbValues(data: Partial<GeofenceFormData> & { empresaId?: number }) {
+export function geofenceToDbValues(data: Partial<GeofenceFormData> & { empresaId?: number; centroLat?: number; centroLng?: number }) {
   const values: Record<string, any> = {};
   if (data.empresaId !== undefined) values.empresaId = data.empresaId;
   if (data.nombre !== undefined) values.nombre = data.nombre;
   if (data.descripcion !== undefined) values.descripcion = data.descripcion;
   if (data.tipo !== undefined) values.tipo = data.tipo;
   if (data.color !== undefined) values.color = data.color;
-  if (data.opacidad !== undefined) values.opacidad = data.opacidad;
-  if (data.coordenadas !== undefined) values.coordenadas = data.coordenadas ? JSON.stringify(data.coordenadas) : null;
-  if (data.centro !== undefined) {
-    values.centroLat = data.centro ? data.centro[0] : null;
-    values.centroLng = data.centro ? data.centro[1] : null;
+  if (data.opacidad !== undefined) values.opacidad = typeof data.opacidad === "number" ? data.opacidad : parseFloat(data.opacidad as any) || 0.25;
+
+  if (data.coordenadas !== undefined) {
+    if (data.coordenadas == null) {
+      values.coordenadas = null;
+    } else if (typeof data.coordenadas === "string") {
+      values.coordenadas = data.coordenadas;
+    } else if (Array.isArray(data.coordenadas)) {
+      values.coordenadas = JSON.stringify(data.coordenadas);
+    }
   }
-  if (data.radio !== undefined) values.radio = data.radio;
+
+  if (data.centro !== undefined) {
+    values.centroLat = data.centro ? Number(data.centro[0]) : null;
+    values.centroLng = data.centro ? Number(data.centro[1]) : null;
+  } else {
+    if (data.centroLat !== undefined) values.centroLat = data.centroLat != null ? Number(data.centroLat) : null;
+    if (data.centroLng !== undefined) values.centroLng = data.centroLng != null ? Number(data.centroLng) : null;
+  }
+
+  if (data.radio !== undefined) values.radio = data.radio != null ? Number(data.radio) : null;
   if (data.activa !== undefined) values.activa = data.activa ? 1 : 0;
-  if (data.targetType !== undefined) values.targetType = data.targetType;
-  if (data.targetVehicles !== undefined) values.targetVehicles = data.targetVehicles ? JSON.stringify(data.targetVehicles) : null;
-  if (data.targetCategories !== undefined) values.targetCategories = data.targetCategories ? JSON.stringify(data.targetCategories) : null;
-  if (data.targetGroups !== undefined) values.targetGroups = data.targetGroups ? JSON.stringify(data.targetGroups) : null;
-  if (data.alertEvents !== undefined) values.alertEvents = data.alertEvents ? JSON.stringify(data.alertEvents) : null;
-  if (data.speedLimit !== undefined) values.speedLimit = data.speedLimit;
-  if (data.actionTypes !== undefined) values.actionTypes = data.actionTypes ? JSON.stringify(data.actionTypes) : null;
+  if (data.targetType !== undefined) values.targetType = data.targetType || "ALL";
+
+  if (data.targetVehicles !== undefined) {
+    values.targetVehicles = data.targetVehicles == null ? null : (typeof data.targetVehicles === "string" ? data.targetVehicles : JSON.stringify(data.targetVehicles));
+  }
+  if (data.targetCategories !== undefined) {
+    values.targetCategories = data.targetCategories == null ? null : (typeof data.targetCategories === "string" ? data.targetCategories : JSON.stringify(data.targetCategories));
+  }
+  if (data.targetGroups !== undefined) {
+    values.targetGroups = data.targetGroups == null ? null : (typeof data.targetGroups === "string" ? data.targetGroups : JSON.stringify(data.targetGroups));
+  }
+  if (data.alertEvents !== undefined) {
+    values.alertEvents = data.alertEvents == null ? null : (typeof data.alertEvents === "string" ? data.alertEvents : JSON.stringify(data.alertEvents));
+  }
+  if (data.speedLimit !== undefined) values.speedLimit = data.speedLimit != null ? Number(data.speedLimit) : null;
+  if (data.actionTypes !== undefined) {
+    values.actionTypes = data.actionTypes == null ? null : (typeof data.actionTypes === "string" ? data.actionTypes : JSON.stringify(data.actionTypes));
+  }
   if (data.emailRecipients !== undefined) values.emailRecipients = data.emailRecipients;
   values.updatedAt = new Date();
   return values;

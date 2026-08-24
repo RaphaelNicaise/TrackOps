@@ -38,12 +38,15 @@ const GeofenceMap = dynamic(() => import("@/components/map/GeofenceMap"), {
   ),
 });
 
+import type { VehicleGroup } from "@/types/schedule";
+
 type PageMode = "list" | "create" | "edit";
 type TypeFilter = "Todos" | "Polígono" | "Círculo" | "Activas" | "Inactivas";
 
 export default function GeocercasPage() {
   const [geofences, setGeofences] = useState<Geofence[]>([]);
   const [availableVehicles, setAvailableVehicles] = useState<MockVehiculo[]>([]);
+  const [availableGroups, setAvailableGroups] = useState<VehicleGroup[]>([]);
   const [mode, setMode] = useState<PageMode>("list");
   const [isListOpen, setIsListOpen] = useState(true);
   const [focusedGeofenceId, setFocusedGeofenceId] = useState<number | null>(null);
@@ -88,10 +91,26 @@ export default function GeocercasPage() {
     }
   }, []);
 
+  // Fetch vehicle groups for the assigner
+  const fetchGroups = useCallback(async () => {
+    try {
+      const res = await fetch("/api/vehicle-groups");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setAvailableGroups(data);
+        }
+      }
+    } catch (error) {
+      console.warn("Could not fetch vehicle groups from API:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchGeofences();
     fetchVehicles();
-  }, [fetchGeofences, fetchVehicles]);
+    fetchGroups();
+  }, [fetchGeofences, fetchVehicles, fetchGroups]);
 
   // Filtered geofences list
   const filteredGeofences = useMemo(() => {
@@ -330,6 +349,7 @@ export default function GeocercasPage() {
             setDrawingMode={setDrawingMode}
             isSaving={isSaving}
             availableVehicles={availableVehicles}
+            availableGroups={availableGroups}
           />
         )}
 

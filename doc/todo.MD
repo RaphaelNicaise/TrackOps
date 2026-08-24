@@ -12,10 +12,8 @@
 - Crear un tutorial para la demo y un tutorial para cuando entras por primera vez
 - Los viajes deberian tener info adicional tipo motivo no?
 
-=============in process===============
-
-- Que lo de Crear sitio con google places te deje buscar lugares especificas (no se si es posible) , o que te deje meter un link de google maps y de ahi obtiene las coords exactas.
-- Fixear el + + Nuevo Sitio
-- Fixear las geocercas que se puedan crear y que se vean.
-- Que cuando creas geocercas, en los grupos aparezcan los grupos de vehiuclos que existen en la empresa, osea si no hay grupos de vehiculos no deberias poder seleccionar la opcion de grupos.
+- [x] Que lo de Crear sitio con google places te deje buscar lugares especificas, o que te deje meter un link de google maps y de ahi obtiene las coords exactas (soporte para links estándar, links cortos maps.app.goo.gl y búsqueda Nominatim/Places con autocompletado en Sitios y Viajes).
+- [x] Fixear el + + Nuevo Sitio (y + + Nuevo Chofer) unificando botones con icono Plus + texto sin signo '+' redundante.
+- [x] Fixear las geocercas que se puedan crear y que se vean (soporte completo de centro [lat, lng] en schema, prevención de doble stringificación en BD y fallback dinámico en sesión demo).
+- [x] Que cuando creas geocercas, en los grupos aparezcan los grupos de vehículos que existen en la empresa; si no hay grupos de vehículos no se puede seleccionar la opción de grupos (gating y estado deshabilitado en pestaña Grupos).
 

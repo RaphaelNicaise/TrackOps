@@ -21,6 +21,10 @@ export const geofenceSchema = z
         }
       })
       .pipe(z.string().trim().nullable().optional()),
+    centro: z
+      .union([z.array(z.number()).length(2), z.null(), z.undefined()])
+      .optional()
+      .transform((v) => (Array.isArray(v) && v.length === 2 ? [Number(v[0]), Number(v[1])] as [number, number] : null)),
     centroLat: z
       .unknown()
       .optional()
@@ -68,12 +72,14 @@ export const geofenceSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.tipo === "Círculo") {
-      if (data.centroLat == null || data.centroLng == null || data.radio == null) {
+      const lat = data.centroLat ?? (data.centro ? data.centro[0] : null);
+      const lng = data.centroLng ?? (data.centro ? data.centro[1] : null);
+      if (lat == null || lng == null || data.radio == null) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Para geocerca circular se requiere centro (lat/lng) y radio", path: ["radio"] });
       }
     }
     if (data.tipo === "Polígono") {
-      if (!data.coordenadas || data.coordenadas.trim().length < 10) {
+      if (!data.coordenadas || data.coordenadas.trim().length < 5) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Para geocerca polígono se requieren coordenadas válidas", path: ["coordenadas"] });
       }
     }

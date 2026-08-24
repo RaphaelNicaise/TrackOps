@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -16,6 +16,10 @@ import {
   Store,
   Truck,
   Wrench,
+  Search,
+  Loader2,
+  Sparkles,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -32,6 +36,10 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { appAlert } from "@/lib/alerts";
 import { createSitio, updateSitio, deleteSitio } from "@/lib/flota-actions";
+import {
+  parseGoogleMapsUrl,
+  reverseGeocodeCoordinates,
+} from "@/lib/maps-parser";
 import type {
   SitioRow,
   SitioTipo,
@@ -84,6 +92,21 @@ export function SitioFormDialog({
   const [contactoNombre, setContactoNombre] = useState(sitio?.contactoNombre || "");
   const [contactoTelefono, setContactoTelefono] = useState(sitio?.contactoTelefono || "");
 
+  // Google Maps / Places Search State
+  const [mapsInput, setMapsInput] = useState("");
+  const [isSearchingMaps, setIsSearchingMaps] = useState(false);
+  const [mapsResults, setMapsResults] = useState<
+    Array<{
+      display_name: string;
+      lat: string;
+      lon: string;
+      name?: string;
+      address?: Record<string, string>;
+    }>
+  >([]);
+  const [showMapsDropdown, setShowMapsDropdown] = useState(false);
+  const mapsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Sync state when sitio prop changes
   useEffect(() => {
     if (sitio) {
@@ -109,16 +132,155 @@ export function SitioFormDialog({
       setContactoNombre("");
       setContactoTelefono("");
     }
+    setMapsInput("");
+    setMapsResults([]);
+    setShowMapsDropdown(false);
   }, [sitio, open]);
 
   const isEdit = !!sitio?.id;
 
+  async function handleApplyGeocodedLocation(
+    latNum: number,
+    lngNum: number,
+    nameHint?: string,
+    displayNameHint?: string
+  ) {
+    setLat(latNum.toFixed(6));
+    setLng(lngNum.toFixed(6));
+
+    try {
+      const geo = await reverseGeocodeCoordinates(latNum, lngNum);
+      if (geo) {
+        if (geo.direccion) setDireccion(geo.direccion);
+        if (geo.ciudad) setCiudad(geo.ciudad);
+        if (geo.provincia) setProvincia(geo.provincia);
+        if ((!nombre || nombre.trim() === "") && (nameHint || geo.nombre)) {
+          setNombre(nameHint || geo.nombre);
+        }
+      } else if (displayNameHint) {
+        if (!direccion) setDireccion(displayNameHint);
+        if ((!nombre || nombre.trim() === "") && nameHint) setNombre(nameHint);
+      }
+    } catch {
+      if (displayNameHint && !direccion) setDireccion(displayNameHint);
+    }
+  }
+
+  async function handleMapsInputChange(val: string) {
+    setMapsInput(val);
+    if (mapsTimeoutRef.current) clearTimeout(mapsTimeoutRef.current);
+
+    const trimmed = val.trim();
+    if (!trimmed) {
+      setMapsResults([]);
+      setShowMapsDropdown(false);
+      return;
+    }
+
+    // 1. Direct coordinate or standard Google Maps URL check
+    const directParsed = parseGoogleMapsUrl(trimmed);
+    if (directParsed) {
+      setShowMapsDropdown(false);
+      setIsSearchingMaps(true);
+      try {
+        await handleApplyGeocodedLocation(directParsed.lat, directParsed.lng, directParsed.placeName);
+        appAlert.success(
+          `Ubicación extraída de Google Maps (${directParsed.lat.toFixed(4)}, ${directParsed.lng.toFixed(4)})`
+        );
+      } finally {
+        setIsSearchingMaps(false);
+      }
+      return;
+    }
+
+    // 2. Shortlink check (maps.app.goo.gl or goo.gl/maps)
+    if (trimmed.includes("maps.app.goo.gl") || trimmed.includes("goo.gl/maps")) {
+      setShowMapsDropdown(false);
+      setIsSearchingMaps(true);
+      try {
+        const res = await fetch(`/api/resolve-maps-url?url=${encodeURIComponent(trimmed)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lat && data.lng) {
+            await handleApplyGeocodedLocation(data.lat, data.lng, data.placeName);
+            appAlert.success(
+              `Ubicación extraída del enlace (${Number(data.lat).toFixed(4)}, ${Number(data.lng).toFixed(4)})`
+            );
+            return;
+          }
+        }
+        appAlert.error("No se pudieron extraer coordenadas del enlace de Google Maps.");
+      } catch (err) {
+        appAlert.error("Error al consultar el enlace de Google Maps.");
+      } finally {
+        setIsSearchingMaps(false);
+      }
+      return;
+    }
+
+    // 3. Search query (OpenStreetMap / Nominatim)
+    if (trimmed.length < 3) {
+      setMapsResults([]);
+      setShowMapsDropdown(false);
+      return;
+    }
+
+    setIsSearchingMaps(true);
+    setShowMapsDropdown(true);
+
+    mapsTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&countrycodes=ar&limit=5&addressdetails=1`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setMapsResults(data || []);
+        } else {
+          setMapsResults([]);
+        }
+      } catch (err) {
+        console.warn("Places search error:", err);
+        setMapsResults([]);
+      } finally {
+        setIsSearchingMaps(false);
+      }
+    }, 450);
+  }
+
+  function handleSelectSearchResult(item: any) {
+    const latNum = parseFloat(item.lat);
+    const lngNum = parseFloat(item.lon);
+    const addr = item.address || {};
+    const road = addr.road || addr.pedestrian || addr.street || addr.industrial || "";
+    const house = addr.house_number || "";
+    const street = road ? (house ? `${road} ${house}` : road) : (item.display_name?.split(",")[0] || "");
+    const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || "";
+    const state = addr.state || addr.province || "";
+    const title = item.name || item.display_name?.split(",")[0] || street;
+
+    setLat(latNum.toFixed(6));
+    setLng(lngNum.toFixed(6));
+    if (street) setDireccion(street);
+    else if (item.display_name) setDireccion(item.display_name);
+    if (city) setCiudad(city);
+    if (state) setProvincia(state);
+    if (!nombre || nombre.trim() === "") setNombre(title);
+
+    setMapsInput(title);
+    setShowMapsDropdown(false);
+    appAlert.success(`Ubicación seleccionada: ${title}`);
+  }
+
   function handleUseCurrentLocation() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLat(pos.coords.latitude.toFixed(6));
-          setLng(pos.coords.longitude.toFixed(6));
+        async (pos) => {
+          const latitude = pos.coords.latitude;
+          const longitude = pos.coords.longitude;
+          setLat(latitude.toFixed(6));
+          setLng(longitude.toFixed(6));
+          await handleApplyGeocodedLocation(latitude, longitude);
           appAlert.success("Coordenadas GPS obtenidas de tu ubicación actual.");
         },
         (err) => {
@@ -215,7 +377,7 @@ export function SitioFormDialog({
           {trigger || (
             <Button size="sm" className="gap-2 shadow-xs">
               <Plus className="h-4 w-4" />
-              + Nuevo Sitio
+              Nuevo Sitio
             </Button>
           )}
         </DialogTrigger>
@@ -235,6 +397,76 @@ export function SitioFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 py-2">
+          {/* Asistente Inteligente de Ubicación Google Maps / Places */}
+          <div className="p-3.5 rounded-xl border bg-muted/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                Autocompletar con Google Maps / Buscador de Lugares
+              </Label>
+              {lat && lng && (
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  GPS: {parseFloat(lat).toFixed(4)}, {parseFloat(lng).toFixed(4)}
+                </span>
+              )}
+            </div>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Pegá un link de Google Maps (ej. maps.app.goo.gl/...) o buscá una dirección..."
+                value={mapsInput}
+                onChange={(e) => handleMapsInputChange(e.target.value)}
+                onFocus={() => {
+                  if (mapsResults.length > 0) setShowMapsDropdown(true);
+                }}
+                className="pl-9 pr-9 text-xs h-9 bg-background"
+              />
+              {isSearchingMaps ? (
+                <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+              ) : mapsInput ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMapsInput("");
+                    setMapsResults([]);
+                    setShowMapsDropdown(false);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              ) : null}
+
+              {/* Dropdown de Sugerencias de Autocompletado */}
+              {showMapsDropdown && mapsResults.length > 0 && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-1 text-popover-foreground shadow-lg max-h-56 overflow-y-auto">
+                  {mapsResults.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectSearchResult(item)}
+                      className="flex w-full items-start gap-2 rounded-sm px-2.5 py-1.5 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-semibold truncate">
+                          {item.name || item.display_name.split(",")[0]}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground line-clamp-1">
+                          {item.display_name}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Pegá un link copiado de Google Maps o buscá un lugar en Argentina para autocompletar nombre, dirección y coordenadas GPS automáticamente.
+            </p>
+          </div>
+
           {/* Sección 1: Identificación y Tipo */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

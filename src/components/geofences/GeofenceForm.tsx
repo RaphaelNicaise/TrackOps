@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Geofence, GeofenceFormData, DrawingMode, GeofenceType } from "@/types/geofence";
 import type { MockVehiculo } from "@/lib/mock-vehicles";
+import type { VehicleGroup } from "@/types/schedule";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,7 @@ export interface GeofenceFormProps {
   setDrawingMode: (mode: DrawingMode) => void;
   isSaving?: boolean;
   availableVehicles?: MockVehiculo[];
+  availableGroups?: VehicleGroup[];
 }
 
 export function GeofenceForm({
@@ -49,6 +51,7 @@ export function GeofenceForm({
   setDrawingMode,
   isSaving = false,
   availableVehicles = [],
+  availableGroups,
 }: GeofenceFormProps) {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [touchedName, setTouchedName] = useState(false);
@@ -423,6 +426,7 @@ export function GeofenceForm({
             targetCategories={draftData.targetCategories || []}
             targetGroups={draftData.targetGroups || []}
             availableVehicles={availableVehicles}
+            availableGroups={availableGroups}
             onChange={(updates) => onChange({ ...draftData, ...updates })}
           />
         )}
