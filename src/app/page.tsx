@@ -22,17 +22,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import ScrollStack, { ScrollStackItem } from "@/components/ScrollStack";
 import BentoCard from "@/components/BentoCard";
 import { PublicSupportDialog } from "@/components/soporte/public-support-dialog";
+import { QuoteContactModal } from "@/components/cotizador/QuoteContactModal";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 }
 
 const FALLBACK_TIERS = [
-  { min: 1, max: 5, priceNumber: 39990, label: "1 a 5 vehículos", type: "Inicial" },
-  { min: 6, max: 15, priceNumber: 64900, label: "6 a 15 vehículos", type: "Crecimiento" },
-  { min: 16, max: 30, priceNumber: 99900, label: "16 a 30 vehículos", type: "Consolidada" },
-  { min: 31, max: 49, priceNumber: 149900, label: "31 a 49 vehículos", type: "Masiva" },
-  { min: 50, max: null as number | null, priceNumber: 199900, label: "50 o más vehículos", type: "Enterprise" }
+  { min: 1, max: 5, priceNumber: 14900, label: "1 a 5 vehículos", type: "Inicial" },
+  { min: 6, max: 15, priceNumber: 12500, label: "6 a 15 vehículos", type: "Crecimiento" },
+  { min: 16, max: 30, priceNumber: 10500, label: "16 a 30 vehículos", type: "Consolidada" },
+  { min: 31, max: 49, priceNumber: 8900, label: "31 a 49 vehículos", type: "Masiva" },
+  { min: 50, max: null as number | null, priceNumber: 0, label: "50 o más vehículos", type: "Enterprise" }
 ];
 const PRICING_TIERS = FALLBACK_TIERS;
 
@@ -42,6 +43,44 @@ const LOGOS_CONFIANZA = [
   { node: <div className="flex gap-2 items-center text-[#787774] opacity-50 hover:opacity-100 transition-opacity"><Globe size={24} /> <span className="font-semibold text-lg font-sans tracking-tight">Vía Rápida</span></div>, title: "Vía Rápida" },
   { node: <div className="flex gap-2 items-center text-[#787774] opacity-50 hover:opacity-100 transition-opacity"><Anchor size={24} /> <span className="font-semibold text-lg font-sans tracking-tight">Puerto Cargas</span></div>, title: "Puerto Cargas" },
   { node: <div className="flex gap-2 items-center text-[#787774] opacity-50 hover:opacity-100 transition-opacity"><Briefcase size={24} /> <span className="font-semibold text-lg font-sans tracking-tight">Expreso Federal</span></div>, title: "Expreso Federal" },
+];
+
+const COMPARISON_ROWS = [
+  {
+    area: "Control de Mantenimiento",
+    sinTrackOps: "Planillas de Excel, pizarrones borrados y services pasados.",
+    conTrackOps: "Matriz predictiva por componentes y odómetro GPS en vivo.",
+  },
+  {
+    area: "Vencimientos y Docs",
+    sinTrackOps: "Vehículos parados por seguros o VTV vencidas por sorpresa.",
+    conTrackOps: "Alertas preventivas automatizadas a WhatsApp y Mail.",
+  },
+  {
+    area: "Control de Combustible",
+    sinTrackOps: "Tickets de papel en la guantera y gastos imposibles de auditar.",
+    conTrackOps: "Algoritmo de eficiencia (L/100km) y alertas por desvío.",
+  },
+  {
+    area: "Asignación de Choferes",
+    sinTrackOps: "Control informal de llaves de cada unidad en cada turno.",
+    conTrackOps: "Check-in/out por escaneo QR y trazabilidad exacta.",
+  },
+  {
+    area: "Visibilidad y Seguimiento",
+    sinTrackOps: "Llamadas constantes al chofer y grandes tiempos ciegos.",
+    conTrackOps: "Mapa interactivo y telemetría 24/7 en vivo.",
+  },
+  {
+    area: "Historial y Auditoría",
+    sinTrackOps: "Facturas perdidas y cero historial integrado.",
+    conTrackOps: "Ficha digital única con reportes totales.",
+  },
+  {
+    area: "Toma de Decisiones",
+    sinTrackOps: "Decisiones por intuición, sin métricas reales.",
+    conTrackOps: "Dashboard ejecutivo de Costo Operativo.",
+  },
 ];
 
 export default function LandingPage() {
@@ -58,15 +97,16 @@ export default function LandingPage() {
     setScrolled(latest > 300);
   });
   
-  // Slider state
+  // Slider & Quote Modal state
   const [vehicles, setVehicles] = useState([10]);
   const [annualMode, setAnnualMode] = useState(false);
   const [prevPrice, setPrevPrice] = useState(0);
   const [tiers, setTiers] = useState(FALLBACK_TIERS);
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Fetch planes dinámicos desde DB (configurable en /panel/superadmin/facturacion)
+    // Fetch planes dinámicos desde DB (configurable en /panel/superadmin/planes)
     fetch("/api/plans")
       .then((r) => r.json())
       .then((plans: Array<{ minVehiculos: number; maxVehiculos: number | null; precioMensual: number; nombre: string; activo?: number }>) => {
@@ -87,18 +127,22 @@ export default function LandingPage() {
       .catch(() => {});
   }, []);
 
+  const maxThreshold = tiers.find((t) => t.max === null)?.min ?? 50;
+  const vehiclesCount = vehicles[0];
   const currentTier =
-    tiers.find((t) => vehicles[0] >= t.min && (t.max == null || vehicles[0] <= t.max)) || tiers[tiers.length - 1];
+    tiers.find((t) => vehiclesCount >= t.min && (t.max == null || vehiclesCount <= t.max)) || tiers[tiers.length - 1];
 
-  const calculatedPrice = annualMode ? Math.round(currentTier.priceNumber * 0.9) : currentTier.priceNumber;
-  const [currentPrice, setCurrentPrice] = useState(calculatedPrice);
+  const isEnterprise = vehiclesCount >= maxThreshold || currentTier.max == null;
+  const unitPrice = annualMode ? Math.round(currentTier.priceNumber * 0.9) : currentTier.priceNumber;
+  const calculatedTotalPrice = isEnterprise ? 0 : vehiclesCount * unitPrice;
+  const [currentPrice, setCurrentPrice] = useState(calculatedTotalPrice);
 
   useEffect(() => {
-    if (calculatedPrice !== currentPrice) {
+    if (calculatedTotalPrice !== currentPrice) {
       setPrevPrice(currentPrice);
-      setCurrentPrice(calculatedPrice);
+      setCurrentPrice(calculatedTotalPrice);
     }
-  }, [calculatedPrice, currentPrice]);
+  }, [calculatedTotalPrice, currentPrice]);
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
@@ -306,7 +350,7 @@ export default function LandingPage() {
           </Link>
           
           {/* Centro: Píldora de Navegación */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 bg-white/80 backdrop-blur-md border border-[#EAEAEA] px-4 py-1.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 bg-white/80 backdrop-blur-md border border-[#1E2227] px-4 py-1.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
             <a
               href="#soluciones"
               onClick={(e) => handleSmoothScroll(e, '#soluciones')}
@@ -419,19 +463,19 @@ export default function LandingPage() {
             </a>
           </div>
           
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-mono uppercase tracking-wider text-[#1E2227] bg-[#F6F4EE] py-3 px-6 rounded-full inline-flex mx-auto border border-[#EAEAEA] tabular-nums">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-mono uppercase tracking-wider text-[#1E2227] bg-[#F6F4EE] py-3 px-6 rounded-full inline-flex mx-auto border border-[#1E2227] tabular-nums">
             <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-[#346538]" /> +15% Ahorro Combustible</span>
-            <span className="hidden md:block text-[#EAEAEA]">|</span>
+            <span className="hidden md:block text-[#1E2227]/30">|</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-[#346538]" /> 100% Control Mantenimientos</span>
-            <span className="hidden md:block text-[#EAEAEA]">|</span>
+            <span className="hidden md:block text-[#1E2227]/30">|</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 size={15} className="text-[#346538]" /> 0 Multas por Vencimientos</span>
           </div>
         </div>
 
         {/* Hero Dynamic Dashboard Mockup (Uber style) */}
         <div className="hero-dashboard mt-12 md:mt-16 w-full max-w-5xl relative z-10 h-auto md:h-[450px] perspective-1000">
-          <div className="w-full h-full bg-white border border-[#EAEAEA] rounded-t-2xl shadow-2xl overflow-hidden relative flex flex-col">
-            <div className="h-10 border-b border-[#EAEAEA] bg-[#FBFBFA] flex items-center px-4 gap-2 shrink-0">
+          <div className="w-full h-full bg-white border border-[#1E2227] rounded-t-2xl shadow-2xl overflow-hidden relative flex flex-col">
+            <div className="h-10 border-b border-[#1E2227] bg-[#FBFBFA] flex items-center px-4 gap-2 shrink-0">
               <div className="w-3 h-3 rounded-full bg-[#EAEAEA]" />
               <div className="w-3 h-3 rounded-full bg-[#EAEAEA]" />
               <div className="w-3 h-3 rounded-full bg-[#EAEAEA]" />
@@ -440,7 +484,7 @@ export default function LandingPage() {
             
             <div className="flex-1 flex flex-col md:flex-row bg-[#F6F4EE] relative overflow-hidden">
               {/* Left Sidebar (Metrics) */}
-              <div className="w-full md:w-1/3 bg-white/80 backdrop-blur border-b md:border-b-0 md:border-r border-[#EAEAEA] p-4 md:p-6 flex flex-col gap-4 z-10 shrink-0">
+              <div className="w-full md:w-1/3 bg-white/80 backdrop-blur border-b md:border-b-0 md:border-r border-[#1E2227] p-4 md:p-6 flex flex-col gap-4 z-10 shrink-0">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 rounded bg-[#1E2227] text-white flex items-center justify-center"><Truck size={16} /></div>
                   <div>
@@ -516,7 +560,7 @@ export default function LandingPage() {
                 </svg>
                 
                 {/* Map UI overlays */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur rounded shadow-sm border border-[#EAEAEA] p-2 text-xs font-mono text-[#1E2227] flex items-center gap-2 z-20">
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur rounded shadow-sm border border-[#1E2227] p-2 text-xs font-mono text-[#1E2227] flex items-center gap-2 z-20">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> GPS Activo
                 </div>
               </div>
@@ -614,58 +658,51 @@ export default function LandingPage() {
           </div>
 
           <div className="bg-[#181B1F] border border-[#333] rounded-2xl overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto">
+            {/* Mobile View (< md) */}
+            <div className="md:hidden divide-y divide-[#333]">
+              {COMPARISON_ROWS.map((row, i) => (
+                <div key={i} className="p-4 space-y-3">
+                  <div className="text-xs font-mono uppercase tracking-wider text-[#F2B705] font-bold">
+                    {row.area}
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="bg-[#1F2429] p-3 rounded-lg border border-[#333] text-[#A1A1AA] flex items-start gap-2.5">
+                      <X size={16} className="text-red-400 opacity-80 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-xs font-semibold text-[#787774] block mb-0.5">Sin TrackOps</span>
+                        <span className="leading-relaxed">{row.sinTrackOps}</span>
+                      </div>
+                    </div>
+                    <div className="bg-[#222830] p-3 rounded-lg border border-[#F2B705]/20 text-white flex items-start gap-2.5">
+                      <Check size={16} className="text-[#F2B705] shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-xs font-semibold text-[#F2B705] block mb-0.5">Ecosistema TrackOps</span>
+                        <span className="leading-relaxed">{row.conTrackOps}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (>= md) */}
+            <div className="hidden md:block overflow-x-auto">
               <Table className="w-full">
                 <TableHeader>
                   <TableRow className="border-[#333] hover:bg-transparent">
-                    <TableHead className="hidden md:table-cell w-[25%] py-6 px-4 md:px-6 text-white font-medium text-base md:text-lg">Área Operativa</TableHead>
-                    <TableHead className="w-[50%] md:w-[35%] py-4 md:py-6 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-lg border-l border-[#333]">Sin TrackOps</TableHead>
-                    <TableHead className="w-[50%] md:w-[40%] py-4 md:py-6 px-3 md:px-6 text-[#F2B705] text-sm md:text-lg font-bold border-l border-[#333] bg-[#222830]">Ecosistema TrackOps</TableHead>
+                    <TableHead className="w-[25%] py-6 px-4 md:px-6 text-white font-medium text-base md:text-lg">Área Operativa</TableHead>
+                    <TableHead className="w-[35%] py-4 md:py-6 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-lg border-l border-[#333]">Sin TrackOps</TableHead>
+                    <TableHead className="w-[40%] py-4 md:py-6 px-3 md:px-6 text-[#F2B705] text-sm md:text-lg font-bold border-l border-[#333] bg-[#222830]">Ecosistema TrackOps</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Fila 1 */}
-                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
-                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Control de Mantenimiento</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Planillas de Excel, pizarrones borrados y services pasados.</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Matriz predictiva por componentes y odómetro GPS en vivo.</TableCell>
-                  </TableRow>
-                  {/* Fila 2 */}
-                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
-                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Vencimientos y Docs</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Vehículos parados por seguros o VTV vencidas por sorpresa.</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Alertas preventivas automatizadas a WhatsApp y Mail.</TableCell>
-                  </TableRow>
-                  {/* Fila 3 */}
-                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
-                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Control de Combustible</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Tickets de papel en la guantera y gastos imposibles de auditar.</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Algoritmo de eficiencia (L/100km) y alertas por desvío.</TableCell>
-                  </TableRow>
-                  {/* Fila 4 */}
-                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
-                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Asignación de Choferes</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Control informal de llaves de cada unidad en cada turno.</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Check-in/out por escaneo QR y trazabilidad exacta.</TableCell>
-                  </TableRow>
-                  {/* Fila 5 */}
-                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
-                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Visibilidad y Seguimiento</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Llamadas constantes al chofer y grandes tiempos ciegos.</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Mapa interactivo y telemetría 24/7 en vivo.</TableCell>
-                  </TableRow>
-                  {/* Fila 6 */}
-                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
-                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base">Historial y Auditoría</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Facturas perdidas y cero historial integrado.</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Ficha digital única con reportes totales.</TableCell>
-                  </TableRow>
-                  {/* Fila 7 */}
-                  <TableRow className="border-[#333] hover:bg-[#1A1E22] transition-colors">
-                    <TableCell className="hidden md:table-cell py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base border-b-0">Toma de Decisiones</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed border-b-0"><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> Decisiones por intuición, sin métricas reales.</TableCell>
-                    <TableCell className="py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed border-b-0"><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> Dashboard ejecutivo de Costo Operativo.</TableCell>
-                  </TableRow>
+                  {COMPARISON_ROWS.map((row, i) => (
+                    <TableRow key={i} className={`border-[#333] hover:bg-[#1A1E22] transition-colors ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}>
+                      <TableCell className={`py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}>{row.area}</TableCell>
+                      <TableCell className={`py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> {row.sinTrackOps}</TableCell>
+                      <TableCell className={`py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> {row.conTrackOps}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -705,11 +742,11 @@ export default function LandingPage() {
               itemScale={0.02}
               blurAmount={1.5}
             >
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
+              <ScrollStackItem itemClassName="bg-white border border-[#1E2227] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
                 <div className="absolute top-4 right-4 bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-[#075E54]/20 z-10">
                   <Sparkles size={10} /> NUEVO
                 </div>
-                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <Receipt size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2 pr-16">Carga con IA</h3>
@@ -718,8 +755,8 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
+              <ScrollStackItem itemClassName="bg-white border border-[#1E2227] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <FileWarning size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Cero multas</h3>
@@ -728,8 +765,8 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
+              <ScrollStackItem itemClassName="bg-white border border-[#1E2227] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <Wrench size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Service Automático</h3>
@@ -738,8 +775,8 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
+              <ScrollStackItem itemClassName="bg-white border border-[#1E2227] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <Map size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Telemetría 24/7</h3>
@@ -748,8 +785,8 @@ export default function LandingPage() {
                 </p>
               </ScrollStackItem>
 
-              <ScrollStackItem itemClassName="bg-white border border-[#EAEAEA] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
-                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
+              <ScrollStackItem itemClassName="bg-white border border-[#1E2227] rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] relative overflow-hidden flex flex-col justify-center min-h-[230px]">
+                <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-4 text-[#1E2227]">
                   <ClipboardList size={24} />
                 </div>
                 <h3 className="text-xl font-semibold text-[#1E2227] mb-2">Auditoría Ficha Única</h3>
@@ -771,7 +808,7 @@ export default function LandingPage() {
                 </div>
                 <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
               </div>
-              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <Receipt size={24} />
               </div>
               <h3 className="text-2xl font-semibold text-[#1E2227] mb-3 pr-24 transition-colors duration-300 group-hover:text-[#111]">Carga de tickets con Inteligencia Artificial</h3>
@@ -783,7 +820,7 @@ export default function LandingPage() {
               <div className="absolute top-6 right-6 z-10">
                 <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
               </div>
-              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <FileWarning size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Cero multas por papeles vencidos</h3>
@@ -795,7 +832,7 @@ export default function LandingPage() {
               <div className="absolute top-6 right-6 z-10">
                 <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
               </div>
-              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <Wrench size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Mantenimiento Predictivo Automático</h3>
@@ -807,7 +844,7 @@ export default function LandingPage() {
               <div className="absolute top-6 right-6 z-10">
                 <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
               </div>
-              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <Map size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Historial, Geocercas y Telemetría 24/7</h3>
@@ -819,7 +856,7 @@ export default function LandingPage() {
               <div className="absolute top-6 right-6 z-10">
                 <ArrowUpRight size={20} className="text-[#1E2227] opacity-0 -translate-x-1 translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300" />
               </div>
-              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#EAEAEA] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
+              <div className="w-12 h-12 bg-[#F6F4EE] border border-[#1E2227] rounded-xl flex items-center justify-center mb-6 text-[#1E2227]">
                 <ClipboardList size={24} />
               </div>
               <h3 className="text-xl font-semibold text-[#1E2227] mb-3 transition-colors duration-300 group-hover:text-[#111]">Auditoría y Ficha Única del Vehículo</h3>
@@ -839,22 +876,40 @@ export default function LandingPage() {
           </div>
 
 
-          <div className="bg-[#F6F4EE] border border-[#EAEAEA] rounded-2xl p-8 md:p-16 shadow-xl max-w-4xl mx-auto grid md:grid-cols-2 gap-12 md:gap-24 items-center">
+          <div className="bg-[#F6F4EE] border border-[#1E2227] rounded-2xl p-8 md:p-16 shadow-xl max-w-4xl mx-auto grid md:grid-cols-2 gap-12 md:gap-24 items-center">
             
             <div className="flex flex-col gap-8 order-2 md:order-1">
               <div>
                 <label className="text-[#1E2227] font-medium text-lg mb-2 block flex justify-between items-center">
                   <span>Tamaño de tu flota</span>
-                  <span className="bg-[#1E2227] text-white text-sm font-mono px-3 py-1 rounded tabular-nums">
-                    {vehicles[0] === 50 ? '+50' : vehicles[0]} {vehicles[0] === 1 ? 'vehículo' : 'vehículos'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setVehicles(([v]) => [Math.max(1, v - 1)])}
+                      className="w-7 h-7 rounded-lg bg-white border border-[#1E2227] flex items-center justify-center text-[#1E2227] hover:bg-[#EAEAEA] transition font-bold text-sm"
+                      title="Disminuir vehículos"
+                    >
+                      -
+                    </button>
+                    <span className="bg-[#1E2227] text-white text-sm font-mono px-3 py-1 rounded tabular-nums min-w-[100px] text-center">
+                      {vehiclesCount >= maxThreshold ? `+${maxThreshold}` : vehiclesCount} {vehiclesCount === 1 ? 'vehículo' : 'vehículos'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setVehicles(([v]) => [Math.min(maxThreshold, v + 1)])}
+                      className="w-7 h-7 rounded-lg bg-white border border-[#1E2227] flex items-center justify-center text-[#1E2227] hover:bg-[#EAEAEA] transition font-bold text-sm"
+                      title="Aumentar vehículos"
+                    >
+                      +
+                    </button>
+                  </div>
                 </label>
  
                 <Slider.Root 
-                  className="relative flex items-center select-none touch-none w-full h-5"
+                  className="relative flex items-center select-none touch-none w-full h-5 my-3"
                   value={vehicles}
                   onValueChange={setVehicles}
-                  max={50}
+                  max={maxThreshold}
                   min={1}
                   step={1}
                 >
@@ -866,64 +921,121 @@ export default function LandingPage() {
                     aria-label="Vehículos"
                   />
                 </Slider.Root>
+                <div className="flex justify-between text-[11px] font-mono text-[#787774] mt-1">
+                  <span>1 vehículo</span>
+                  <span>{Math.round(maxThreshold / 2)} veh.</span>
+                  <span>+{maxThreshold} veh.</span>
+                </div>
               </div>
 
-              <div className="bg-white border border-[#EAEAEA] p-4 rounded-lg flex items-start gap-3">
-                <CheckCircle2 className="text-[#346538] mt-0.5" size={18} />
-                <div>
-                  <h4 className="text-[#1E2227] font-medium text-sm">Instalación y Equipos Incluidos</h4>
-                  <p className="text-[#787774] text-xs mt-1">Sin costos de hardware sorpresa. Equipos en comodato.</p>
+              <div className="space-y-3">
+                <div className="bg-white border border-[#1E2227] p-4 rounded-xl flex items-start gap-3">
+                  <CheckCircle2 className="text-[#346538] mt-0.5 shrink-0" size={18} />
+                  <div>
+                    <h4 className="text-[#1E2227] font-semibold text-sm">Instalación y GPS en Comodato</h4>
+                    <p className="text-[#787774] text-xs mt-0.5">Sin costos de hardware sorpresa. Configuración y alta asistida.</p>
+                  </div>
+                </div>
+                <div className="bg-white border border-[#1E2227] p-4 rounded-xl flex items-start gap-3">
+                  <Zap className="text-[#F2B705] mt-0.5 shrink-0" size={18} />
+                  <div>
+                    <h4 className="text-[#1E2227] font-semibold text-sm">Cobro Exacto por Vehículo</h4>
+                    <p className="text-[#787774] text-xs mt-0.5">Escalás o reducís tu plan mes a mes según tu flota real activa.</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-[#EAEAEA] rounded-xl p-8 md:p-10 flex flex-col items-center text-center shadow-sm relative overflow-hidden order-1 md:order-2">
+            <div className="bg-white border border-[#1E2227] rounded-xl p-8 md:p-10 flex flex-col items-center text-center shadow-sm relative overflow-hidden order-1 md:order-2">
               <div className="text-xs font-mono uppercase tracking-widest text-[#787774] mb-2">{currentTier.type}</div>
-              <div className="text-[#1E2227] text-sm mb-6 bg-[#F6F4EE] px-3 py-1 rounded border border-[#EAEAEA]">{currentTier.label}</div>
+              <div className="text-[#1E2227] text-sm mb-6 bg-[#F6F4EE] px-3 py-1 rounded border border-[#1E2227] font-medium">
+                {isEnterprise ? `Flota corporativa (+${maxThreshold} vehículos)` : currentTier.label}
+              </div>
               
-              <div className="flex items-baseline gap-1 mb-8">
-                <span className="font-mono text-2xl text-[#787774]">$</span>
-                
-                {/* Transición Suave del Precio */}
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={currentPrice}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.15 }}
-                    className="font-mono font-extrabold text-5xl md:text-6xl text-[#1E2227] tracking-tight tabular-nums"
-                  >
-                    {new Intl.NumberFormat('es-AR').format(currentPrice)}
-                  </motion.span>
-                </AnimatePresence>
+              {!isEnterprise ? (
+                <>
+                  <div className="flex items-baseline gap-1 mb-2">
+                    <span className="font-mono text-2xl text-[#787774]">$</span>
+                    
+                    {/* Transición Suave del Precio */}
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={currentPrice}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.15 }}
+                        className="font-mono font-extrabold text-5xl md:text-6xl text-[#1E2227] tracking-tight tabular-nums"
+                      >
+                        {new Intl.NumberFormat('es-AR').format(currentPrice)}
+                      </motion.span>
+                    </AnimatePresence>
 
-                <span className="text-[#787774] text-sm font-medium ml-1">ARS / mes</span>
-              </div>
-
-              <div className="w-full flex justify-center items-center mt-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <span className={`text-sm font-medium ${!annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Mes</span>
-                  <Switch.Root
-                    checked={annualMode}
-                    onCheckedChange={setAnnualMode}
-                    className="w-12 h-6 bg-[#EAEAEA] rounded-full relative shadow-inner focus:outline-none focus:ring-2 focus:ring-[#1E2227] data-[state=checked]:bg-[#1E2227]"
-                  >
-                    <Switch.Thumb className="block w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 translate-x-1 data-[state=checked]:translate-x-7" />
-                  </Switch.Root>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Anual</span>
-                    <span className="bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">10% OFF</span>
+                    <span className="text-[#787774] text-sm font-medium ml-1">ARS / mes</span>
                   </div>
-                </div>
-              </div>
 
-              <a href="#" className="w-full bg-[#F2B705] text-[#1E2227] py-4 rounded-full font-bold hover:bg-[#e0aa04] hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] transition-all duration-300 text-lg">
-                Empezar ahora
-              </a>
-              <p className="mt-4 text-[11px] text-[#787774] font-mono">
-                {annualMode ? 'Facturación anual. Soporte técnico incluido.' : 'Soporte técnico incluido. Cancelás cuando quieras.'}
-              </p>
+                  <div className="text-xs font-mono text-[#787774] mb-6">
+                    {vehiclesCount} {vehiclesCount === 1 ? 'unidad' : 'unidades'} × ${new Intl.NumberFormat('es-AR').format(unitPrice)}/mes c/u
+                  </div>
+
+                  <div className="w-full flex justify-center items-center mb-6">
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm font-medium ${!annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Mes</span>
+                      <Switch.Root
+                        checked={annualMode}
+                        onCheckedChange={setAnnualMode}
+                        className="w-12 h-6 bg-[#EAEAEA] rounded-full relative shadow-inner focus:outline-none focus:ring-2 focus:ring-[#1E2227] data-[state=checked]:bg-[#1E2227]"
+                      >
+                        <Switch.Thumb className="block w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 translate-x-1 data-[state=checked]:translate-x-7" />
+                      </Switch.Root>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${annualMode ? 'text-[#1E2227]' : 'text-[#787774]'}`}>Anual</span>
+                        <span className="bg-[#E7FFDB] text-[#075E54] text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide">10% OFF</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setQuoteModalOpen(true)}
+                    className="w-full bg-[#F2B705] text-[#1E2227] py-4 rounded-full font-bold hover:bg-[#e0aa04] hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(242,183,5,0.4)] transition-all duration-300 text-lg cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Solicitar Cotización</span>
+                    <ArrowRight size={18} />
+                  </button>
+                  <p className="mt-4 text-[11px] text-[#787774] font-mono">
+                    {annualMode ? 'Facturación anual bonificada. Contacto directo con un asesor.' : 'Facturación mensual flexible. Contacto directo con un asesor.'}
+                  </p>
+                </>
+              ) : (
+                /* Estado Enterprise para +N vehículos */
+                <div className="w-full flex flex-col items-center">
+                  <div className="mb-2">
+                    <span className="font-sans font-extrabold text-4xl md:text-5xl text-[#1E2227] tracking-tight">
+                      A Medida
+                    </span>
+                  </div>
+                  <div className="text-xs font-mono text-[#075E54] bg-[#E7FFDB] px-3 py-1 rounded-full mb-4 font-semibold">
+                    Propuesta Especial por Volumen
+                  </div>
+
+                  <p className="text-xs text-[#787774] leading-relaxed mb-6 bg-[#F6F4EE] p-4 rounded-xl border border-[#1E2227]">
+                    Para flotas de más de {maxThreshold} vehículos armamos una propuesta personalizada con bonificaciones por volumen, integración directa con tus sistemas y soporte prioritario.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => setQuoteModalOpen(true)}
+                    className="w-full bg-[#1E2227] text-white py-4 rounded-full font-bold hover:bg-[#111] hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(30,34,39,0.3)] transition-all duration-300 text-lg cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Contactar para Propuesta</span>
+                    <ArrowRight size={18} />
+                  </button>
+                  <p className="mt-4 text-[11px] text-[#787774] font-mono">
+                    Completá el formulario y en breve nos comunicaremos contigo.
+                  </p>
+                </div>
+              )}
               
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#F2B705]/10 rounded-full blur-[40px] pointer-events-none" />
             </div>
@@ -931,7 +1043,17 @@ export default function LandingPage() {
           </div>
           
           <div className="mt-12 text-center text-[#787774] text-sm">
-            ¿Tenés más de 50 vehículos o requerimientos de integración API? <a href="#" className="text-[#1E2227] font-medium underline underline-offset-4">Hablá con ventas para un plan corporativo</a>.
+            ¿Tenés más de {maxThreshold} vehículos o requerimientos de integración API?{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setVehicles([maxThreshold]);
+                setQuoteModalOpen(true);
+              }}
+              className="text-[#1E2227] font-medium underline underline-offset-4 cursor-pointer hover:text-[#000]"
+            >
+              Hablá con ventas para un plan corporativo a medida
+            </button>.
           </div>
         </div>
       </section>
@@ -941,7 +1063,7 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto">
           <h2 className="font-sans font-extrabold text-4xl text-[#1E2227] mb-12 text-center tracking-tight">Preguntas Frecuentes</h2>
           
-          <Accordion type="single" collapsible className="w-full bg-white rounded-2xl border border-[#EAEAEA] shadow-sm p-2">
+          <Accordion type="single" collapsible className="w-full bg-white rounded-2xl border border-[#1E2227] shadow-sm p-2">
             {[
               { q: "¿Tengo que comprarles los GPS a ustedes?", a: "No. Si ya tenés un proveedor de rastreo satelital, nos integramos vía API para absorber el kilometraje y posiciones automáticamente. Si no tenés, nosotros te proveemos los equipos en comodato (instalación incluida en el alta)." },
               { q: "¿Cómo se previenen los robos de combustible?", a: "El sistema cruza los litros cargados (vía integración con tarjetas de combustible o carga manual) versus el kilometraje real recorrido por el GPS y el consumo teórico del vehículo. Cualquier anomalía salta en rojo en el dashboard." },
@@ -1012,6 +1134,19 @@ export default function LandingPage() {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* Modal de Cotización y Captura de Leads */}
+      <QuoteContactModal
+        open={quoteModalOpen}
+        onOpenChange={setQuoteModalOpen}
+        vehiclesCount={vehiclesCount}
+        tierName={currentTier.type}
+        pricePerVehicle={unitPrice}
+        totalPrice={isEnterprise ? null : calculatedTotalPrice}
+        isAnnual={annualMode}
+        isEnterprise={isEnterprise}
+        maxThreshold={maxThreshold}
+      />
 
     </div>
   );

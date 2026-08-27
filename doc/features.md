@@ -77,7 +77,8 @@ Portainer
 
 Cloudflare R2
 Resend
-Meta API Oficial de WhatsApp
+Evolution API (Docker / Baileys)
+Meta WhatsApp Cloud API (Fallback Enterprise)
 
 ---
 
@@ -142,10 +143,12 @@ Meta API Oficial de WhatsApp
 - **Toma y Entrega de Unidad (Shift Log)**: Al iniciar la jornada, el chofer escanea un código QR en el vehículo (o lo selecciona desde la PWA) registrando kilometraje inicial y estado estético/mecánico básico.
 - **Trazabilidad de Infracciones e Incidentes**: Auditoría histórica de conducción que registra exactamente qué chofer estuvo a cargo del vehículo en cualquier fecha y hora determinada (clave para deslindar responsabilidades ante fotomultas o siniestros).
 
-#### 15. Estrategia de Notificaciones Totales por WhatsApp (API Meta)
-- **Omnicanalidad orientada a WhatsApp**: Enviar el 100% de las notificaciones (alertas preventivas de mantenimiento, vencimientos de VTV/seguros/licencias y avisos de incidentes) directamente por WhatsApp utilizando la API Oficial de Meta.
-- **Plantillas Oficiales Homologadas (HSM)**: Configuración de plantillas pre-aprobadas en Meta para garantización de entrega instantánea a teléfonos de administradores y choferes.
-- **Resguardo por Mail**: Copia en simultáneo por correo electrónico (Resend) para archivo contable.
+#### 15. Estrategia de Notificaciones por WhatsApp (Evolution API & Meta Fallback)
+- **Omnicanalidad orientada a WhatsApp**: Enviar el 100% de las notificaciones operativas (alertas preventivas de mantenimiento, vencimientos de VTV/seguros/licencias, salidas de geocerca e infracciones de horarios) directamente por WhatsApp.
+- **Motor Modular (`WhatsAppProvider`) con Evolution API**: Despacho a costo $0 por mensaje mediante instancia de Evolution API (Docker), permitiendo formato libre (emojis, negritas, links directos a la ficha del vehículo) sin burocracia de aprobación previa de plantillas.
+- **Protocolo de Protección Anti-Baneo**: Políticas de warm-up de línea, mensaje de bienvenida que instruye al usuario a agendar el contacto de Prada, delays humanos entre disparos (1-3 seg) y opción de pausar avisos.
+- **Fallback Enterprise a Meta Cloud API**: Compatibilidad nativa lista para alternar a la API Oficial de Meta con plantillas homologadas si se requiere certificación con tilde verde a gran escala.
+- **Resguardo por Mail**: Copia en simultáneo por correo electrónico (Resend) para archivo y registro administrativo.
 
 #### 16. Desglose de Costos de Taller y Repuestos (no al menos mvp)
 - **Categorización de Gastos de Service**: Registro detallado separando:
@@ -192,8 +195,15 @@ http://trackops.com.ar/
 
 
 2da fase:
-
-Implementacion de chatbot por whatsapp con MCP para que los choferes puedan consultar el estado de su unidad, kilometraje, vencimientos, etc. y que el sistema les pueda responder automaticamente. O para subir pdfs, o varias cosas.
+- **Chatbot Inteligente por WhatsApp con MCP (Model Context Protocol)**:
+  - Canal interactivo bidireccional alimentado por los webhooks de Evolution API.
+  - Los choferes y administradores pueden chatear con el bot en lenguaje natural para:
+    - Consultar ubicación en tiempo real de unidades en mapa.
+    - Conocer el kilometraje actual y próximos services pendientes.
+    - Consultar vencimientos de VTV, seguros y licencias de conducir.
+    - Cargar fotos de tickets de combustible con extracción automática OCR por IA (patente, litros, monto).
+    - Subir remitos y documentos en PDF directamente por WhatsApp.
+    - Reportar averías mecánicas o incidentes viales al instante.
 
 Hacer GEO/SEO para mejorar posicionamiento de la web
 

@@ -22,7 +22,7 @@ export default function BentoCard({ children, className = "" }: BentoCardProps) 
     <div
       ref={ref}
       onMouseMove={handleMouseMove}
-      className={`group relative overflow-hidden border border-[#EAEAEA] bg-white rounded-2xl p-8 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#DDD9CE] hover:shadow-[0_16px_40px_-20px_rgba(30,34,39,0.18)] ${className}`}
+      className={`group relative overflow-hidden border border-[#1E2227] bg-white rounded-2xl p-8 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_16px_40px_-20px_rgba(30,34,39,0.18)] ${className}`}
     >
       <div
         aria-hidden

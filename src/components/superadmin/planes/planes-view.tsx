@@ -386,10 +386,10 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
               <TableHead className="text-xs uppercase tracking-wider font-semibold">Plan</TableHead>
               <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Rango Flota</TableHead>
               <TableHead className="text-xs uppercase tracking-wider font-semibold text-right">
-                {isAnnualBilling ? "Precio Anual (ARS)" : "Precio Mensual (ARS)"}
+                {isAnnualBilling ? "Precio Anual / Vehículo" : "Precio Mensual / Vehículo"}
               </TableHead>
               <TableHead className="text-xs uppercase tracking-wider font-semibold text-right">
-                {isAnnualBilling ? "Equivalente Mensual" : "Precio Anual"}
+                {isAnnualBilling ? "Equiv. Mensual / Veh." : "Precio Anual / Veh."}
               </TableHead>
               <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Empresas Asignadas</TableHead>
               <TableHead className="text-xs uppercase tracking-wider font-semibold text-right pr-6">Acciones</TableHead>
@@ -525,7 +525,7 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-                    Precio Mensual (ARS) *
+                    Precio Mensual por Vehículo (ARS) *
                   </label>
                   <Input
                     type="number"
@@ -540,18 +540,18 @@ export function PlanesView({ plans: initialPlans = [] }: PlanesViewProps) {
                         precioAnual: mensual > 0 ? calcAnnualPrice(mensual, discountPct) : "",
                       });
                     }}
-                    placeholder="Ej. 64900"
+                    placeholder="Ej. 12500"
                     required
                   />
                   {planForm.precioMensual > 0 && (
                     <p className="text-[11px] text-muted-foreground mt-1">
-                      Anual auto: 12× con {discountPct}% dto.
+                      Precio unitario por cada vehículo. Anual auto: 12× con {discountPct}% dto.
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-                    Precio Anual (ARS) <span className="font-normal text-muted-foreground">· auto</span>
+                    Precio Anual por Vehículo <span className="font-normal text-muted-foreground">· auto</span>
                   </label>
                   <Input
                     type="number"

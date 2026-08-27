@@ -82,11 +82,6 @@
   .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl {
     box-shadow: none !important;
   }
-  
-  .border {
-    border-width: 1px !important;
-    border-color: hsl(var(--border)) !important;
-  }
 }
 
 @layer utilities {

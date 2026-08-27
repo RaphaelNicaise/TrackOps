@@ -6,11 +6,11 @@ import { asc } from "drizzle-orm";
 export const dynamic = "force-dynamic";
 
 const FALLBACK = [
-  { id: 1, nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 39990, precioAnual: 399900, activo: 1 },
-  { id: 2, nombre: "Crecimiento", minVehiculos: 6, maxVehiculos: 15, precioMensual: 64900, precioAnual: 649000, activo: 1 },
-  { id: 3, nombre: "Consolidada", minVehiculos: 16, maxVehiculos: 30, precioMensual: 99900, precioAnual: 999000, activo: 1 },
-  { id: 4, nombre: "Masiva", minVehiculos: 31, maxVehiculos: 49, precioMensual: 149900, precioAnual: 1499000, activo: 1 },
-  { id: 5, nombre: "Enterprise", minVehiculos: 50, maxVehiculos: null, precioMensual: 199900, precioAnual: 1999000, activo: 1 },
+  { id: 1, nombre: "Inicial", minVehiculos: 1, maxVehiculos: 5, precioMensual: 14900, precioAnual: 149000, activo: 1 },
+  { id: 2, nombre: "Crecimiento", minVehiculos: 6, maxVehiculos: 15, precioMensual: 12500, precioAnual: 125000, activo: 1 },
+  { id: 3, nombre: "Consolidada", minVehiculos: 16, maxVehiculos: 30, precioMensual: 10500, precioAnual: 105000, activo: 1 },
+  { id: 4, nombre: "Masiva", minVehiculos: 31, maxVehiculos: 49, precioMensual: 8900, precioAnual: 89000, activo: 1 },
+  { id: 5, nombre: "Enterprise", minVehiculos: 50, maxVehiculos: null, precioMensual: 0, precioAnual: 0, activo: 1 },
 ];
 
 export async function GET() {

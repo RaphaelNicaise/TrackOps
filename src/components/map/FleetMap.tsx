@@ -87,6 +87,7 @@ if (typeof window !== "undefined") {
 }
 
 import type { SitioRow } from "@/types/flota-viajes";
+import type { MockVehiculo } from "@/lib/mock-vehicles";
 
 const defaultCenter = { lat: -38.7183, lng: -62.2663 }; // Bahia Blanca
 
