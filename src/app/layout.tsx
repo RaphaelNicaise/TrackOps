@@ -19,8 +19,31 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TRACKOPS - Control & Mantenimiento de Flota",
-  description: "Plataforma de gestión de flota, bitácora de mantenimiento, tracking GPS y analíticas.",
+  metadataBase: new URL('https://prada-coral.vercel.app'),
+  title: 'TrackOps - Gestión y Telemetría de Flotas',
+  description: 'Rastreo satelital híbrido, mantenimiento predictivo y alertas operativas vía WhatsApp.',
+  openGraph: {
+    title: 'TrackOps - Gestión y Telemetría de Flotas',
+    description: 'Rastreo satelital híbrido, mantenimiento predictivo y alertas operativas vía WhatsApp.',
+    url: 'https://prada-coral.vercel.app',
+    siteName: 'TrackOps',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'TrackOps Dashboard',
+      },
+    ],
+    locale: 'es_AR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TrackOps - Gestión y Telemetría de Flotas',
+    description: 'Rastreo satelital híbrido, mantenimiento predictivo y alertas operativas vía WhatsApp.',
+    images: ['/og-image.png'],
+  },
 };
 
 import { AppAlertProvider } from "@/components/ui/app-alert-provider";

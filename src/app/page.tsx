@@ -658,49 +658,21 @@ export default function LandingPage() {
           </div>
 
           <div className="bg-[#181B1F] border border-[#333] rounded-2xl overflow-hidden shadow-2xl">
-            {/* Mobile View (< md) */}
-            <div className="md:hidden divide-y divide-[#333]">
-              {COMPARISON_ROWS.map((row, i) => (
-                <div key={i} className="p-4 space-y-3">
-                  <div className="text-xs font-mono uppercase tracking-wider text-[#F2B705] font-bold">
-                    {row.area}
-                  </div>
-                  <div className="grid grid-cols-1 gap-2 text-sm">
-                    <div className="bg-[#1F2429] p-3 rounded-lg border border-[#333] text-[#A1A1AA] flex items-start gap-2.5">
-                      <X size={16} className="text-red-400 opacity-80 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-xs font-semibold text-[#787774] block mb-0.5">Sin TrackOps</span>
-                        <span className="leading-relaxed">{row.sinTrackOps}</span>
-                      </div>
-                    </div>
-                    <div className="bg-[#222830] p-3 rounded-lg border border-[#F2B705]/20 text-white flex items-start gap-2.5">
-                      <Check size={16} className="text-[#F2B705] shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-xs font-semibold text-[#F2B705] block mb-0.5">Ecosistema TrackOps</span>
-                        <span className="leading-relaxed">{row.conTrackOps}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop Table (>= md) */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="overflow-x-auto">
               <Table className="w-full">
                 <TableHeader>
                   <TableRow className="border-[#333] hover:bg-transparent">
-                    <TableHead className="w-[25%] py-6 px-4 md:px-6 text-white font-medium text-base md:text-lg">Área Operativa</TableHead>
-                    <TableHead className="w-[35%] py-4 md:py-6 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-lg border-l border-[#333]">Sin TrackOps</TableHead>
-                    <TableHead className="w-[40%] py-4 md:py-6 px-3 md:px-6 text-[#F2B705] text-sm md:text-lg font-bold border-l border-[#333] bg-[#222830]">Ecosistema TrackOps</TableHead>
+                    <TableHead className="hidden md:table-cell w-[25%] py-6 px-4 md:px-6 text-white font-medium text-base md:text-lg">Área Operativa</TableHead>
+                    <TableHead className="w-1/2 md:w-[35%] py-4 md:py-6 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-lg border-l-0 md:border-l border-[#333]">Sin TrackOps</TableHead>
+                    <TableHead className="w-1/2 md:w-[40%] py-4 md:py-6 px-3 md:px-6 text-[#F2B705] text-sm md:text-lg font-bold border-l border-[#333] bg-[#222830]">Ecosistema TrackOps</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {COMPARISON_ROWS.map((row, i) => (
                     <TableRow key={i} className={`border-[#333] hover:bg-[#1A1E22] transition-colors ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}>
-                      <TableCell className={`py-6 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}>{row.area}</TableCell>
-                      <TableCell className={`py-6 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-sm md:text-base border-l border-[#333] leading-relaxed ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> {row.sinTrackOps}</TableCell>
-                      <TableCell className={`py-6 md:py-8 px-3 md:px-6 text-white text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> {row.conTrackOps}</TableCell>
+                      <TableCell className={`hidden md:table-cell py-4 md:py-8 px-4 md:px-6 font-medium text-white text-sm md:text-base ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}>{row.area}</TableCell>
+                      <TableCell className={`w-1/2 md:w-[35%] py-4 md:py-8 px-3 md:px-6 text-[#A1A1AA] text-xs sm:text-sm md:text-base border-l-0 md:border-l border-[#333] leading-relaxed ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}><X size={16} className="inline mr-1 md:mr-2 text-red-400 opacity-60 flex-shrink-0 align-text-bottom"/> {row.sinTrackOps}</TableCell>
+                      <TableCell className={`w-1/2 md:w-[40%] py-4 md:py-8 px-3 md:px-6 text-white text-xs sm:text-sm md:text-base border-l border-[#333] bg-[#222830] leading-relaxed ${i === COMPARISON_ROWS.length - 1 ? 'border-b-0' : ''}`}><Check size={16} className="inline mr-1 md:mr-2 text-[#F2B705] flex-shrink-0 align-text-bottom"/> {row.conTrackOps}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
