@@ -83,10 +83,20 @@ const COMPARISON_ROWS = [
   },
 ];
 
+const NAV_SECTIONS = [
+  { id: "como-funciona", label: "Cómo funciona" },
+  { id: "por-que-trackops", label: "Por qué TrackOps" },
+  { id: "soluciones", label: "Soluciones" },
+  { id: "precios", label: "Precios" },
+  { id: "faq", label: "FAQ" },
+];
+
 export default function LandingPage() {
   const heroTextRef = useRef(null);
   const navbarRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -146,9 +156,13 @@ export default function LandingPage() {
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
-    const target = document.querySelector(targetId);
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(targetId, { offset: -70 });
+    } else {
+      const target = document.querySelector(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth" });
+      }
     }
     setMobileMenuOpen(false);
   };
@@ -162,8 +176,67 @@ export default function LandingPage() {
       smoothWheel: true,
       wheelMultiplier: 1,
     });
+    lenisRef.current = lenis;
+
+    const checkActiveSection = () => {
+      const scrollY = window.scrollY || window.pageYOffset;
+      const viewportHeight = window.innerHeight;
+      const scrollHeight = document.documentElement.scrollHeight;
+
+      // 1. Si estamos en el Hero (antes de la primera sección) -> No marcar nada
+      const firstSection = document.getElementById("como-funciona");
+      if (!firstSection) {
+        setActiveSection(null);
+        return;
+      }
+
+      const firstRect = firstSection.getBoundingClientRect();
+      if (scrollY < 260 || firstRect.top > viewportHeight * 0.45) {
+        setActiveSection(null);
+        return;
+      }
+
+      // 2. Si estamos en el fondo de la página -> Marcar la última sección (faq)
+      if (scrollY + viewportHeight >= scrollHeight - 60) {
+        setActiveSection("faq");
+        return;
+      }
+
+      // 3. Evaluar cada sección en su orden visual exacto
+      const triggerOffset = 180;
+      let current: string | null = null;
+
+      for (let i = 0; i < NAV_SECTIONS.length; i++) {
+        const sec = NAV_SECTIONS[i];
+        const el = document.getElementById(sec.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= triggerOffset && rect.bottom > triggerOffset) {
+            current = sec.id;
+            break;
+          }
+        }
+      }
+
+      if (!current) {
+        for (let i = NAV_SECTIONS.length - 1; i >= 0; i--) {
+          const el = document.getElementById(NAV_SECTIONS[i].id);
+          if (el && el.getBoundingClientRect().top <= triggerOffset) {
+            current = NAV_SECTIONS[i].id;
+            break;
+          }
+        }
+      }
+
+      setActiveSection(current);
+    };
+
+    checkActiveSection();
+    window.addEventListener("scroll", checkActiveSection, { passive: true });
+    window.addEventListener("resize", checkActiveSection, { passive: true });
 
     lenis.on('scroll', (e: any) => {
+      checkActiveSection();
       if (!navbarRef.current || !headerRef.current) return;
       
       const scrollY = e.animatedScroll;
@@ -311,7 +384,10 @@ export default function LandingPage() {
     }
 
     return () => {
+      window.removeEventListener("scroll", checkActiveSection);
+      window.removeEventListener("resize", checkActiveSection);
       lenis.destroy();
+      lenisRef.current = null;
       stepsMM.revert();
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
@@ -350,42 +426,31 @@ export default function LandingPage() {
           </Link>
           
           {/* Centro: Píldora de Navegación */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 bg-white/80 backdrop-blur-md border border-[#1E2227] px-4 py-1.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-            <a
-              href="#soluciones"
-              onClick={(e) => handleSmoothScroll(e, '#soluciones')}
-              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
-            >
-              Soluciones
-            </a>
-            <a
-              href="#como-funciona"
-              onClick={(e) => handleSmoothScroll(e, '#como-funciona')}
-              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
-            >
-              Cómo funciona
-            </a>
-            <a
-              href="#por-que-trackops"
-              onClick={(e) => handleSmoothScroll(e, '#por-que-trackops')}
-              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
-            >
-              Por qué TrackOps
-            </a>
-            <a
-              href="#precios"
-              onClick={(e) => handleSmoothScroll(e, '#precios')}
-              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
-            >
-              Precios
-            </a>
-            <a
-              href="#faq"
-              onClick={(e) => handleSmoothScroll(e, '#faq')}
-              className="text-xs xl:text-sm font-medium text-[#787774] hover:text-[#1E2227] px-3 py-1.5 rounded-full hover:bg-black/5 transition-all duration-200 whitespace-nowrap"
-            >
-              FAQ
-            </a>
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 bg-white/80 backdrop-blur-md border border-[#1E2227] px-3 py-1.5 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+            {NAV_SECTIONS.map((section) => {
+              const isActive = activeSection === section.id;
+              return (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  onClick={(e) => handleSmoothScroll(e, `#${section.id}`)}
+                  className={`relative text-xs xl:text-sm font-medium px-3.5 py-1.5 rounded-full transition-colors duration-200 whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? "text-white font-semibold"
+                      : "text-[#787774] hover:text-[#1E2227] hover:bg-black/5"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="active-navbar-pill"
+                      className="absolute inset-0 bg-[#1E2227] rounded-full z-0 shadow-sm"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{section.label}</span>
+                </a>
+              );
+            })}
           </nav>
           
           {/* Derecha: Acceso & Conversión */}
@@ -421,13 +486,26 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl pt-28 px-6 flex flex-col gap-3 lg:hidden border-b border-[#EAEAEA] shadow-2xl h-auto pb-8 overflow-y-auto"
+            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-xl pt-28 px-6 flex flex-col gap-2 lg:hidden border-b border-[#EAEAEA] shadow-2xl h-auto pb-8 overflow-y-auto"
           >
-            <a href="#soluciones" onClick={(e) => handleSmoothScroll(e, '#soluciones')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Soluciones</a>
-            <a href="#como-funciona" onClick={(e) => handleSmoothScroll(e, '#como-funciona')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Cómo funciona</a>
-            <a href="#por-que-trackops" onClick={(e) => handleSmoothScroll(e, '#por-que-trackops')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Por qué TrackOps</a>
-            <a href="#precios" onClick={(e) => handleSmoothScroll(e, '#precios')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Precios</a>
-            <a href="#faq" onClick={(e) => handleSmoothScroll(e, '#faq')} className="text-base font-medium text-[#1E2227] border-b border-[#EAEAEA] pb-3">Preguntas Frecuentes</a>
+            {NAV_SECTIONS.map((section) => {
+              const isActive = activeSection === section.id;
+              return (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  onClick={(e) => handleSmoothScroll(e, `#${section.id}`)}
+                  className={`text-base font-medium py-3 px-4 rounded-xl transition-all border-b border-[#EAEAEA] flex items-center justify-between cursor-pointer ${
+                    isActive
+                      ? "bg-[#1E2227] text-white font-semibold border-transparent"
+                      : "text-[#1E2227] hover:bg-black/5"
+                  }`}
+                >
+                  <span>{section.label}</span>
+                  {isActive && <span className="w-2 h-2 rounded-full bg-[#F2B705]" />}
+                </a>
+              );
+            })}
             
             <div className="flex flex-col gap-3 pt-3">
               <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center gap-2 text-sm font-semibold text-[#1E2227] py-3 rounded-xl border border-[#EAEAEA] bg-[#F6F4EE]">
